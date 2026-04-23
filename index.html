@@ -440,7 +440,7 @@
     }
     @media (min-width: 641px) {
       .conv-delete-desk {
-        display: none;
+        display: inline-flex;
         align-items: center;
         justify-content: center;
         width: 28px;
@@ -453,9 +453,10 @@
         flex-shrink: 0;
         border-radius: 8px;
         -webkit-tap-highlight-color: transparent;
+        visibility: hidden;
       }
       .conv:hover .conv-delete-desk {
-        display: inline-flex;
+        visibility: visible;
       }
     }
     @media (max-width: 640px) {
