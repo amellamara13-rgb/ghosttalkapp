@@ -449,10 +449,7 @@
         padding: 0;
         border: none;
         background: transparent;
-        color: var(--fg);
         cursor: pointer;
-        font-size: 16px;
-        line-height: 1;
         flex-shrink: 0;
         border-radius: 8px;
         -webkit-tap-highlight-color: transparent;
@@ -512,12 +509,32 @@
       text-overflow: ellipsis;
     }
     .conv .time { font-size: 11px; color: var(--muted); flex-shrink: 0; }
-    .conv-right-meta {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      gap: 6px;
+    .conv-left {
+      width: 28px;
       flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      align-self: stretch;
+      position: relative;
+      margin-right: 2px;
+    }
+    .conv-notif-bar {
+      width: 3px;
+      height: 28px;
+      background: var(--accent);
+      border-radius: 0 2px 2px 0;
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+    .conv-notif-count {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--accent);
+      line-height: 1;
     }
     .title.is-unread {
       font-weight: 700;
@@ -3790,15 +3807,16 @@
       surface.className = 'conv-surface';
       var div = document.createElement('div');
       div.className = 'conv' + (contact.id === activeId ? ' active' : '');
+      var leftHtml = hasUnread
+        ? '<div class="conv-notif-bar"></div><span class="conv-notif-count">' + escapeHtml(String(unreadCount)) + '</span>'
+        : '';
       div.innerHTML =
+        '<div class="conv-left">' + leftHtml + '</div>' +
         '<span class="conv-avatar" style="background:' + avatar.color + ';">' + escapeHtml(avatar.initial) + '</span>' +
         '<div class="conv-main">' +
           '<div class="conv-title-row">' +
             '<span class="' + titleUnreadClass + '">' + contactDisplayNameHtml(contact.name) + '</span>' +
-            '<div class="conv-right-meta">' +
-              '<span class="time">' + escapeHtml(timeStr) + '</span>' +
-              badgeHtml +
-            '</div>' +
+            '<span class="time">' + escapeHtml(timeStr) + '</span>' +
           '</div>' +
           '<div class="' + previewUnreadClass + '">' + escapeHtml(preview) + '</div>' +
         '</div>' +
