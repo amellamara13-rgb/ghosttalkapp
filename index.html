@@ -547,6 +547,20 @@
       line-height: 1.35;
       word-break: break-word;
     }
+    .bubble.is-preserved {
+      font-weight: 700;
+    }
+    .bubble-preserved-label {
+      display: none;
+      margin-top: 4px;
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.2;
+    }
+    .bubble-wrap:hover .bubble-preserved-label,
+    .messages--reveal-preserved .bubble-preserved-label {
+      display: block;
+    }
     .row:not(.me) .bubble {
       background: var(--bubble-them);
       color: var(--fg);
@@ -642,6 +656,11 @@
     }
     .msg-context-item:hover { background: var(--surface-2); }
     .msg-context-item.danger { color: var(--danger); }
+    .msg-context-item.is-disabled {
+      opacity: 0.6;
+      cursor: default;
+      pointer-events: none;
+    }
     .reaction-picker {
       position: fixed;
       z-index: 4999;
@@ -2159,6 +2178,7 @@
   </div>
 
   <div id="msg-context-menu" class="msg-context-menu" role="menu" hidden>
+    <button type="button" class="msg-context-item" id="ctx-preserve-msg" role="menuitem">🔖 Conserver ce message</button>
     <button type="button" class="msg-context-item danger" id="ctx-delete-msg" role="menuitem">🗑️ Supprimer</button>
   </div>
   <div id="reaction-picker" class="reaction-picker" hidden role="listbox" aria-label="Réactions">
@@ -2741,6 +2761,9 @@
             cipher: typeof data.cipher === 'string' ? data.cipher : encryptUtf8(String(data.text || ''), ''),
             at: at,
             expiresAt: (typeof data.expiresAt === 'number' && isFinite(data.expiresAt)) ? data.expiresAt : null,
+            ephemeralMode: data.ephemeralMode === 'on_read' ? 'on_read' : null,
+            preserved: data.preserved === true,
+            preservedBy: typeof data.preservedBy === 'string' ? data.preservedBy : null,
             replyTo: replyToObj,
             replyToLegacy: replyToLegacy,
             readAt: readAtMs,
@@ -2748,7 +2771,9 @@
           });
         });
         state.directMessages = remoteMessages.sort(function (a, b) { return (a.at || 0) - (b.at || 0); });
-        purgeExpiredMessages();
+        purgeExpiredMessages().then(function () {
+          return purgeOnReadSenderMessages();
+        }).catch(function () {});
       }, function () {
         // Fallback silencieux: l'app continue en local si Firestore échoue.
       });
@@ -2775,6 +2800,7 @@
   var readDeleteTimer = null;
   var conversationMenuOpen = false;
   var ephemeralTimers = Object.create(null);
+  var ephemeralSweepTimer = null;
   var contextMenuMsgId = null;
   var longPressTimer = null;
   var longPressStart = null;
@@ -2782,6 +2808,7 @@
   var deleteConfirmAction = null;
   var reactionPickerMsgId = null;
   var messageMetasRevealTimeout = null;
+  var preservedLabelRevealTimeout = null;
   var suppressNextBubbleClick = false;
   var desktopLongPressTimer = null;
 
@@ -2992,7 +3019,7 @@
 
   function formatEphemeralDelayLabel(delaySeconds) {
     if (!delaySeconds) return 'Désactivé';
-    if (delaySeconds === 30) return '30 sec';
+    if (delaySeconds === 'on_read') return 'Dès la lecture';
     if (delaySeconds === 60) return '1 min';
     if (delaySeconds === 300) return '5 min';
     if (delaySeconds === 3600) return '1 h';
@@ -3054,10 +3081,40 @@
     reactionPickerMsgId = null;
   }
 
+  function getMessageById(messageId) {
+    if (!messageId) return null;
+    ensureData();
+    for (var i = 0; i < state.directMessages.length; i++) {
+      if (state.directMessages[i].id === messageId) return state.directMessages[i];
+    }
+    return null;
+  }
+
+  function revealPreservedLabelsTemporarily() {
+    var b = document.getElementById('messages');
+    if (!b) return;
+    b.classList.add('messages--reveal-preserved');
+    if (preservedLabelRevealTimeout) clearTimeout(preservedLabelRevealTimeout);
+    preservedLabelRevealTimeout = setTimeout(function () {
+      preservedLabelRevealTimeout = null;
+      var b2 = document.getElementById('messages');
+      if (b2) b2.classList.remove('messages--reveal-preserved');
+    }, 2000);
+  }
+
   function clearEphemeralTimerForMessage(messageId) {
     if (!messageId || !ephemeralTimers[messageId]) return;
     window.clearTimeout(ephemeralTimers[messageId]);
     delete ephemeralTimers[messageId];
+  }
+
+  function startEphemeralSweepLoop() {
+    if (ephemeralSweepTimer) clearInterval(ephemeralSweepTimer);
+    ephemeralSweepTimer = setInterval(function () {
+      purgeExpiredMessages().then(function () {
+        return purgeOnReadSenderMessages();
+      }).catch(function () {});
+    }, 15000);
   }
 
   function syncEphemeralTimers() {
@@ -3084,40 +3141,67 @@
     });
   }
 
+  function purgeMessagesByIds(messageIds) {
+    if (!Array.isArray(messageIds) || !messageIds.length) return Promise.resolve();
+    ensureData();
+    var idMap = Object.create(null);
+    messageIds.forEach(function (id) {
+      if (!id || idMap[id]) return;
+      idMap[id] = true;
+      clearEphemeralTimerForMessage(id);
+    });
+    var ids = Object.keys(idMap);
+    if (!ids.length) return Promise.resolve();
+    state.directMessages = state.directMessages.filter(function (m) {
+      return !idMap[m.id];
+    });
+    saveState(state);
+    renderMessages();
+    renderConvList();
+    syncEphemeralTimers();
+    if (demoMode) return Promise.resolve();
+    initFirebase();
+    if (!firestoreDb) return Promise.resolve();
+    return Promise.all(ids.map(function (id) {
+      return firestoreDb.collection('messages').doc(id).delete().catch(function () {});
+    })).then(function () {});
+  }
+
+  function purgeOnReadSenderMessages() {
+    ensureData();
+    var ids = [];
+    state.directMessages.forEach(function (m) {
+      if (!m || m.preserved === true) return;
+      if (m.ephemeralMode !== 'on_read') return;
+      if (m.me && m.readAt != null) ids.push(m.id);
+    });
+    return purgeMessagesByIds(ids);
+  }
+
+  function purgeOnReadRecipientMessagesForConversation(contactId) {
+    if (!contactId) return Promise.resolve();
+    ensureData();
+    var ids = [];
+    state.directMessages.forEach(function (m) {
+      if (!m || m.preserved === true) return;
+      if (m.ephemeralMode !== 'on_read') return;
+      if (m.contactId === contactId && !m.me) ids.push(m.id);
+    });
+    return purgeMessagesByIds(ids);
+  }
+
   function purgeExpiredMessages() {
     ensureData();
     var now = Date.now();
     var expiredIds = [];
     state.directMessages.forEach(function (m) {
-      if (m && typeof m.id === 'string' && typeof m.expiresAt === 'number' && isFinite(m.expiresAt) && m.expiresAt <= now) {
+      if (m && m.preserved !== true && typeof m.id === 'string' && typeof m.expiresAt === 'number' && isFinite(m.expiresAt) && m.expiresAt <= now) {
         expiredIds.push(m.id);
       }
     });
-    if (!expiredIds.length) {
+    return purgeMessagesByIds(expiredIds).then(function () {
       syncEphemeralTimers();
-      return Promise.resolve();
-    }
-    var expiredMap = Object.create(null);
-    expiredIds.forEach(function (id) {
-      expiredMap[id] = true;
-      clearEphemeralTimerForMessage(id);
     });
-    state.directMessages = state.directMessages.filter(function (m) {
-      return !expiredMap[m.id];
-    });
-    saveState(state);
-    renderConvList();
-    renderMessages();
-    syncEphemeralTimers();
-    if (!demoMode) {
-      initFirebase();
-      if (firestoreDb) {
-        return Promise.all(expiredIds.map(function (id) {
-          return firestoreDb.collection('messages').doc(id).delete().catch(function () {});
-        })).then(function () {});
-      }
-    }
-    return Promise.resolve();
   }
 
   function showReactionPicker(clientX, clientY, msgId) {
@@ -3133,6 +3217,29 @@
     contextMenuMsgId = messageId;
     var el = document.getElementById('msg-context-menu');
     if (!el) return;
+    var preserveBtn = document.getElementById('ctx-preserve-msg');
+    var deleteBtn = document.getElementById('ctx-delete-msg');
+    var msg = getMessageById(messageId);
+    var me = currentUsername();
+    if (preserveBtn && msg) {
+      preserveBtn.classList.remove('is-disabled');
+      preserveBtn.disabled = false;
+      if (msg.preserved === true) {
+        if (msg.preservedBy && me && msg.preservedBy !== me) {
+          preserveBtn.textContent = '🔖 Conservé par ' + msg.preservedBy;
+          preserveBtn.classList.add('is-disabled');
+          preserveBtn.disabled = true;
+        } else {
+          preserveBtn.textContent = 'Retirer la conservation';
+        }
+      } else {
+        preserveBtn.textContent = '🔖 Conserver ce message';
+      }
+    }
+    if (deleteBtn) {
+      var canDelete = !!(msg && msg.me);
+      deleteBtn.style.display = canDelete ? 'block' : 'none';
+    }
     el.hidden = false;
     el.style.left = Math.min(clientX, window.innerWidth - 180) + 'px';
     el.style.top = Math.min(clientY, window.innerHeight - 52) + 'px';
@@ -3242,6 +3349,37 @@
     return Promise.resolve();
   }
 
+  function setMessagePreserved(messageId, shouldPreserve) {
+    if (!messageId) return Promise.resolve();
+    ensureData();
+    var me = currentUsername();
+    var msg = getMessageById(messageId);
+    if (!msg) return Promise.resolve();
+    if (msg.preserved === true && msg.preservedBy && me && msg.preservedBy !== me && !shouldPreserve) {
+      return Promise.resolve();
+    }
+    msg.preserved = !!shouldPreserve;
+    msg.preservedBy = shouldPreserve ? (me || null) : null;
+    saveState(state);
+    renderMessages();
+    renderConvList();
+    if (msg.preserved) {
+      clearEphemeralTimerForMessage(messageId);
+    } else {
+      syncEphemeralTimers();
+      purgeExpiredMessages().then(function () {
+        return purgeOnReadSenderMessages();
+      }).catch(function () {});
+    }
+    if (demoMode) return Promise.resolve();
+    initFirebase();
+    if (!firestoreDb) return Promise.resolve();
+    return firestoreDb.collection('messages').doc(messageId).update({
+      preserved: !!shouldPreserve,
+      preservedBy: shouldPreserve ? (me || null) : null
+    }).catch(function () {});
+  }
+
   function deleteLocalConversation(contactId) {
     if (!contactId) return;
     ensureData();
@@ -3276,7 +3414,7 @@
 
   var EPHEMERAL_DELAY_OPTIONS = [
     { value: null, label: 'Désactivé' },
-    { value: 30, label: '30 secondes' },
+    { value: 'on_read', label: '👁 Dès la lecture' },
     { value: 60, label: '1 minute' },
     { value: 300, label: '5 minutes' },
     { value: 3600, label: '1 heure' },
@@ -3531,8 +3669,12 @@
   }
 
   function selectConv(id) {
+    var previousId = activeId;
     activeId = id;
     closeConversationMenu();
+    if (previousId && previousId !== id) {
+      purgeOnReadRecipientMessagesForConversation(previousId).catch(function () {});
+    }
     var contact = getContactById(id);
     if (!contact) {
       document.getElementById('chat-empty').style.display = 'flex';
@@ -3768,6 +3910,7 @@
       }
       var b = document.createElement('div');
       b.className = 'bubble';
+      if (m.preserved === true) b.classList.add('is-preserved');
       try {
         b.appendChild(document.createTextNode(decryptUtf8(m.cipher, passphrase)));
       } catch (err) {
@@ -3781,6 +3924,12 @@
         b.appendChild(readEl);
       }
       wrap.appendChild(b);
+      if (m.preserved === true && m.preservedBy) {
+        var preservedLabel = document.createElement('div');
+        preservedLabel.className = 'bubble-preserved-label';
+        preservedLabel.textContent = 'Conservé par ' + m.preservedBy;
+        wrap.appendChild(preservedLabel);
+      }
       appendReactionRow(wrap, m);
       var d = new Date(m.at || Date.now());
       var timeEl = document.createElement('span');
@@ -3821,8 +3970,9 @@
     var to = normalizeContactName(contact.name);
     var cipher = encryptUtf8(text, '');
     var nowTs = Date.now();
-    var ephemeralDelay = (contact && typeof contact.ephemeralDelay === 'number') ? contact.ephemeralDelay : null;
-    var expiresAt = ephemeralDelay ? (nowTs + (ephemeralDelay * 1000)) : null;
+    var ephemeralDelay = contact ? contact.ephemeralDelay : null;
+    var expiresAt = (typeof ephemeralDelay === 'number') ? (nowTs + (ephemeralDelay * 1000)) : null;
+    var ephemeralMode = ephemeralDelay === 'on_read' ? 'on_read' : null;
     ensureData();
     input.value = '';
     if (demoMode) {
@@ -3833,6 +3983,9 @@
         cipher: cipher,
         at: nowTs,
         expiresAt: expiresAt,
+        ephemeralMode: ephemeralMode,
+        preserved: false,
+        preservedBy: null,
         replyTo: null,
         replyToLegacy: null,
         readAt: null,
@@ -3854,6 +4007,7 @@
         atMs: nowTs
       };
       if (expiresAt) docPayload.expiresAt = expiresAt;
+      if (ephemeralMode) docPayload.ephemeralMode = ephemeralMode;
       firestoreDb.collection('messages').add(docPayload).catch(function () {
         state.directMessages.push({
           id: nowId(),
@@ -3862,6 +4016,9 @@
           cipher: cipher,
           at: nowTs,
           expiresAt: expiresAt,
+          ephemeralMode: ephemeralMode,
+          preserved: false,
+          preservedBy: null,
           replyTo: null,
           replyToLegacy: null,
           readAt: null,
@@ -3881,6 +4038,9 @@
       cipher: cipher,
       at: nowTs,
       expiresAt: expiresAt,
+      ephemeralMode: ephemeralMode,
+      preserved: false,
+      preservedBy: null,
       replyTo: null,
       replyToLegacy: null,
       readAt: null,
@@ -4310,6 +4470,7 @@
       bindIdleLockListeners();
       applyPrivacyGuards();
       syncDemoModeBadge();
+      startEphemeralSweepLoop();
       return;
     }
     window.__secureChatReady = true;
@@ -4319,6 +4480,8 @@
 
     ensureData();
     purgeExpiredMessages();
+    purgeOnReadSenderMessages();
+    startEphemeralSweepLoop();
 
     document.getElementById('privacy-close').addEventListener('click', closePrivacyModal);
     document.getElementById('privacy-overlay').addEventListener('click', function (e) {
@@ -4539,7 +4702,7 @@
         showReactionPicker(e.clientX, e.clientY, id);
       });
       msgBox.addEventListener('contextmenu', function (e) {
-        var wrap = e.target.closest('.bubble-wrap.is-mine');
+        var wrap = e.target.closest('.bubble-wrap');
         if (!wrap) return;
         e.preventDefault();
         var id = wrap.getAttribute('data-msg-id');
@@ -4547,7 +4710,7 @@
       });
       msgBox.addEventListener('mousedown', function (e) {
         if (e.button !== 0) return;
-        var wrap = e.target.closest('.bubble-wrap.is-mine');
+        var wrap = e.target.closest('.bubble-wrap');
         if (!wrap) return;
         clearTimeout(desktopLongPressTimer);
         var id = wrap.getAttribute('data-msg-id');
@@ -4563,7 +4726,7 @@
         }
       });
       msgBox.addEventListener('touchstart', function (e) {
-        var wrap = e.target.closest('.bubble-wrap.is-mine');
+        var wrap = e.target.closest('.bubble-wrap');
         if (!wrap) return;
         longPressStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
         var id = wrap.getAttribute('data-msg-id');
@@ -4571,6 +4734,7 @@
           longPressTimer = null;
           if (id) {
             suppressNextBubbleClick = true;
+            revealPreservedLabelsTemporarily();
             showMsgContextMenu(longPressStart.x, longPressStart.y + 8, id);
           }
         }, 500);
@@ -4617,6 +4781,23 @@
       ctxDel.addEventListener('click', function (e) {
         e.stopPropagation();
         if (contextMenuMsgId) deleteMessageById(contextMenuMsgId);
+      });
+    }
+    var ctxPreserve = document.getElementById('ctx-preserve-msg');
+    if (ctxPreserve) {
+      ctxPreserve.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (!contextMenuMsgId) return;
+        var msg = getMessageById(contextMenuMsgId);
+        if (!msg) return;
+        var me = currentUsername();
+        if (msg.preserved === true && msg.preservedBy && me && msg.preservedBy !== me) return;
+        if (msg.preserved === true) {
+          setMessagePreserved(contextMenuMsgId, false);
+        } else {
+          setMessagePreserved(contextMenuMsgId, true);
+        }
+        hideMsgContextMenu();
       });
     }
 
