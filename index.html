@@ -275,32 +275,62 @@
       display: inline;
     }
     .chat-head-right {
+      position: relative;
       display: flex;
       align-items: center;
       gap: 8px;
       flex-shrink: 0;
     }
-    .conv-emergency-btn {
+    .conv-menu-btn {
       width: 34px;
       height: 34px;
       padding: 0;
-      border: 1px solid rgba(255, 69, 58, 0.22);
+      border: none;
       border-radius: 10px;
-      background: rgba(255, 69, 58, 0.07);
-      color: rgba(255, 69, 58, 0.85);
+      background: transparent;
+      color: var(--muted);
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.1s;
+      font-size: 20px;
+      line-height: 1;
+      font-family: inherit;
+      transition: background 0.15s, color 0.15s, transform 0.1s;
     }
-    .conv-emergency-btn:hover {
-      background: rgba(255, 69, 58, 0.14);
-      border-color: rgba(255, 69, 58, 0.38);
-      color: #ff6a61;
+    .conv-menu-btn:hover {
+      background: var(--surface-2);
+      color: var(--fg);
     }
-    .conv-emergency-btn:active { transform: scale(0.97); }
-    .conv-emergency-btn svg { width: 16px; height: 16px; display: block; }
+    .conv-menu-btn:active { transform: scale(0.97); }
+    .conv-menu-dropdown {
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      z-index: 30;
+      min-width: 220px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      padding: 4px;
+    }
+    .conv-menu-dropdown[hidden] { display: none !important; }
+    .conv-menu-item {
+      display: block;
+      width: 100%;
+      text-align: left;
+      border: none;
+      background: transparent;
+      color: var(--fg);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .conv-menu-item:hover { background: var(--surface-2); }
+    .conv-menu-item.danger { color: var(--danger); }
     header span.sub {
       font-weight: 400;
       font-size: 12px;
@@ -1485,39 +1515,6 @@
       outline: 2px solid var(--accent);
       outline-offset: 2px;
     }
-    .modal-panel--emergency {
-      max-width: 440px;
-      border-color: rgba(255, 69, 58, 0.3);
-    }
-    .modal-panel--emergency .modal-head {
-      background: rgba(255, 69, 58, 0.1);
-      border-bottom-color: rgba(255, 69, 58, 0.25);
-    }
-    .emergency-copy {
-      margin: 0 0 12px;
-      font-size: 14px;
-      color: #ffd3d0;
-      line-height: 1.45;
-    }
-    .emergency-code {
-      margin: 0 0 14px;
-      padding: 10px 12px;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 69, 58, 0.42);
-      background: rgba(255, 69, 58, 0.12);
-      color: #fff2f1;
-      font-size: 20px;
-      font-weight: 700;
-      letter-spacing: 0.18em;
-      text-align: center;
-      user-select: all;
-    }
-    .emergency-error {
-      min-height: 18px;
-      margin: 2px 0 10px;
-      font-size: 13px;
-      color: var(--danger);
-    }
     .btn-danger {
       width: 100%;
       padding: 12px;
@@ -1907,12 +1904,10 @@
             </span>
           </div>
           <div class="chat-head-right">
-            <button type="button" id="btn-conv-emergency" class="conv-emergency-btn" title="Réinitialisation d’urgence" aria-label="Réinitialisation d’urgence" hidden>
-              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2a5 5 0 00-5 5v3H6a2 2 0 00-2 2v7a3 3 0 003 3h10a3 3 0 003-3v-7a2 2 0 00-2-2h-1V7a5 5 0 00-5-5z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M9 10V7a3 3 0 116 0v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-              </svg>
-            </button>
+            <button type="button" id="btn-conv-menu" class="conv-menu-btn" title="Options de conversation" aria-label="Options de conversation" hidden>⋯</button>
+            <div id="conv-menu-dropdown" class="conv-menu-dropdown" role="menu" hidden>
+              <button type="button" id="conv-menu-delete" class="conv-menu-item danger" role="menuitem">🗑️ Supprimer la conversation</button>
+            </div>
           </div>
         </header>
         <div id="chat-empty" class="empty-main">
@@ -2133,23 +2128,6 @@
         <p class="hint" id="pin-message">Entrez votre PIN à 4 chiffres pour confirmer la suppression.</p>
         <input type="password" class="field pin-input" id="pin-input" maxlength="8" placeholder="••••" inputmode="numeric" autocomplete="off" />
         <button type="button" class="btn-primary" id="pin-confirm">Confirmer</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Modal confirmation d'urgence -->
-  <div id="emergency-overlay" class="modal-overlay" aria-hidden="true">
-    <div class="modal-panel modal-panel--emergency" role="dialog" aria-labelledby="emergency-title">
-      <div class="modal-head">
-        <h2 id="emergency-title">Confirmation d’urgence</h2>
-        <button type="button" class="modal-close" id="emergency-close" aria-label="Fermer">×</button>
-      </div>
-      <div class="modal-body">
-        <p class="emergency-copy">Action critique : Pour confirmer la suppression totale de vos données, veuillez recopier le code suivant :</p>
-        <p id="emergency-code" class="emergency-code">----</p>
-        <input type="text" class="field" id="emergency-passphrase" placeholder="Recopiez le code affiché" autocomplete="off" maxlength="4" />
-        <p id="emergency-error" class="emergency-error"></p>
-        <button type="button" class="btn-danger" id="emergency-confirm" disabled>Confirmer la réinitialisation</button>
       </div>
     </div>
   </div>
@@ -2771,7 +2749,7 @@
   var readDeleteTimer = null;
   var scheduleTimer = null;
   var dailyAwaitingTimeChoice = false;
-  var emergencyChallengeCode = '';
+  var conversationMenuOpen = false;
   var contextMenuMsgId = null;
   var longPressTimer = null;
   var longPressStart = null;
@@ -3389,12 +3367,14 @@
 
   function selectConv(id) {
     activeId = id;
+    closeConversationMenu();
     var contact = getContactById(id);
     if (!contact) {
       document.getElementById('chat-empty').style.display = 'flex';
       document.getElementById('chat-pane').style.display = 'none';
       updateChatTitleDisplay(null);
-      document.getElementById('btn-conv-emergency').hidden = true;
+      document.getElementById('btn-conv-menu').hidden = true;
+      closeConversationMenu();
       var badge = document.getElementById('chat-secure-badge');
       if (badge) {
         badge.hidden = true;
@@ -3422,7 +3402,7 @@
     var pane = document.getElementById('chat-pane');
     pane.style.display = 'flex';
     updateChatTitleDisplay(contact);
-    document.getElementById('btn-conv-emergency').hidden = !id;
+    document.getElementById('btn-conv-menu').hidden = !id;
     var badge = document.getElementById('chat-secure-badge');
     if (badge) { badge.hidden = !id; badge.style.display = id ? 'inline-flex' : 'none'; }
     renderMessages();
@@ -4060,54 +4040,26 @@
     o._onSuccess = null;
   }
 
-  function generateEmergencyCode() {
-    var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    var out = '';
-    for (var i = 0; i < 4; i++) {
-      out += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return out;
+  function openConversationMenu() {
+    var menu = document.getElementById('conv-menu-dropdown');
+    if (!menu || !activeId) return;
+    menu.hidden = false;
+    conversationMenuOpen = true;
   }
 
-  function refreshEmergencyConfirmState() {
-    var input = document.getElementById('emergency-passphrase');
-    var error = document.getElementById('emergency-error');
-    var confirmBtn = document.getElementById('emergency-confirm');
-    var typed = (input.value || '').trim().toUpperCase();
-    input.value = typed;
-    confirmBtn.disabled = typed !== emergencyChallengeCode;
-    if (!typed) {
-      error.textContent = '';
+  function closeConversationMenu() {
+    var menu = document.getElementById('conv-menu-dropdown');
+    if (!menu) return;
+    menu.hidden = true;
+    conversationMenuOpen = false;
+  }
+
+  function toggleConversationMenu() {
+    if (conversationMenuOpen) {
+      closeConversationMenu();
       return;
     }
-    if (typed !== emergencyChallengeCode) {
-      error.textContent = 'Le code saisi ne correspond pas.';
-      return;
-    }
-    error.textContent = '';
-  }
-
-  function openEmergencyModal() {
-    var overlay = document.getElementById('emergency-overlay');
-    var input = document.getElementById('emergency-passphrase');
-    var error = document.getElementById('emergency-error');
-    var codeBox = document.getElementById('emergency-code');
-    var confirmBtn = document.getElementById('emergency-confirm');
-    emergencyChallengeCode = generateEmergencyCode();
-    codeBox.textContent = emergencyChallengeCode;
-    input.value = '';
-    error.textContent = '';
-    confirmBtn.disabled = true;
-    overlay.classList.add('is-open');
-    overlay.setAttribute('aria-hidden', 'false');
-    setTimeout(function () { input.focus(); }, 120);
-  }
-
-  function closeEmergencyModal() {
-    var overlay = document.getElementById('emergency-overlay');
-    emergencyChallengeCode = '';
-    overlay.classList.remove('is-open');
-    overlay.setAttribute('aria-hidden', 'true');
+    openConversationMenu();
   }
 
   function ensurePin(cb) {
@@ -4132,71 +4084,6 @@
       localStorage.clear();
     } catch (e) {}
     window.location.reload();
-  }
-
-  function applyLocalPurgeIncomingForContact(contactId) {
-    ensureData();
-    state.directMessages = state.directMessages.filter(function (m) {
-      return !(m.contactId === contactId && !m.me);
-    });
-    saveState(state);
-    renderMessages();
-    renderConvList();
-  }
-
-  /**
-   * Supprime dans Firestore les messages reçus (from = contact, to = moi), puis aligne l’état local.
-   * @returns {Promise<void>}
-   */
-  function purgeIncomingForContact(contactId) {
-    if (!contactId) return Promise.resolve();
-    ensureData();
-    var contact = getContactById(contactId);
-    if (!contact) return Promise.resolve();
-
-    initFirebase();
-    var me = currentUsername();
-    var fromContact = normalizeContactName(contact.name);
-    if (!me || !fromContact) {
-      applyLocalPurgeIncomingForContact(contactId);
-      return Promise.resolve();
-    }
-
-    if (!firestoreDb) {
-      applyLocalPurgeIncomingForContact(contactId);
-      return Promise.resolve();
-    }
-
-    return firestoreDb
-      .collection('messages')
-      .where('from', '==', fromContact)
-      .where('to', '==', me)
-      .get()
-      .then(function (snapshot) {
-        var refs = [];
-        snapshot.forEach(function (doc) {
-          refs.push(doc.ref);
-        });
-        function commitNextBatch() {
-          if (refs.length === 0) return Promise.resolve();
-          var batch = firestoreDb.batch();
-          var n = 0;
-          while (n < 500 && refs.length) {
-            batch.delete(refs.pop());
-            n++;
-          }
-          return batch.commit().then(commitNextBatch);
-        }
-        return commitNextBatch();
-      })
-      .then(function () {
-        applyLocalPurgeIncomingForContact(contactId);
-      })
-      .catch(function (err) {
-        console.error(err);
-        alert('La suppression sur le serveur a échoué. Aucun message local n’a été modifié.');
-        return Promise.reject(err);
-      });
   }
 
   function runScheduledPurge() {
@@ -4224,7 +4111,7 @@
       closeDeleteIncomingModal();
       closePinModal();
       closePrivacyModal();
-      closeEmergencyModal();
+      closeConversationMenu();
       hideMsgContextMenu();
     }
   });
@@ -4244,11 +4131,7 @@
       if (incognitoCount >= 3) {
         clearTimeout(incognitoTimer);
         incognitoCount = 0;
-        if (state && state.privacy && state.privacy.tripleTapKillEnabled) {
-          openEmergencyModal();
-        } else {
-          openPrivacyModal();
-        }
+        openPrivacyModal();
         return;
       }
       clearTimeout(incognitoTimer);
@@ -4664,8 +4547,10 @@
     document.addEventListener('click', function (e) {
       if (e.target.closest && e.target.closest('#msg-context-menu')) return;
       if (e.target.closest && e.target.closest('#reaction-picker')) return;
+      if (e.target.closest && (e.target.closest('#btn-conv-menu') || e.target.closest('#conv-menu-dropdown'))) return;
       hideMsgContextMenu();
       hideReactionPicker();
+      closeConversationMenu();
     });
 
     var ctxDel = document.getElementById('ctx-delete-msg');
@@ -4713,30 +4598,21 @@
       syncAppMobileLayout();
     });
 
-    document.getElementById('btn-conv-emergency').addEventListener('click', openEmergencyModal);
-    document.getElementById('emergency-close').addEventListener('click', closeEmergencyModal);
-    document.getElementById('emergency-overlay').addEventListener('click', function (e) {
-      if (e.target === e.currentTarget) closeEmergencyModal();
-    });
-    document.getElementById('emergency-confirm').addEventListener('click', function () {
-      var val = (document.getElementById('emergency-passphrase').value || '').trim().toUpperCase();
-      var error = document.getElementById('emergency-error');
-      if (val !== emergencyChallengeCode || !emergencyChallengeCode) {
-        error.textContent = 'Code invalide. Aucune donnée n’a été modifiée.';
-        return;
-      }
-      closeEmergencyModal();
-      purgeIncomingForContact(activeId || null).catch(function () {});
-    });
-    document.getElementById('emergency-passphrase').addEventListener('input', refreshEmergencyConfirmState);
-    document.getElementById('emergency-passphrase').addEventListener('keydown', function (e) {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        if (!document.getElementById('emergency-confirm').disabled) {
-          document.getElementById('emergency-confirm').click();
-        }
-      }
-    });
+    var btnConvMenu = document.getElementById('btn-conv-menu');
+    if (btnConvMenu) {
+      btnConvMenu.addEventListener('click', function (e) {
+        e.stopPropagation();
+        toggleConversationMenu();
+      });
+    }
+    var convMenuDelete = document.getElementById('conv-menu-delete');
+    if (convMenuDelete) {
+      convMenuDelete.addEventListener('click', function (e) {
+        e.stopPropagation();
+        closeConversationMenu();
+        if (activeId) openDeleteConvModal(activeId);
+      });
+    }
 
     renderConvList();
     if (state.contacts.length) {
