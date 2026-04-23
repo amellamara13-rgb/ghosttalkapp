@@ -5126,15 +5126,7 @@
     });
 
     renderConvList();
-    if (state.contacts.length) {
-      if (isMobileNav()) {
-        selectConv(null);
-      } else {
-        selectConv(state.contacts[0].id);
-      }
-    } else {
-      selectConv(null);
-    }
+    selectConv(null);
     syncAppMobileLayout();
     subscribeRealtimeMessages();
     syncPrivacyForm();
