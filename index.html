@@ -3954,6 +3954,7 @@
     var contact = getContactById(id);
     if (!contact) {
       stopConversationSettingsSubscription();
+      document.getElementById('chat-head').style.display = 'none';
       document.getElementById('chat-empty').style.display = 'flex';
       document.getElementById('chat-pane').style.display = 'none';
       updateChatTitleDisplay(null);
@@ -3977,6 +3978,7 @@
       }
     }
     markIncomingMessagesReadLocal(id);
+    document.getElementById('chat-head').style.display = 'flex';
     document.getElementById('chat-empty').style.display = 'none';
     var pane = document.getElementById('chat-pane');
     pane.style.display = 'flex';
