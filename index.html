@@ -1248,6 +1248,7 @@
       inset: 0;
       z-index: 2000;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       padding: 24px;
@@ -1255,6 +1256,42 @@
       background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(58, 118, 240, 0.12), transparent);
     }
     .lock-screen[hidden] { display: none !important; }
+    .lock-brand {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 32px;
+      text-align: center;
+    }
+    .lock-brand-logo {
+      width: 60px;
+      height: 60px;
+      border-radius: 18px;
+      background: var(--accent);
+      box-shadow: 0 8px 32px rgba(58,118,240,0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .lock-brand-logo svg {
+      width: 30px;
+      height: 30px;
+    }
+    .lock-brand-title {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--fg);
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+    }
+    .lock-brand-sub {
+      margin: 0;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.25;
+    }
     .lock-card {
       max-width: 380px;
       width: 100%;
@@ -1289,6 +1326,20 @@
       cursor: pointer;
     }
     .lock-card button:hover { opacity: 0.92; }
+    .lock-security-badge {
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .lock-security-badge svg {
+      width: 10px;
+      height: 10px;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
     #app-shell[hidden] { display: none !important; }
     .toolbar .new-contact-input {
       width: 100%;
@@ -1815,6 +1866,9 @@
         padding: 8px 10px;
         font-size: 10px;
       }
+      .lock-screen {
+        padding: 14px;
+      }
       .conv {
         padding: 8px 8px;
         gap: 6px;
@@ -1921,6 +1975,18 @@
   </div>
 
   <div id="lock-screen" class="lock-screen" role="dialog" aria-modal="true">
+    <div class="lock-brand">
+      <div class="lock-brand-logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2C7 2 3 6 3 11c0 2.5 1 4.7 2.7 6.3L5 22l4.5-2.2c.8.2 1.6.3 2.5.3 5 0 9-4 9-9s-4-9-9-9z" fill="#30d158" opacity="0.9"/>
+          <circle cx="9" cy="11" r="1.2" fill="white"/>
+          <circle cx="12" cy="11" r="1.2" fill="white"/>
+          <circle cx="15" cy="11" r="1.2" fill="white"/>
+        </svg>
+      </div>
+      <h1 class="lock-brand-title">GhostTalk</h1>
+      <p class="lock-brand-sub">Messagerie privée et sécurisée</p>
+    </div>
     <div class="lock-card lock-card--wide">
       <div id="lock-mode-welcome" hidden="">
         <h1 id="lock-title-welcome">Inscription</h1>
@@ -1941,6 +2007,12 @@
         <button type="button" class="btn-lock-primary" id="btn-lock-return">Déverrouiller</button>
       </div>
       <p id="lock-msg" class="lock-error" style="display:none;"></p>
+    </div>
+    <div class="lock-security-badge">
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 3l7 3v6c0 4.6-2.9 7.8-7 9-4.1-1.2-7-4.4-7-9V6l7-3z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span>Vos messages sont cryptés et inaccessibles</span>
     </div>
   </div>
 
