@@ -274,13 +274,15 @@
       font-size: 17px;
     }
     #chat-ephemeral-indicator {
-      font-size: 11px;
-      color: var(--muted);
-      line-height: 1.2;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 100%;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(255,255,255,0.03);
+      border-radius: 8px;
+      padding: 3px 8px;
+      margin-top: 8px;
+      font-size: 10px;
+      color: rgba(255,255,255,0.25);
     }
     .contact-name-blurred {
       filter: blur(5px);
@@ -547,14 +549,6 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
-    }
-    .ephemeral-banner {
-      background: rgba(58, 118, 240, 0.08);
-      border-bottom: 1px solid var(--line);
-      padding: 6px 16px;
-      font-size: 12px;
-      color: var(--muted);
-      text-align: center;
     }
     .bubble {
       max-width: 100%;
@@ -2143,7 +2137,6 @@
           </div>
         </div>
         <div id="chat-pane" style="display: none; flex: 1; flex-direction: column; min-height: 0;">
-          <div id="ephemeral-banner" class="ephemeral-banner" hidden></div>
           <div class="messages" id="messages"></div>
           <div class="message-security-bar">
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
@@ -3196,7 +3189,6 @@
       el.textContent = '';
       el.removeAttribute('aria-label');
       updateEphemeralIndicator(null);
-      updateEphemeralBanner(null);
       return;
     }
     if (state.privacy.hideContactPseudos) {
@@ -3207,7 +3199,6 @@
       el.removeAttribute('aria-label');
     }
     updateEphemeralIndicator(contact);
-    updateEphemeralBanner(contact);
   }
 
   function formatEphemeralDelayLabel(delaySeconds) {
@@ -3221,16 +3212,6 @@
     return String(delaySeconds) + ' sec';
   }
 
-  function formatEphemeralBannerLabel(delaySeconds) {
-    if (delaySeconds === 'on_read') return 'Dès la lecture';
-    if (delaySeconds === 60) return '1 minute';
-    if (delaySeconds === 300) return '5 minutes';
-    if (delaySeconds === 3600) return '1 heure';
-    if (delaySeconds === 86400) return '24 heures';
-    if (delaySeconds === 604800) return '7 jours';
-    return formatEphemeralDelayLabel(delaySeconds);
-  }
-
   function updateEphemeralIndicator(contact) {
     var el = document.getElementById('chat-ephemeral-indicator');
     if (!el) return;
@@ -3239,20 +3220,21 @@
       el.textContent = '';
       return;
     }
-    el.textContent = '⏱ Messages éphémères : ' + formatEphemeralDelayLabel(contact.ephemeralDelay);
-    el.hidden = false;
-  }
-
-  function updateEphemeralBanner(contact) {
-    var el = document.getElementById('ephemeral-banner');
-    if (!el) return;
-    if (!contact || !contact.ephemeralDelay) {
-      el.hidden = true;
+    if (contact.ephemeralDelay === 'on_read') {
+      el.textContent = '⏱ Lu';
+    } else if (contact.ephemeralDelay === 60) {
+      el.textContent = '⏱ 1 min';
+    } else if (contact.ephemeralDelay === 300) {
+      el.textContent = '⏱ 5 min';
+    } else if (contact.ephemeralDelay === 3600) {
+      el.textContent = '⏱ 1 h';
+    } else if (contact.ephemeralDelay === 86400) {
+      el.textContent = '⏱ 24 h';
+    } else if (contact.ephemeralDelay === 604800) {
+      el.textContent = '⏱ 7 jours';
+    } else {
       el.textContent = '';
-      return;
     }
-    var label = formatEphemeralBannerLabel(contact.ephemeralDelay);
-    el.textContent = '⏱ Messages éphémères activés · ' + label;
     el.hidden = false;
   }
 
@@ -3271,7 +3253,6 @@
     saveState(state);
     if (activeId === contactId) {
       updateChatTitleDisplay(contact);
-      updateEphemeralBanner(contact);
     }
   }
 
