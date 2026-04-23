@@ -635,6 +635,11 @@
       min-height: 44px;
       max-height: 120px;
     }
+    #input {
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    #input::-webkit-scrollbar { display: none; }
     .composer textarea::placeholder { color: var(--muted); }
     .composer textarea:focus {
       outline: none;
