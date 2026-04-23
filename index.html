@@ -1,0 +1,4810 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GhostTalk — Messagerie Chiffrée</title>
+  <style>
+    :root {
+      --bg: #0b0b0d;
+      --surface: #141416;
+      --surface-2: #1c1c1f;
+      --elevated: #222226;
+      --fg: #ececec;
+      --muted: #8e8e93;
+      --line: #2c2c30;
+      --accent: #3a76f0;
+      --accent-dim: rgba(58, 118, 240, 0.35);
+      --danger: #ff453a;
+      --bubble-me: #3a76f0;
+      --bubble-them: #2c2c30;
+      --radius: 18px;
+      --radius-sm: 12px;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      height: 100%;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--fg);
+      -webkit-font-smoothing: antialiased;
+    }
+    body.privacy-block-screenshot {
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+    }
+    body.privacy-block-screenshot input,
+    body.privacy-block-screenshot textarea,
+    body.privacy-block-screenshot [contenteditable="true"] {
+      -webkit-user-select: text;
+      user-select: text;
+    }
+    .top-strip {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 10px 14px 6px;
+      background: linear-gradient(180deg, var(--surface) 0%, var(--bg) 100%);
+      border-bottom: 1px solid var(--line);
+    }
+    .shell {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      max-width: 920px;
+      margin: 0 auto;
+    }
+    .incognito-btn {
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      border: none;
+      border-radius: 12px;
+      background: var(--surface-2);
+      color: var(--muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, color 0.2s, transform 0.15s ease;
+    }
+    .incognito-btn:hover {
+      background: var(--elevated);
+      color: var(--fg);
+    }
+    .incognito-btn:active { transform: scale(0.96); }
+    .incognito-btn svg { width: 22px; height: 22px; display: block; }
+    .app-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+    }
+    .app-logo-name {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--fg);
+    }
+    /* Bulles : réponse, heure, accusés de lecture */
+    .row {
+      display: flex;
+      align-items: flex-end;
+    }
+    .row:not(.me) {
+      justify-content: flex-start;
+    }
+    .row.me {
+      justify-content: flex-end;
+    }
+    .msg-line {
+      display: flex;
+      flex-direction: row;
+      align-items: flex-end;
+      gap: 8px;
+      min-width: 0;
+    }
+    .row:not(.me) .msg-line {
+      max-width: min(92%, 520px);
+    }
+    .row.me .msg-line {
+      max-width: min(92%, 520px);
+      margin-left: auto;
+      flex-direction: row;
+    }
+    .bubble-wrap {
+      display: flex;
+      flex-direction: column;
+      flex: 0 1 auto;
+      min-width: 0;
+      max-width: 100%;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .row.me .bubble-wrap {
+      align-items: flex-end;
+    }
+    .bubble-reply {
+      font-size: 12px;
+      color: var(--muted);
+      background: rgba(0, 0, 0, 0.2);
+      border-left: 3px solid var(--accent);
+      padding: 6px 10px;
+      border-radius: 8px;
+      margin-bottom: 6px;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+    }
+    .row:not(.me) .bubble-reply {
+      background: rgba(255, 255, 255, 0.06);
+    }
+    .row.me .bubble { max-width: 100%; }
+    .row:not(.me) .bubble { max-width: 100%; }
+    .msg-line > .bubble-time {
+      font-size: 11px;
+      color: var(--muted);
+      flex-shrink: 0;
+      align-self: flex-end;
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+    #messages.messages--reveal-metas .msg-line > .bubble-time {
+      opacity: 1;
+    }
+    #messages .msg-line.msg-line--bubble-hover > .bubble-time {
+      opacity: 1;
+    }
+    .msg-date-separator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      box-sizing: border-box;
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+      padding: 8px 0;
+      position: relative;
+    }
+    .msg-date-separator__line {
+      flex: 1;
+      min-width: 0;
+      height: 1px;
+      background: var(--line);
+    }
+    .msg-date-separator__text {
+      flex-shrink: 0;
+    }
+    .bubble-read {
+      display: inline-block;
+      font-size: 12px;
+      line-height: 1;
+      letter-spacing: -3px;
+      color: rgba(255, 255, 255, 0.55);
+    }
+    .row.me .bubble .bubble-read.is-read {
+      color: #7eb8ff;
+      letter-spacing: -2px;
+    }
+    #app {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      flex: 1;
+      min-height: 0;
+      width: 100%;
+      align-items: stretch;
+      border-left: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+    }
+    aside {
+      width: 38%;
+      min-width: 220px;
+      max-width: 42%;
+      flex-shrink: 0;
+      border-right: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      background: var(--surface);
+    }
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      background: var(--bg);
+    }
+    header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--line);
+      font-weight: 600;
+      font-size: 17px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .chat-head-left {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+    }
+    .btn-chat-back {
+      display: none;
+      flex-shrink: 0;
+      width: 40px;
+      height: 40px;
+      margin: 0 4px 0 0;
+      padding: 0;
+      border: none;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--fg);
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-chat-back:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+    #chat-title {
+      min-width: 0;
+      font-weight: 600;
+      font-size: 17px;
+    }
+    .contact-name-blurred {
+      filter: blur(5px);
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .contact-name-masked {
+      display: inline;
+    }
+    .chat-head-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .conv-emergency-btn {
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      border: 1px solid rgba(255, 69, 58, 0.22);
+      border-radius: 10px;
+      background: rgba(255, 69, 58, 0.07);
+      color: rgba(255, 69, 58, 0.85);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.1s;
+    }
+    .conv-emergency-btn:hover {
+      background: rgba(255, 69, 58, 0.14);
+      border-color: rgba(255, 69, 58, 0.38);
+      color: #ff6a61;
+    }
+    .conv-emergency-btn:active { transform: scale(0.97); }
+    .conv-emergency-btn svg { width: 16px; height: 16px; display: block; }
+    header span.sub {
+      font-weight: 400;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .list { flex: 1; overflow-y: auto; }
+    .conv-host {
+      position: relative;
+      overflow: hidden;
+      width: 100%;
+      flex-shrink: 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .conv {
+      padding: 14px 16px;
+      border-bottom: none;
+      cursor: pointer;
+      transition: background 0.15s;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .conv:hover, .conv.active { background: var(--surface-2); }
+    .conv-surface {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      background: var(--surface);
+      box-sizing: border-box;
+      transform: translate3d(0, 0, 0);
+      transition: transform 0.2s ease;
+    }
+    .conv-delete-shelf {
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 70px;
+      z-index: 0;
+      margin: 0;
+      padding: 4px;
+      border: none;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      background: #ff453a;
+      color: #fff;
+      font-size: 20px;
+      line-height: 1.1;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .conv-delete-shelf__label {
+      font-size: 10px;
+      font-weight: 600;
+      line-height: 1.1;
+    }
+    .conv-delete-desk {
+      display: none;
+    }
+    @media (min-width: 641px) {
+      .conv-delete-desk {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        margin: 0 0 0 2px;
+        padding: 0;
+        border: none;
+        background: transparent;
+        color: var(--fg);
+        cursor: pointer;
+        font-size: 16px;
+        line-height: 1;
+        opacity: 0;
+        transition: opacity 0.15s ease;
+        flex-shrink: 0;
+        border-radius: 8px;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .conv:hover .conv-delete-desk {
+        opacity: 1;
+      }
+    }
+    @media (max-width: 640px) {
+      .conv-delete-shelf {
+        display: flex;
+      }
+    }
+    .conv-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+    .conv-main {
+      min-width: 0;
+      flex: 1;
+    }
+    .conv-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .conv .title {
+      font-weight: 500;
+      font-size: 15px;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .conv .preview {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .conv .time { font-size: 12px; color: var(--muted); flex-shrink: 0; }
+    .conv-right-meta {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .conv .title.is-unread,
+    .conv .preview.is-unread {
+      font-weight: 700;
+    }
+    .unread-badge {
+      min-width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 5px;
+      flex-shrink: 0;
+    }
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .bubble {
+      max-width: 100%;
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      font-size: 16px;
+      line-height: 1.35;
+      word-break: break-word;
+    }
+    .row:not(.me) .bubble {
+      background: var(--bubble-them);
+      color: var(--fg);
+    }
+    .row.me .bubble {
+      position: relative;
+      padding-bottom: 18px;
+      padding-right: 28px;
+      background: var(--bubble-me);
+      color: #fff;
+    }
+    .row.me .bubble .bubble-read {
+      position: absolute;
+      right: 8px;
+      bottom: 6px;
+      line-height: 1;
+    }
+    .composer {
+      border-top: 1px solid var(--line);
+      padding: 10px 12px 12px;
+      background: var(--surface);
+    }
+    .composer-inner {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .composer-row {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+    }
+    .composer-row textarea {
+      flex: 1;
+      border: 1px solid transparent;
+      border-radius: var(--radius-sm);
+      background: var(--surface-2);
+      color: var(--fg);
+      padding: 12px 14px;
+      font-size: 16px;
+      font-family: inherit;
+      resize: none;
+      min-height: 44px;
+      max-height: 120px;
+    }
+    .composer textarea::placeholder { color: var(--muted); }
+    .composer textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+    button.icon-send {
+      width: 44px;
+      height: 44px;
+      border: none;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      cursor: pointer;
+      font-size: 18px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    button.icon-send:hover { opacity: 0.92; }
+    button.icon-send:active { transform: scale(0.97); }
+    button.icon-send:disabled { opacity: 0.4; cursor: not-allowed; }
+    .msg-context-menu {
+      position: fixed;
+      z-index: 5000;
+      min-width: 168px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      padding: 4px;
+    }
+    .msg-context-menu[hidden] { display: none !important; }
+    .msg-context-item {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 10px 12px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--fg);
+      font-size: 14px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .msg-context-item:hover { background: var(--surface-2); }
+    .msg-context-item.danger { color: var(--danger); }
+    .reaction-picker {
+      position: fixed;
+      z-index: 4999;
+      display: flex;
+      gap: 4px;
+      padding: 6px 8px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      box-shadow: var(--shadow);
+    }
+    .reaction-picker[hidden] { display: none !important; }
+    .reaction-picker-btn {
+      width: 36px;
+      height: 36px;
+      border: none;
+      border-radius: 50%;
+      background: var(--surface-2);
+      font-size: 20px;
+      line-height: 1;
+      cursor: pointer;
+      transition: transform 0.12s, background 0.12s;
+    }
+    .reaction-picker-btn:hover { background: var(--elevated); transform: scale(1.08); }
+    .bubble-wrap.bubble-highlight-flash {
+      animation: bubbleHighlightFlash 0.85s ease;
+    }
+    @keyframes bubbleHighlightFlash {
+      0% { box-shadow: 0 0 0 0 rgba(58, 118, 240, 0.5); }
+      100% { box-shadow: 0 0 0 10px rgba(58, 118, 240, 0); }
+    }
+    .bubble-reply-quote {
+      font-size: 12px;
+      color: var(--muted);
+      padding: 6px 10px;
+      margin-bottom: 4px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.04);
+      border-left: 3px solid var(--accent);
+      max-width: 100%;
+      cursor: pointer;
+      text-align: left;
+    }
+    .bubble-reply-quote:hover { background: rgba(255, 255, 255, 0.07); }
+    .bubble-reply-quote .rq-author { font-weight: 600; color: var(--accent); margin-right: 6px; }
+    .bubble-reactions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 4px;
+      font-size: 12px;
+    }
+    .bubble-reaction-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      cursor: pointer;
+      user-select: none;
+    }
+    .bubble-reaction-chip.is-mine { border-color: var(--accent); background: rgba(58, 118, 240, 0.12); }
+    .composer-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .toolbar {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+    .toolbar button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--elevated);
+      color: var(--fg);
+      font-weight: 500;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.15s;
+    }
+    .toolbar button:hover { background: #2a2a2f; }
+    .empty-main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 24px;
+      text-align: center;
+      min-height: 0;
+    }
+    .empty-main-inner {
+      max-width: 360px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .empty-main-icon {
+      font-size: 44px;
+      line-height: 1;
+      opacity: 0.9;
+      filter: grayscale(0.15);
+      user-select: none;
+    }
+    .empty-main-title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--fg);
+    }
+    .empty-main-sub {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--muted);
+      font-weight: 400;
+    }
+    .badge {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.45;
+      padding: 12px 16px;
+      margin: 0;
+      border-top: 1px solid var(--line);
+    }
+
+    /* Modales */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.28s ease, visibility 0.28s ease;
+    }
+    .modal-overlay.is-open {
+      opacity: 1;
+      visibility: visible;
+    }
+    .modal-overlay.is-open .modal-panel {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+    }
+    .modal-panel {
+      width: 100%;
+      max-width: 420px;
+      max-height: min(88vh, 720px);
+      overflow-y: auto;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      transform: translateY(12px) scale(0.98);
+      opacity: 0;
+      transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.28s ease;
+    }
+    .modal-panel--privacy .modal-head {
+      border-top: none;
+    }
+    .modal-body.privacy-modal-body {
+      padding: 8px 20px 24px;
+    }
+    .privacy-section {
+      padding: 18px 0;
+      border-top: 1px solid var(--line);
+    }
+    .privacy-section:first-child {
+      border-top: none;
+      padding-top: 0;
+    }
+    .privacy-section__head {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .privacy-section__icon {
+      font-size: 18px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .privacy-section__icon--svg {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--fg);
+    }
+    .privacy-section__title {
+      margin: 0;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #7eb0ff;
+    }
+    .privacy-section--danger {
+      margin-top: 4px;
+      padding: 16px 14px 18px;
+      border: 1px solid rgba(255, 69, 58, 0.38);
+      border-radius: var(--radius-sm);
+      background: rgba(255, 69, 58, 0.1);
+    }
+    .privacy-section--danger .privacy-section__head {
+      margin-bottom: 12px;
+    }
+    .privacy-section--danger .privacy-section__title {
+      color: #ff9a90;
+    }
+    .privacy-section--danger .switch-block {
+      border-top: none;
+      margin-top: 0;
+      padding: 0;
+    }
+    .privacy-account-name {
+      margin: 0 0 6px;
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      color: var(--fg);
+      text-align: center;
+      word-break: break-word;
+      filter: none;
+      user-select: text;
+    }
+    .privacy-account-member-since {
+      margin: 0 0 14px;
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 1.3;
+      color: var(--muted);
+      opacity: 0.88;
+      text-align: center;
+    }
+    .privacy-account-member-since[hidden] {
+      display: none !important;
+    }
+    .privacy-hint-success {
+      color: #34c759;
+      font-size: 13px;
+      margin: 0;
+      line-height: 1.45;
+    }
+    .modal-head {
+      padding: 18px 20px 12px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .modal-head h2 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 20px;
+      line-height: 1;
+      transition: background 0.15s, color 0.15s;
+    }
+    .modal-close:hover { background: var(--surface-2); color: var(--fg); }
+    .modal-body { padding: 16px 20px 20px; }
+    .modal-section {
+      margin-bottom: 22px;
+    }
+    .modal-section:last-child { margin-bottom: 0; }
+    .modal-section h3 {
+      margin: 0 0 12px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+    .field {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--line);
+      background: var(--bg);
+      color: var(--fg);
+      font-size: 15px;
+      font-family: inherit;
+      margin-bottom: 12px;
+    }
+    .field:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+    .radio-group label {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 10px;
+      font-size: 14px;
+      line-height: 1.4;
+      cursor: pointer;
+      color: var(--fg);
+    }
+    .radio-group input { margin-top: 3px; accent-color: var(--accent); }
+    .btn-primary {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--accent);
+      color: #fff;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .btn-primary:hover { opacity: 0.92; }
+    .btn-primary:active { transform: scale(0.99); }
+    .link-row {
+      width: 100%;
+      text-align: left;
+      padding: 14px 16px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--line);
+      background: var(--bg);
+      color: var(--danger);
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .link-row:hover {
+      background: rgba(255, 69, 58, 0.08);
+      border-color: rgba(255, 69, 58, 0.35);
+    }
+    .link-row.link-row--destructive {
+      color: #fff;
+      background: rgba(255, 69, 58, 0.22);
+      border-color: rgba(255, 69, 58, 0.55);
+      font-weight: 600;
+      margin-top: 14px;
+    }
+    .link-row.link-row--destructive:hover {
+      background: rgba(255, 69, 58, 0.32);
+      border-color: rgba(255, 69, 58, 0.75);
+    }
+    .check-group label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .check-group input { accent-color: var(--accent); width: 18px; height: 18px; }
+    .time-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: -4px 0 12px 28px;
+      flex-wrap: wrap;
+    }
+    .time-row label { font-size: 13px; color: var(--muted); margin: 0; }
+    .time-row input[type="time"] {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: var(--bg);
+      color: var(--fg);
+      font-family: inherit;
+    }
+    .hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 8px;
+      line-height: 1.4;
+    }
+    .hint.hint--privacy-retention {
+      font-size: 11px;
+      margin-top: 12px;
+      margin-bottom: 0;
+      color: var(--muted);
+      opacity: 0.9;
+      line-height: 1.45;
+    }
+    .phrase-reassurance {
+      margin-top: 24px;
+      margin-bottom: 0;
+    }
+    .phrase-apply-error {
+      color: var(--danger);
+      font-size: 13px;
+      margin: 10px 0 0;
+      line-height: 1.4;
+    }
+    .phrase-apply-error[hidden] {
+      display: none !important;
+    }
+    .time-slider-row {
+      margin-top: 8px;
+      padding: 0 0 4px 28px;
+    }
+    .time-slider-inline {
+      display: flex;
+      align-items: center;
+      gap: 12px 16px;
+      flex-wrap: wrap;
+    }
+    .time-slider-inline .time-slider-wrap {
+      flex: 1;
+      min-width: 140px;
+      padding: 4px 2px 8px;
+    }
+    .time-slider-display {
+      flex-shrink: 0;
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      color: var(--accent);
+      margin-bottom: 0;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.2;
+      text-shadow: 0 0 24px rgba(58, 118, 240, 0.25);
+      min-width: 3.2em;
+      text-align: right;
+    }
+    .time-slider-wrap {
+      padding: 6px 4px 10px;
+    }
+    .time-slider-wrap input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 28px;
+      margin: 0;
+      background: transparent;
+      cursor: pointer;
+    }
+    .time-slider-wrap input[type="range"]:focus {
+      outline: none;
+    }
+    .time-slider-wrap input[type="range"]:focus-visible {
+      outline: 2px solid var(--accent-dim);
+      outline-offset: 4px;
+      border-radius: 8px;
+    }
+    /* WebKit */
+    .time-slider-wrap input[type="range"]::-webkit-slider-runnable-track {
+      height: 4px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--elevated) 0%, var(--surface-2) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35);
+    }
+    .time-slider-wrap input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      margin-top: -7px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #5b8ef7 0%, var(--accent) 100%);
+      border: 2px solid rgba(255, 255, 255, 0.18);
+      box-shadow:
+        0 2px 8px rgba(58, 118, 240, 0.55),
+        0 0 0 1px rgba(0, 0, 0, 0.2);
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+    .time-slider-wrap input[type="range"]:hover::-webkit-slider-thumb {
+      transform: scale(1.06);
+      box-shadow:
+        0 3px 12px rgba(58, 118, 240, 0.65),
+        0 0 0 1px rgba(0, 0, 0, 0.2);
+    }
+    .time-slider-wrap input[type="range"]:active::-webkit-slider-thumb {
+      transform: scale(0.96);
+    }
+    /* Firefox */
+    .time-slider-wrap input[type="range"]::-moz-range-track {
+      height: 4px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--elevated) 0%, var(--surface-2) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35);
+    }
+    .time-slider-wrap input[type="range"]::-moz-range-thumb {
+      -moz-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.18);
+      border-radius: 50%;
+      background: linear-gradient(180deg, #5b8ef7 0%, var(--accent) 100%);
+      box-shadow:
+        0 2px 8px rgba(58, 118, 240, 0.55),
+        0 0 0 1px rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+    }
+    .time-slider-wrap input[type="range"]::-moz-range-progress {
+      height: 4px;
+      border-radius: 999px 0 0 999px;
+      background: linear-gradient(90deg, rgba(58, 118, 240, 0.45), rgba(58, 118, 240, 0.15));
+    }
+    .privacy-saved-toast {
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      font-size: 14px;
+      color: #34c759;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+      pointer-events: none;
+      z-index: 2;
+    }
+    .privacy-saved-toast.is-visible {
+      opacity: 1;
+    }
+    .modal-panel--privacy {
+      position: relative;
+    }
+    #delete-incoming-overlay {
+      z-index: 1100;
+    }
+
+    /* PIN modal */
+    #pin-overlay .modal-panel { max-width: 340px; }
+    .pin-input {
+      letter-spacing: 0.4em;
+      text-align: center;
+      font-size: 20px;
+    }
+
+    /* Écran de verrouillage */
+    .lock-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: var(--bg);
+      background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(58, 118, 240, 0.12), transparent);
+    }
+    .lock-screen[hidden] { display: none !important; }
+    .lock-card {
+      max-width: 380px;
+      width: 100%;
+      padding: 28px 24px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+    .lock-card h1 {
+      margin: 0 0 12px;
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    .lock-card p {
+      margin: 0 0 20px;
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .lock-card button {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--accent);
+      color: #fff;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+    }
+    .lock-card button:hover { opacity: 0.92; }
+    #app-shell[hidden] { display: none !important; }
+    .toolbar .new-contact-input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--line);
+      background: var(--bg);
+      color: var(--fg);
+      font-size: 14px;
+      font-family: inherit;
+    }
+    .toolbar .new-contact-input::placeholder { color: var(--muted); }
+    .toolbar .new-contact-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+    .new-contact-wrap {
+      position: relative;
+      width: 100%;
+    }
+    .new-contact-error {
+      margin: 6px 0 0;
+      font-size: 12px;
+      color: var(--danger);
+      line-height: 1.35;
+    }
+    .new-contact-error[hidden] {
+      display: none !important;
+    }
+    .new-contact-suggestions {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 100%;
+      margin-top: 4px;
+      z-index: 50;
+      list-style: none;
+      padding: 4px;
+      margin: 4px 0 0;
+      max-height: 200px;
+      overflow-y: auto;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow);
+    }
+    .new-contact-suggestions[hidden] {
+      display: none !important;
+    }
+    .new-contact-suggestions li button {
+      width: 100%;
+      text-align: left;
+      padding: 10px 12px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--fg);
+      font-size: 14px;
+      font-family: inherit;
+      cursor: pointer;
+    }
+    .new-contact-suggestions li button:hover {
+      background: var(--surface-2);
+    }
+    .hint-egg {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.45;
+      padding: 10px 12px;
+      margin-top: 8px;
+      border-radius: var(--radius-sm);
+      background: rgba(58, 118, 240, 0.08);
+      border: 1px dashed var(--line);
+    }
+
+    .lock-card--wide { max-width: 400px; text-align: left; }
+    .lock-card label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .lock-card .field { margin-bottom: 14px; }
+    .lock-user-display {
+      font-size: 15px;
+      color: var(--muted);
+      margin: 0 0 6px;
+      line-height: 1.4;
+    }
+    #lock-mode-welcome[hidden],
+    #lock-mode-return[hidden] {
+      display: none !important;
+    }
+    #lock-mode-return {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      width: 100%;
+      max-width: 320px;
+      margin: 0 auto;
+      padding: 8px 0 4px;
+    }
+    .lock-return-username {
+      margin: 0 0 20px;
+      font-size: 22px;
+      font-weight: 600;
+      line-height: 1.35;
+      letter-spacing: -0.02em;
+      word-break: break-word;
+      color: var(--fg);
+      text-align: center;
+    }
+    #lock-mode-return label {
+      text-align: left;
+    }
+    #lock-mode-return .field,
+    #lock-mode-return .btn-lock-primary {
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .lock-card h1 { text-align: left; }
+    .lock-card > p.sub { text-align: left; margin-bottom: 16px; }
+    .btn-lock-primary {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--accent);
+      color: #fff;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+    .btn-lock-primary:hover { opacity: 0.92; }
+    .lock-error { color: var(--danger); font-size: 13px; margin-top: 12px !important; }
+    .lock-welcome-phrase-error {
+      color: var(--danger);
+      font-size: 13px;
+      margin: 8px 0 12px;
+      line-height: 1.4;
+    }
+    .lock-welcome-phrase-error[hidden] {
+      display: none !important;
+    }
+
+    .btn-modal-neutral {
+      width: 100%;
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--line);
+      background: var(--bg);
+      color: var(--fg);
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .btn-modal-neutral:hover {
+      background: var(--surface-2);
+      border-color: var(--muted);
+    }
+    .privacy-phrase-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .privacy-phrase-stack > .field {
+      margin-bottom: 0;
+    }
+    .privacy-phrase-stack > .hint.phrase-reassurance {
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+    .privacy-phrase-stack > .privacy-hint-success {
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+    .privacy-phrase-stack > .phrase-reassurance {
+      margin-top: 0;
+      margin-bottom: 0;
+    }
+    .privacy-phrase-stack > .phrase-apply-error {
+      margin: 0;
+    }
+    .btn-privacy-logout {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+    .btn-privacy-logout:hover {
+      background: var(--surface-2);
+      border-color: var(--muted);
+      color: var(--fg);
+    }
+    .btn-privacy-logout svg {
+      flex-shrink: 0;
+      opacity: 0.88;
+    }
+    .privacy-contact-mask-option {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+    }
+    .privacy-contact-mask-option .switch-block {
+      border-top: none;
+      margin-top: 0;
+      padding: 0;
+    }
+    .privacy-contact-mask-hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin: 10px 0 0;
+      line-height: 1.4;
+      opacity: 0.92;
+    }
+    .privacy-conf-toggle {
+      padding-top: 14px;
+      margin-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+    .privacy-conf-toggle:first-child {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: none;
+    }
+    .privacy-conf-toggle .switch-block {
+      border-top: none;
+      margin-top: 0;
+      padding: 0;
+    }
+    .privacy-screenshot-compat-note {
+      font-size: 11px;
+      color: var(--muted);
+      margin: 8px 0 0;
+      opacity: 0.85;
+      font-style: italic;
+    }
+
+    /* Interrupteur iOS-like */
+    .switch-block {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 0;
+      border-top: 1px solid var(--line);
+      margin-top: 8px;
+    }
+    .switch-block .switch-label {
+      font-size: 14px;
+      line-height: 1.35;
+      color: var(--fg);
+      flex: 1;
+    }
+    .switch {
+      position: relative;
+      width: 51px;
+      height: 31px;
+      flex-shrink: 0;
+    }
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+      position: absolute;
+    }
+    .switch-slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background: var(--elevated);
+      border-radius: 31px;
+      transition: background 0.22s ease;
+      border: 1px solid var(--line);
+    }
+    .switch-slider::before {
+      content: "";
+      position: absolute;
+      height: 27px;
+      width: 27px;
+      left: 2px;
+      bottom: 1px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+    }
+    .switch input:checked + .switch-slider {
+      background: var(--accent);
+      border-color: transparent;
+    }
+    .switch input:checked + .switch-slider::before {
+      transform: translateX(20px);
+    }
+    .switch input:focus-visible + .switch-slider {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+    .modal-panel--emergency {
+      max-width: 440px;
+      border-color: rgba(255, 69, 58, 0.3);
+    }
+    .modal-panel--emergency .modal-head {
+      background: rgba(255, 69, 58, 0.1);
+      border-bottom-color: rgba(255, 69, 58, 0.25);
+    }
+    .emergency-copy {
+      margin: 0 0 12px;
+      font-size: 14px;
+      color: #ffd3d0;
+      line-height: 1.45;
+    }
+    .emergency-code {
+      margin: 0 0 14px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 69, 58, 0.42);
+      background: rgba(255, 69, 58, 0.12);
+      color: #fff2f1;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-align: center;
+      user-select: all;
+    }
+    .emergency-error {
+      min-height: 18px;
+      margin: 2px 0 10px;
+      font-size: 13px;
+      color: var(--danger);
+    }
+    .btn-danger {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--danger);
+      color: #fff;
+      font-weight: 600;
+      font-size: 15px;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .btn-danger:hover { opacity: 0.9; }
+    .btn-danger:active { transform: scale(0.99); }
+    .btn-danger:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Landing screen */
+    .landing-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 3000;
+      background: var(--bg);
+      background-image: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(58,118,240,0.18), transparent);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 24px;
+      text-align: center;
+    }
+    .landing-screen[hidden] { display: none !important; }
+    .landing-logo {
+      width: 72px;
+      height: 72px;
+      background: var(--accent);
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      box-shadow: 0 8px 32px rgba(58,118,240,0.35);
+    }
+    .landing-logo svg { width: 40px; height: 40px; }
+    .landing-title {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      margin: 0 0 10px;
+      color: var(--fg);
+    }
+    .landing-sub {
+      font-size: 16px;
+      color: var(--muted);
+      margin: 0 0 40px;
+      line-height: 1.5;
+      max-width: 320px;
+    }
+    .landing-features {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 40px;
+      width: 100%;
+      max-width: 320px;
+    }
+    .landing-feature {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      text-align: left;
+    }
+    .landing-feature-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .landing-feature-text strong {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--fg);
+      margin-bottom: 2px;
+    }
+    .landing-feature-text span {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .landing-btn {
+      width: 100%;
+      max-width: 320px;
+      padding: 16px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+      box-shadow: 0 4px 20px rgba(58,118,240,0.4);
+    }
+    .landing-btn:hover { opacity: 0.92; }
+    .landing-btn:active { transform: scale(0.99); }
+    .landing-btn--secondary {
+      margin-top: 12px;
+      background: var(--surface-2);
+      color: var(--fg);
+      border: 1px solid var(--line);
+      box-shadow: none;
+    }
+    .landing-btn--secondary:hover {
+      background: var(--elevated);
+    }
+    .demo-mode-badge {
+      position: fixed;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10001;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      background: rgba(48, 209, 88, 0.2);
+      color: #30d158;
+      border: 1px solid rgba(48, 209, 88, 0.45);
+      pointer-events: none;
+      box-shadow: var(--shadow);
+    }
+    .demo-mode-badge[hidden] {
+      display: none !important;
+    }
+    .landing-footer {
+      margin-top: 16px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    @media (max-width: 640px) {
+      #app {
+        position: relative;
+        border-left: none;
+        border-right: none;
+      }
+      aside {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        border-right: none;
+      }
+      main {
+        width: 100%;
+        flex: 1 1 100%;
+        min-width: 0;
+      }
+      #app.mobile-show-list aside {
+        display: flex;
+      }
+      #app.mobile-show-list main {
+        display: none !important;
+      }
+      #app.mobile-show-chat aside {
+        display: none !important;
+      }
+      #app.mobile-show-chat main {
+        display: flex !important;
+        flex: 1;
+        width: 100%;
+        min-height: 0;
+      }
+      #app.mobile-show-chat .btn-chat-back {
+        display: inline-flex;
+      }
+      #app aside header {
+        padding: 10px 10px;
+        font-size: 14px;
+      }
+      .toolbar {
+        padding: 8px 8px;
+      }
+      .toolbar .new-contact-input {
+        padding: 8px 10px;
+        font-size: 12px;
+      }
+      .badge {
+        padding: 8px 10px;
+        font-size: 10px;
+      }
+      .conv {
+        padding: 8px 8px;
+        gap: 6px;
+      }
+      .conv .title {
+        font-size: 13px;
+      }
+      .conv .preview {
+        font-size: 11px;
+      }
+      .conv .time {
+        font-size: 10px;
+      }
+      .conv-avatar {
+        width: 26px;
+        height: 26px;
+        font-size: 11px;
+      }
+      #chat-head {
+        padding: 10px 10px;
+        font-size: 15px;
+      }
+      #chat-head span.sub {
+        font-size: 11px;
+      }
+      .messages {
+        padding: 10px;
+      }
+      .bubble {
+        font-size: 14px;
+        padding: 8px 11px;
+      }
+      .msg-line > .bubble-time {
+        font-size: 11px;
+      }
+      .composer {
+        padding: 8px 8px 10px;
+      }
+      .composer-row textarea {
+        padding: 10px 11px;
+        font-size: 14px;
+        min-height: 40px;
+      }
+      button.icon-send {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+      }
+      .empty-main {
+        padding: 20px 12px;
+      }
+      .empty-main-icon {
+        font-size: 36px;
+      }
+      .empty-main-title {
+        font-size: 16px;
+      }
+      .empty-main-sub {
+        font-size: 13px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="demo-mode-badge" class="demo-mode-badge" hidden>🧪 MODE TEST</div>
+  <!-- Landing screen -->
+  <div id="landing-screen" class="landing-screen">
+    <div class="landing-logo">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2C7 2 3 6 3 11c0 2.5 1 4.7 2.7 6.3L5 22l4.5-2.2c.8.2 1.6.3 2.5.3 5 0 9-4 9-9s-4-9-9-9z" fill="white" opacity="0.95"/>
+        <circle cx="9" cy="11" r="1.3" fill="var(--accent)"/>
+        <circle cx="12" cy="11" r="1.3" fill="var(--accent)"/>
+        <circle cx="15" cy="11" r="1.3" fill="var(--accent)"/>
+      </svg>
+    </div>
+    <h1 class="landing-title">GhostTalk</h1>
+    <p class="landing-sub">La messagerie privée où vos conversations restent vos conversations.</p>
+    <div class="landing-features">
+      <div class="landing-feature">
+        <div class="landing-feature-icon" style="background:rgba(58,118,240,0.12);">🔒</div>
+        <div class="landing-feature-text">
+          <strong>Chiffrement bout en bout</strong>
+          <span>Personne d'autre ne peut lire vos messages</span>
+        </div>
+      </div>
+      <div class="landing-feature">
+        <div class="landing-feature-icon" style="background:rgba(48,209,88,0.12);">🕵️</div>
+        <div class="landing-feature-text">
+          <strong>Zéro traçage</strong>
+          <span>Aucune pub, aucune collecte de données</span>
+        </div>
+      </div>
+      <div class="landing-feature">
+        <div class="landing-feature-icon" style="background:rgba(255,159,10,0.12);">⚡</div>
+        <div class="landing-feature-text">
+          <strong>Suppression automatique</strong>
+          <span>Programmez l'effacement de vos messages</span>
+        </div>
+      </div>
+    </div>
+    <button type="button" class="landing-btn" id="btn-landing-enter">Commencer →</button>
+    <button type="button" class="landing-btn landing-btn--secondary" id="btn-landing-test">Mode Test</button>
+    <p class="landing-footer">Accès sur invitation uniquement</p>
+  </div>
+
+  <div id="lock-screen" class="lock-screen" role="dialog" aria-modal="true">
+    <div class="lock-card lock-card--wide">
+      <div id="lock-mode-welcome" hidden="">
+        <h1 id="lock-title-welcome">Inscription</h1>
+        <p class="sub">Créez votre compte pour commencer.</p>
+        <label for="lock-input-username">Nom d'utilisateur</label>
+        <input type="text" id="lock-input-username" class="field" autocomplete="username" />
+        <label for="lock-input-phrase-w">Clé d'accès</label>
+        <input type="password" id="lock-input-phrase-w" class="field" autocomplete="new-password" />
+        <label for="lock-input-phrase-confirm-w">Confirmer la clé d'accès</label>
+        <input type="password" id="lock-input-phrase-confirm-w" class="field" autocomplete="new-password" />
+        <p id="lock-welcome-phrase-error" class="lock-welcome-phrase-error" hidden role="alert"></p>
+        <button type="button" class="btn-lock-primary" id="btn-lock-welcome">Créer mon compte</button>
+      </div>
+      <div id="lock-mode-return" hidden="">
+        <p class="lock-return-username" id="lock-display-username-full"></p>
+        <label for="lock-input-phrase-only">Clé d'accès</label>
+        <input type="password" id="lock-input-phrase-only" class="field" autocomplete="current-password" />
+        <button type="button" class="btn-lock-primary" id="btn-lock-return">Déverrouiller</button>
+      </div>
+      <p id="lock-msg" class="lock-error" style="display:none;"></p>
+    </div>
+  </div>
+
+  <div class="shell" id="app-shell" hidden>
+    <div class="top-strip">
+      <div class="app-logo">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2C7 2 3 6 3 11c0 2.5 1 4.7 2.7 6.3L5 22l4.5-2.2c.8.2 1.6.3 2.5.3 5 0 9-4 9-9s-4-9-9-9z" fill="#30d158" opacity="0.9"/>
+          <circle cx="9" cy="11" r="1.2" fill="white"/>
+          <circle cx="12" cy="11" r="1.2" fill="white"/>
+          <circle cx="15" cy="11" r="1.2" fill="white"/>
+        </svg>
+        <span class="app-logo-name">GhostTalk</span>
+      </div>
+      <button type="button" class="incognito-btn" id="btn-incognito" title="Confidentialité — triple-clic d'urgence si activé dans le menu" aria-label="Confidentialité">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M4 10c0-2.5 2-4.5 8-4.5s8 2 8 4.5v1H4v-1z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M2 9l2.5-3h15L22 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+          <ellipse cx="8.5" cy="15" rx="2.8" ry="2" stroke="currentColor" stroke-width="1.4"/>
+          <ellipse cx="15.5" cy="15" rx="2.8" ry="2" stroke="currentColor" stroke-width="1.4"/>
+          <path d="M11.3 15h1.4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <div id="app">
+      <aside>
+        <header>
+          Conversations
+        </header>
+        <div class="toolbar">
+          <div class="new-contact-wrap">
+            <input
+              type="text"
+              id="new-contact-input"
+              class="new-contact-input"
+              placeholder="Saisir un nom pour discuter..."
+              autocomplete="off"
+              aria-label="Rechercher un utilisateur"
+              aria-autocomplete="list"
+              aria-controls="new-contact-suggestions"
+            />
+            <p id="new-contact-error" class="new-contact-error" hidden role="alert"></p>
+            <ul id="new-contact-suggestions" class="new-contact-suggestions" hidden role="listbox" aria-label="Suggestions de pseudos"></ul>
+          </div>
+        </div>
+        <div class="list" id="conv-list"></div>
+        <p class="badge">
+          🔒 Tous vos messages sont chiffrés de bout en bout.
+        </p>
+      </aside>
+      <main>
+        <header id="chat-head">
+          <div class="chat-head-left">
+            <button type="button" id="btn-chat-back" class="btn-chat-back" aria-label="Retour à la liste des conversations">←</button>
+            <span id="chat-title">Sélectionnez une conversation</span>
+            <span id="chat-secure-badge" hidden style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:500;color:#30d158;background:rgba(48,209,88,0.1);border:1px solid rgba(48,209,88,0.25);border-radius:20px;padding:3px 8px;margin-left:8px;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M12 2a5 5 0 00-5 5v3H6a2 2 0 00-2 2v7a3 3 0 003 3h10a3 3 0 003-3v-7a2 2 0 00-2-2h-1V7a5 5 0 00-5-5z" fill="#30d158"/></svg>
+              Chiffré
+            </span>
+          </div>
+          <div class="chat-head-right">
+            <button type="button" id="btn-conv-emergency" class="conv-emergency-btn" title="Réinitialisation d’urgence" aria-label="Réinitialisation d’urgence" hidden>
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2a5 5 0 00-5 5v3H6a2 2 0 00-2 2v7a3 3 0 003 3h10a3 3 0 003-3v-7a2 2 0 00-2-2h-1V7a5 5 0 00-5-5z" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M9 10V7a3 3 0 116 0v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+        </header>
+        <div id="chat-empty" class="empty-main">
+          <div class="empty-main-inner">
+            <div class="empty-main-icon" aria-hidden="true">💬</div>
+            <h2 class="empty-main-title">Vos conversations</h2>
+            <p class="empty-main-sub">Sélectionnez une conversation à gauche pour l’afficher ici.</p>
+          </div>
+        </div>
+        <div id="chat-pane" style="display: none; flex: 1; flex-direction: column; min-height: 0;">
+          <div class="messages" id="messages"></div>
+          <div class="composer">
+            <div class="composer-inner">
+              <div class="composer-row">
+                <textarea id="input" rows="1" placeholder="Message"></textarea>
+                <div class="composer-actions">
+                  <button type="button" class="icon-send" id="send" title="Envoyer" aria-label="Envoyer">➤</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Modal confidentialité -->
+  <div id="privacy-overlay" class="modal-overlay" aria-hidden="true">
+    <div class="modal-panel modal-panel--privacy" role="dialog" aria-labelledby="privacy-title">
+      <div class="modal-head">
+        <h2 id="privacy-title">Confidentialité</h2>
+        <button type="button" class="modal-close" id="privacy-close" aria-label="Fermer">×</button>
+      </div>
+      <span id="privacy-saved-toast" class="privacy-saved-toast" aria-live="polite" aria-hidden="true">✅</span>
+      <div class="modal-body privacy-modal-body">
+        <section class="privacy-section privacy-section--account" aria-labelledby="privacy-section-account-title">
+          <div class="privacy-section__head">
+            <span class="privacy-section__icon" aria-hidden="true">🧑</span>
+            <h3 class="privacy-section__title" id="privacy-section-account-title">Mon compte</h3>
+          </div>
+          <div class="privacy-account-block">
+            <p class="privacy-account-name" id="privacy-username-full"></p>
+            <p class="privacy-account-member-since" id="privacy-member-since" hidden></p>
+            <button type="button" class="btn-privacy-logout" id="btn-privacy-logout">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+              Se déconnecter
+            </button>
+          </div>
+        </section>
+
+        <section class="privacy-section" aria-labelledby="privacy-section-phrase-title">
+          <div class="privacy-section__head">
+            <span class="privacy-section__icon" aria-hidden="true">🔑</span>
+            <h3 class="privacy-section__title" id="privacy-section-phrase-title">Clé d'accès</h3>
+          </div>
+          <div class="privacy-phrase-stack">
+            <input type="password" class="field" id="modal-new-phrase" placeholder="Nouvelle clé d'accès" autocomplete="new-password" />
+            <input type="password" class="field" id="modal-confirm-phrase" placeholder="Confirmer la nouvelle clé d'accès" autocomplete="new-password" />
+            <p class="privacy-hint-success phrase-reassurance">✅ Cette action ne supprimera pas vos messages existants.</p>
+            <p id="phrase-apply-error" class="phrase-apply-error" hidden role="alert"></p>
+            <button type="button" class="btn-modal-neutral" id="apply-phrase">Appliquer la clé d'accès</button>
+          </div>
+        </section>
+
+        <section class="privacy-section" aria-labelledby="privacy-section-msg-title">
+          <div class="privacy-section__head">
+            <span class="privacy-section__icon" aria-hidden="true">🗑️</span>
+            <h3 class="privacy-section__title" id="privacy-section-msg-title">Gestion des messages</h3>
+          </div>
+          <button type="button" class="link-row" id="btn-delete-all-messages-open">Supprimer tous les messages</button>
+          <p class="hint">Supprime tous les messages de toutes vos conversations.</p>
+          <button type="button" class="link-row link-row--destructive" id="btn-delete-all-conversations-open">Supprimer toutes les conversations</button>
+          <p class="hint">Supprime tout sans exception. Comme si vous n'aviez jamais utilisé GhostTalk.</p>
+        </section>
+
+        <section class="privacy-section" aria-labelledby="privacy-section-auto-title">
+          <div class="privacy-section__head">
+            <span class="privacy-section__icon privacy-section__icon--svg" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 7v5l3 3" />
+              </svg>
+            </span>
+            <h3 class="privacy-section__title" id="privacy-section-auto-title">Suppression automatique</h3>
+          </div>
+          <div class="check-group">
+            <label>
+              <input type="checkbox" id="opt-read" />
+              <span>Suppression dès la lecture</span>
+            </label>
+            <label>
+              <input type="checkbox" id="opt-daily" />
+              <span>Suppression quotidienne</span>
+            </label>
+            <div class="time-slider-row" id="opt-daily-time-row" hidden>
+              <div class="time-slider-inline">
+                <div class="time-slider-wrap">
+                  <input type="range" id="opt-daily-slider" min="0" max="47" step="1" value="6" aria-valuetext="" aria-label="Heure de suppression, par pas de 30 minutes" />
+                </div>
+                <div class="time-slider-display" id="opt-daily-time-display" aria-live="polite">03:00</div>
+              </div>
+              <p id="opt-daily-time-error" class="phrase-apply-error" hidden role="alert"></p>
+            </div>
+          </div>
+          <p class="hint hint--privacy-retention">Par défaut, vos messages sont conservés indéfiniment. Ils ne seront supprimés que si vous effectuez une suppression manuelle ou activez une option de suppression ci-dessus.</p>
+        </section>
+
+        <section class="privacy-section" aria-labelledby="privacy-section-conf-priv-title">
+          <div class="privacy-section__head">
+            <span class="privacy-section__icon" aria-hidden="true">🔒</span>
+            <h3 class="privacy-section__title" id="privacy-section-conf-priv-title">Confidentialité &amp; Protection</h3>
+          </div>
+          <div class="privacy-conf-toggles">
+            <div class="privacy-conf-toggle">
+              <div class="switch-block">
+                <span class="switch-label">Masquer les pseudos des contacts</span>
+                <label class="switch" title="Flouter les noms dans la liste et l’en-tête">
+                  <input type="checkbox" id="opt-hide-contact-pseudos" role="switch" />
+                  <span class="switch-slider"></span>
+                </label>
+              </div>
+              <p class="hint privacy-contact-mask-hint">Les noms de vos contacts apparaîtront floutés dans vos conversations.</p>
+            </div>
+            <div class="privacy-conf-toggle">
+              <div class="switch-block">
+                <span class="switch-label">Masquer les aperçus de messages</span>
+                <label class="switch" title="Masquer le texte des aperçus dans la liste">
+                  <input type="checkbox" id="opt-hide-message-previews" role="switch" />
+                  <span class="switch-slider"></span>
+                </label>
+              </div>
+              <p class="hint privacy-contact-mask-hint">Affiche « 🔒 Message » à la place du contenu dans la liste des conversations.</p>
+            </div>
+            <div class="privacy-conf-toggle">
+              <div class="switch-block">
+                <span class="switch-label">Masquer les notifications</span>
+                <label class="switch" title="Notification sans détail — ouvrir l’app pour lire">
+                  <input type="checkbox" id="opt-hide-notification-content" role="switch" />
+                  <span class="switch-slider"></span>
+                </label>
+              </div>
+              <p class="hint privacy-contact-mask-hint">Vous recevrez une notification vide. Ouvrez l’app pour voir le contenu.</p>
+            </div>
+            <div class="privacy-conf-toggle">
+              <div class="switch-block">
+                <span class="switch-label">Bloquer les captures d’écran</span>
+                <label class="switch" title="Réduit la sélection et limite certaines captures sur appareils compatibles">
+                  <input type="checkbox" id="opt-block-screenshots" role="switch" />
+                  <span class="switch-slider"></span>
+                </label>
+              </div>
+              <p class="hint privacy-contact-mask-hint">Empêche les captures d’écran sur mobile.</p>
+              <p class="hint privacy-screenshot-compat-note" id="privacy-screenshot-compat-note" hidden>Disponible sur les appareils compatibles uniquement.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="privacy-section privacy-section--danger" aria-labelledby="privacy-section-danger-title">
+          <div class="privacy-section__head">
+            <span class="privacy-section__icon" aria-hidden="true">🚨</span>
+            <h3 class="privacy-section__title" id="privacy-section-danger-title">Zone de danger</h3>
+          </div>
+          <div class="switch-block">
+            <span class="switch-label">Autoriser le triple-clic pour tout effacer</span>
+            <label class="switch" title="Triple-clic sur l’icône incognito">
+              <input type="checkbox" id="opt-triple-tap-kill" role="switch" />
+              <span class="switch-slider"></span>
+            </label>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal confirmation clé d'accès (gestion des messages) -->
+  <div id="delete-incoming-overlay" class="modal-overlay" aria-hidden="true">
+    <div class="modal-panel" role="dialog" aria-labelledby="delete-incoming-title">
+      <div class="modal-head">
+        <h2 id="delete-incoming-title">Confirmer</h2>
+        <button type="button" class="modal-close" id="delete-incoming-close" aria-label="Fermer">×</button>
+      </div>
+      <div class="modal-body">
+        <p class="hint" id="delete-incoming-hint" style="margin-top:0;"></p>
+        <input type="password" class="field" id="delete-incoming-passphrase" placeholder="Clé d'accès actuelle" autocomplete="current-password" />
+        <p id="delete-incoming-pass-error" class="phrase-apply-error" hidden role="alert"></p>
+        <button type="button" class="btn-danger" id="delete-incoming-confirm" style="width:100%;margin-top:8px;">Confirmer</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="delete-conv-overlay" class="modal-overlay" aria-hidden="true">
+    <div class="modal-panel" role="dialog" aria-labelledby="delete-conv-title">
+      <div class="modal-head">
+        <h2 id="delete-conv-title">Supprimer cette conversation ?</h2>
+        <button type="button" class="modal-close" id="delete-conv-close" aria-label="Fermer">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="delete-conv-actions" style="display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; margin-top: 4px">
+          <button type="button" class="btn-modal-neutral" id="delete-conv-cancel">Annuler</button>
+          <button type="button" class="btn-danger" id="delete-conv-confirm">Supprimer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal PIN -->
+  <div id="pin-overlay" class="modal-overlay" aria-hidden="true">
+    <div class="modal-panel" role="dialog" aria-labelledby="pin-title">
+      <div class="modal-head">
+        <h2 id="pin-title">Confirmation PIN</h2>
+        <button type="button" class="modal-close" id="pin-close" aria-label="Fermer">×</button>
+      </div>
+      <div class="modal-body">
+        <p class="hint" id="pin-message">Entrez votre PIN à 4 chiffres pour confirmer la suppression.</p>
+        <input type="password" class="field pin-input" id="pin-input" maxlength="8" placeholder="••••" inputmode="numeric" autocomplete="off" />
+        <button type="button" class="btn-primary" id="pin-confirm">Confirmer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal confirmation d'urgence -->
+  <div id="emergency-overlay" class="modal-overlay" aria-hidden="true">
+    <div class="modal-panel modal-panel--emergency" role="dialog" aria-labelledby="emergency-title">
+      <div class="modal-head">
+        <h2 id="emergency-title">Confirmation d’urgence</h2>
+        <button type="button" class="modal-close" id="emergency-close" aria-label="Fermer">×</button>
+      </div>
+      <div class="modal-body">
+        <p class="emergency-copy">Action critique : Pour confirmer la suppression totale de vos données, veuillez recopier le code suivant :</p>
+        <p id="emergency-code" class="emergency-code">----</p>
+        <input type="text" class="field" id="emergency-passphrase" placeholder="Recopiez le code affiché" autocomplete="off" maxlength="4" />
+        <p id="emergency-error" class="emergency-error"></p>
+        <button type="button" class="btn-danger" id="emergency-confirm" disabled>Confirmer la réinitialisation</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="msg-context-menu" class="msg-context-menu" role="menu" hidden>
+    <button type="button" class="msg-context-item danger" id="ctx-delete-msg" role="menuitem">🗑️ Supprimer</button>
+  </div>
+  <div id="reaction-picker" class="reaction-picker" hidden role="listbox" aria-label="Réactions">
+    <button type="button" class="reaction-picker-btn" data-emoji="👍" aria-label="👍">👍</button>
+    <button type="button" class="reaction-picker-btn" data-emoji="❤️" aria-label="❤️">❤️</button>
+    <button type="button" class="reaction-picker-btn" data-emoji="😂" aria-label="😂">😂</button>
+    <button type="button" class="reaction-picker-btn" data-emoji="😮" aria-label="😮">😮</button>
+    <button type="button" class="reaction-picker-btn" data-emoji="😢" aria-label="😢">😢</button>
+    <button type="button" class="reaction-picker-btn" data-emoji="🔥" aria-label="🔥">🔥</button>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+  <script>
+(function () {
+  'use strict';
+
+  var STORAGE_KEY = 'secure_chat_demo_v1';
+  var USERNAME_KEY = 'secure_chat_demo_username';
+  var DEMO_MODE_KEY = 'secure_chat_demo_mode';
+  var demoMode = false;
+  try {
+    demoMode = localStorage.getItem(DEMO_MODE_KEY) === '1';
+  } catch (e) {
+    demoMode = false;
+  }
+  var firebaseConfig = {
+    apiKey: "AIzaSyDw8oojkJjo9kVmjjpj3K1wCoaJasYava4",
+    authDomain: "monsite-1a151.firebaseapp.com",
+    projectId: "monsite-1a151",
+    storageBucket: "monsite-1a151.firebasestorage.app",
+    messagingSenderId: "97534929363",
+    appId: "1:97534929363:web:e951ad65312be58ff0a726"
+  };
+  var firebaseApp = null;
+  var firestoreDb = null;
+  var unsubscribeRealtime = null;
+
+  function getSavedUsername() {
+    try {
+      return localStorage.getItem(USERNAME_KEY) || '';
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function setSavedUsername(name) {
+    localStorage.setItem(USERNAME_KEY, name.trim());
+  }
+
+  var PHRASE_HASH_KEY = 'secure_chat_phrase_hash_b64';
+  var ACCOUNT_CREATED_AT_KEY = 'secure_chat_account_created_iso';
+
+  function phraseHashSaltDocId(displayUsername) {
+    var docId = usernameToFirestoreDocId(normalizeContactName(displayUsername));
+    if (docId === null || docId === '') return 'ghosttalk';
+    return docId;
+  }
+
+  function computePhraseHashB64(phrase, displayUsername) {
+    var salt = phraseHashSaltDocId(displayUsername);
+    return bytesToBase64(deriveKeyBytes(phrase, salt));
+  }
+
+  function getStoredPhraseHashB64() {
+    try {
+      return localStorage.getItem(PHRASE_HASH_KEY) || '';
+    } catch (e) {
+      return '';
+    }
+  }
+
+  function setStoredPhraseHashB64(b64) {
+    try {
+      localStorage.setItem(PHRASE_HASH_KEY, b64);
+    } catch (e) {}
+  }
+
+  function timingSafeEqualB64(a, b) {
+    a = String(a || '');
+    b = String(b || '');
+    if (a.length !== b.length) return false;
+    var diff = 0;
+    for (var i = 0; i < a.length; i++) {
+      diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+    }
+    return diff === 0;
+  }
+
+  function deriveKeyBytes(passphrase, salt) {
+    var s = passphrase + '|' + salt + '|demo';
+    var out = new Uint8Array(32);
+    for (var i = 0; i < s.length; i++) {
+      out[i % 32] = (out[i % 32] + s.charCodeAt(i) + (i * 17)) & 255;
+    }
+    for (var r = 0; r < 1000; r++) {
+      var j = r % 32;
+      out[j] = (out[j] * 31 + out[(j + 1) % 32] + r) & 255;
+    }
+    return out;
+  }
+
+  function bytesToBase64(bytes) {
+    var bin = '';
+    for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return btoa(bin);
+  }
+
+  function base64ToBytes(b64) {
+    var bin = atob(b64);
+    var out = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+
+  function encryptUtf8(plain, passphrase) {
+    var enc = new TextEncoder();
+    var data = enc.encode(plain);
+    return bytesToBase64(data);
+  }
+
+  function decryptUtf8(b64, passphrase) {
+    var data = base64ToBytes(b64);
+    return new TextDecoder().decode(data);
+  }
+
+  function defaultPrivacy() {
+    return {
+      deleteOnRead: false,
+      dailyDelete: false,
+      dailyTime: '03:00',
+      weeklyDelete: false,
+      pin: null,
+      tripleTapKillEnabled: false,
+      hideContactPseudos: false,
+      hideMessagePreviews: false,
+      hideNotificationContent: false,
+      blockScreenshots: false
+    };
+  }
+
+  function syncDemoModeBadge() {
+    var el = document.getElementById('demo-mode-badge');
+    if (!el) return;
+    if (demoMode) el.removeAttribute('hidden');
+    else el.setAttribute('hidden', '');
+  }
+
+  function loadState() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return { contacts: [], directMessages: [], privacy: defaultPrivacy() };
+      var o = JSON.parse(raw);
+      if (!o.privacy) o.privacy = defaultPrivacy();
+      else if (o.privacy.tripleTapKillEnabled === undefined) {
+        o.privacy.tripleTapKillEnabled = false;
+      }
+      if (o.privacy.hideContactPseudos === undefined) {
+        o.privacy.hideContactPseudos = false;
+      }
+      if (o.privacy.hideMessagePreviews === undefined) o.privacy.hideMessagePreviews = false;
+      if (o.privacy.hideNotificationContent === undefined) o.privacy.hideNotificationContent = false;
+      if (o.privacy.blockScreenshots === undefined) o.privacy.blockScreenshots = false;
+      if (!Array.isArray(o.contacts)) o.contacts = [];
+      if (!Array.isArray(o.directMessages)) o.directMessages = [];
+      return o;
+    } catch (e) {
+      return { contacts: [], directMessages: [], privacy: defaultPrivacy() };
+    }
+  }
+
+  function saveState(s) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+  }
+
+  function ensureData() {
+    if (!state.directMessages || !Array.isArray(state.directMessages)) {
+      state.directMessages = [];
+    }
+    if (!state.contacts || !Array.isArray(state.contacts)) {
+      state.contacts = [];
+    }
+    state.directMessages = state.directMessages.map(function (m) {
+      if (m && typeof m.contactId === 'string') return m;
+      if (m && m.from && m.to) {
+        return {
+          id: m.id || nowId(),
+          contactId: m.from === 'A' ? 'Utilisateur B' : 'Utilisateur A',
+          me: m.from === 'A',
+          cipher: m.cipher,
+          at: m.at || Date.now()
+        };
+      }
+      return m;
+    }).filter(function (m) {
+      return m && typeof m.contactId === 'string' && typeof m.cipher === 'string';
+    });
+    state.directMessages.forEach(function (m) {
+      var exists = state.contacts.some(function (c) { return c.id === m.contactId; });
+      if (!exists) {
+        state.contacts.push({ id: m.contactId, name: m.contactId });
+      }
+    });
+  }
+
+  function getContactById(id) {
+    ensureData();
+    for (var i = 0; i < state.contacts.length; i++) {
+      if (state.contacts[i].id === id) return state.contacts[i];
+    }
+    return null;
+  }
+
+  function normalizeContactName(name) {
+    return (name || '').trim().replace(/\s+/g, ' ');
+  }
+
+  function makeContactId(name) {
+    return 'c_' + name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+  }
+
+  function findContactByName(name) {
+    var normalized = normalizeContactName(name).toLowerCase();
+    if (!normalized) return null;
+    for (var i = 0; i < state.contacts.length; i++) if ((state.contacts[i].name || '').toLowerCase() === normalized) return state.contacts[i];
+    return null;
+  }
+
+  function createOrGetContact(name) {
+    ensureData();
+    var clean = normalizeContactName(name);
+    if (!clean) return null;
+    var existing = findContactByName(clean);
+    if (existing) return existing;
+    var baseId = makeContactId(clean) || ('c_' + nowId());
+    var id = baseId;
+    var suffix = 1;
+    while (getContactById(id)) {
+      suffix += 1;
+      id = baseId + '_' + suffix;
+    }
+    var created = { id: id, name: clean };
+    state.contacts.push(created);
+    saveState(state);
+    return created;
+  }
+
+  function currentUsername() {
+    return normalizeContactName(getSavedUsername());
+  }
+
+  function initFirebase() {
+    if (firestoreDb || typeof firebase === 'undefined') return;
+    firebaseApp = firebase.initializeApp(firebaseConfig);
+    firestoreDb = firebaseApp.firestore();
+  }
+
+  /** ID document Firestore = nom en minuscules (unicité globale). Refuse les caractères invalides pour un ID. */
+  function usernameToFirestoreDocId(trimmedName) {
+    var s = (trimmedName || '').toLowerCase();
+    if (!s.length) return '';
+    if (s.indexOf('/') !== -1) return null;
+    return s;
+  }
+
+  /**
+   * Réserve le nom dans `users/{lowercase}` avec transaction (anti-course).
+   * @returns {Promise<{ ok: boolean, taken?: boolean, error?: Error }>}
+   */
+  function claimUsernameInFirestore(displayUsername, docId) {
+    initFirebase();
+    if (!firestoreDb) {
+      return Promise.resolve({ ok: false, error: new Error('NO_FIRESTORE') });
+    }
+    var ref = firestoreDb.collection('users').doc(docId);
+    var taken = false;
+    return firestoreDb
+      .runTransaction(function (transaction) {
+        return transaction.get(ref).then(function (doc) {
+          if (doc.exists) {
+            taken = true;
+            return;
+          }
+          transaction.set(ref, {
+            username: displayUsername,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        });
+      })
+      .then(function () {
+        if (taken) return { ok: false, taken: true };
+        return { ok: true };
+      })
+      .catch(function (err) {
+        return { ok: false, error: err };
+      });
+  }
+
+  var contactSuggestTimer = null;
+
+  function clearNewContactError() {
+    var el = document.getElementById('new-contact-error');
+    if (el) {
+      el.textContent = '';
+      el.hidden = true;
+    }
+  }
+
+  function showNewContactError(msg) {
+    var el = document.getElementById('new-contact-error');
+    if (el) {
+      el.textContent = msg;
+      el.hidden = false;
+    }
+  }
+
+  function hideContactSuggestions() {
+    var list = document.getElementById('new-contact-suggestions');
+    if (list) {
+      list.hidden = true;
+      list.innerHTML = '';
+    }
+  }
+
+  function userDocExists(docId) {
+    initFirebase();
+    if (!firestoreDb || !docId) return Promise.resolve(false);
+    return firestoreDb
+      .collection('users')
+      .doc(docId)
+      .get()
+      .then(function (snap) {
+        return snap.exists;
+      });
+  }
+
+  function fetchContactSuggestions(prefixLower) {
+    initFirebase();
+    if (!firestoreDb || prefixLower.length < 2) return Promise.resolve([]);
+    var me = (currentUsername() || '').toLowerCase();
+    return firestoreDb
+      .collection('users')
+      .orderBy(firebase.firestore.FieldPath.documentId())
+      .startAt(prefixLower)
+      .endAt(prefixLower + '\uf8ff')
+      .limit(12)
+      .get()
+      .then(function (snapshot) {
+        var out = [];
+        snapshot.forEach(function (doc) {
+          if (doc.id === me) return;
+          var data = doc.data() || {};
+          var label = typeof data.username === 'string' && data.username.trim() ? data.username.trim() : doc.id;
+          out.push(label);
+        });
+        return out;
+      })
+      .catch(function () {
+        return [];
+      });
+  }
+
+  function scheduleContactSuggestions() {
+    clearTimeout(contactSuggestTimer);
+    contactSuggestTimer = setTimeout(function () {
+      runContactSuggestions();
+    }, 220);
+  }
+
+  function runContactSuggestions() {
+    var input = document.getElementById('new-contact-input');
+    var list = document.getElementById('new-contact-suggestions');
+    if (!input || !list) return;
+    var raw = input.value.trim();
+    if (raw.length < 2) {
+      hideContactSuggestions();
+      return;
+    }
+    if (raw.indexOf('/') !== -1) {
+      hideContactSuggestions();
+      return;
+    }
+    var pref = raw.toLowerCase();
+    fetchContactSuggestions(pref).then(function (names) {
+      if (input.value.trim().length < 2) return;
+      if (names.length === 0) {
+        list.hidden = true;
+        list.innerHTML = '';
+        return;
+      }
+      list.innerHTML = '';
+      names.forEach(function (name) {
+        var li = document.createElement('li');
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.setAttribute('role', 'option');
+        btn.textContent = name;
+        btn.addEventListener('mousedown', function (e) {
+          e.preventDefault();
+        });
+        btn.addEventListener('click', function () {
+          input.value = name;
+          hideContactSuggestions();
+          clearNewContactError();
+          openContactAfterVerified(name);
+        });
+        li.appendChild(btn);
+        list.appendChild(li);
+      });
+      list.hidden = false;
+    });
+  }
+
+  function openContactAfterVerified(displayName) {
+    var clean = normalizeContactName(displayName);
+    if (!clean) return;
+    var docId = usernameToFirestoreDocId(clean);
+    if (docId === null) {
+      showNewContactError('Caractère non autorisé dans le pseudo.');
+      return;
+    }
+    var me = (currentUsername() || '').toLowerCase();
+    if (docId === me) {
+      showNewContactError('Impossible d’ouvrir une conversation avec vous-même.');
+      return;
+    }
+    if (demoMode) {
+      var contactDemo = createOrGetContact(clean);
+      var inpDemo = document.getElementById('new-contact-input');
+      if (inpDemo) inpDemo.value = '';
+      hideContactSuggestions();
+      renderConvList();
+      if (contactDemo) selectConv(contactDemo.id);
+      return;
+    }
+    initFirebase();
+    if (!firestoreDb) {
+      showNewContactError('Connexion impossible. Réessayez plus tard.');
+      return;
+    }
+    userDocExists(docId)
+      .then(function (exists) {
+        if (!exists) {
+          showNewContactError('Aucun utilisateur trouvé avec ce pseudo.');
+          return;
+        }
+        return firestoreDb
+          .collection('users')
+          .doc(docId)
+          .get()
+          .then(function (snap) {
+            var data = snap.data() || {};
+            var display =
+              typeof data.username === 'string' && data.username.trim() ? data.username.trim() : clean;
+            var contact = createOrGetContact(display);
+            var inp = document.getElementById('new-contact-input');
+            if (inp) inp.value = '';
+            hideContactSuggestions();
+            renderConvList();
+            if (contact) selectConv(contact.id);
+          });
+      })
+      .catch(function () {
+        showNewContactError('Connexion impossible. Réessayez plus tard.');
+      });
+  }
+
+  function notifyNewIncomingMessagesIfNeeded(snapshot, me) {
+    if (typeof Notification === 'undefined') return;
+    if (Notification.permission !== 'granted') return;
+    if (!document.hidden) return;
+    if (!state || !state.privacy) return;
+    snapshot.docChanges().forEach(function (change) {
+      if (change.type !== 'added') return;
+      var data = change.doc.data() || {};
+      var from = normalizeContactName(data.from || '');
+      var to = normalizeContactName(data.to || '');
+      if (from === me) return;
+      var other = from === me ? to : from;
+      if (!other) return;
+      var cipher = typeof data.cipher === 'string' ? data.cipher : '';
+      var body;
+      var silent = false;
+      if (state.privacy.hideNotificationContent) {
+        body = '';
+        silent = true;
+      } else {
+        try {
+          var plain = decryptUtf8(cipher, passphrase);
+          body = other + ': ' + plain.slice(0, 120);
+        } catch (e) {
+          body = other + ': …';
+        }
+      }
+      try {
+        new Notification('GhostTalk', {
+          body: body,
+          silent: silent,
+          tag: 'ghosttalk-msg',
+          renotify: true
+        });
+      } catch (err) {}
+    });
+  }
+
+  function applyScreenshotDeterrenceHook() {
+    if (!state || !state.privacy || !state.privacy.blockScreenshots) return;
+    // Aucune API « Screen Capture » standard ne permet de bloquer les captures depuis le Web sans application native.
+    // La présence de getDisplayMedia sert au partage d’écran, pas au blocage — on ne l’invoque pas sans geste utilisateur.
+    try {
+      if (navigator.mediaDevices && typeof navigator.mediaDevices.getDisplayMedia === 'function') {
+        /* détection seulement — mitigation principale : .privacy-block-screenshot sur body */
+      }
+    } catch (e) {}
+  }
+
+  function applyPrivacyGuards() {
+    if (!state || !state.privacy) return;
+    document.body.classList.toggle('privacy-block-screenshot', !!state.privacy.blockScreenshots);
+    var note = document.getElementById('privacy-screenshot-compat-note');
+    if (note) {
+      if (state.privacy.blockScreenshots) note.removeAttribute('hidden');
+      else note.setAttribute('hidden', '');
+    }
+    applyScreenshotDeterrenceHook();
+  }
+
+  function subscribeRealtimeMessages() {
+    if (demoMode) return;
+    initFirebase();
+    if (!firestoreDb) return;
+    var me = currentUsername();
+    if (!me) return;
+    if (unsubscribeRealtime) unsubscribeRealtime();
+    unsubscribeRealtime = firestoreDb
+      .collection('messages')
+      .where('participants', 'array-contains', me)
+      .onSnapshot(function (snapshot) {
+        ensureData();
+        try {
+          notifyNewIncomingMessagesIfNeeded(snapshot, me);
+        } catch (e) {}
+        var remoteMessages = [];
+        snapshot.forEach(function (doc) {
+          var data = doc.data() || {};
+          var from = normalizeContactName(data.from || '');
+          var to = normalizeContactName(data.to || '');
+          var other = from === me ? to : from;
+          if (!other) return;
+          var contact = createOrGetContact(other);
+          if (!contact) return;
+          var at = data.at && typeof data.at.toMillis === 'function' ? data.at.toMillis() : (data.atMs || Date.now());
+          var readAtMs = null;
+          if (data.readAt && typeof data.readAt.toMillis === 'function') {
+            readAtMs = data.readAt.toMillis();
+          }
+          var replyToObj = null;
+          var replyToLegacy = null;
+          if (typeof data.replyTo === 'string') {
+            replyToLegacy = data.replyTo;
+          } else if (data.replyTo && typeof data.replyTo === 'object') {
+            replyToObj = {
+              messageId: typeof data.replyTo.messageId === 'string' ? data.replyTo.messageId : null,
+              text: typeof data.replyTo.text === 'string' ? data.replyTo.text : '',
+              author: typeof data.replyTo.author === 'string' ? data.replyTo.author : ''
+            };
+          }
+          var reactionsByUser = {};
+          if (data.reactionsByUser && typeof data.reactionsByUser === 'object') {
+            Object.keys(data.reactionsByUser).forEach(function (k) {
+              var em = data.reactionsByUser[k];
+              if (typeof em === 'string' && em.length) reactionsByUser[k] = em;
+            });
+          }
+          remoteMessages.push({
+            id: doc.id,
+            contactId: contact.id,
+            me: from === me,
+            cipher: typeof data.cipher === 'string' ? data.cipher : encryptUtf8(String(data.text || ''), ''),
+            at: at,
+            replyTo: replyToObj,
+            replyToLegacy: replyToLegacy,
+            readAt: readAtMs,
+            reactionsByUser: reactionsByUser
+          });
+        });
+        state.directMessages = remoteMessages.sort(function (a, b) { return (a.at || 0) - (b.at || 0); });
+        saveState(state);
+        renderConvList();
+        renderMessages();
+      }, function () {
+        // Fallback silencieux: l'app continue en local si Firestore échoue.
+      });
+  }
+
+  function getThreadMessages(contactId) {
+    ensureData();
+    return state.directMessages.filter(function (m) {
+      return m.contactId === contactId;
+    }).sort(function (a, b) {
+      return (a.at || 0) - (b.at || 0);
+    });
+  }
+
+  function nowId() {
+    return 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+
+  /** Phrase en mémoire pour la session courante uniquement (rechargement = nouvelle saisie). */
+  var passphrase = '';
+  var state = null;
+  var activeId = null;
+  var pendingDeleteConvId = null;
+  var readDeleteTimer = null;
+  var scheduleTimer = null;
+  var dailyAwaitingTimeChoice = false;
+  var emergencyChallengeCode = '';
+  var contextMenuMsgId = null;
+  var longPressTimer = null;
+  var longPressStart = null;
+  /** 'all-messages' | 'all-conversations' | null — modal confidentialité */
+  var deleteConfirmAction = null;
+  var reactionPickerMsgId = null;
+  var messageMetasRevealTimeout = null;
+  var suppressNextBubbleClick = false;
+  var desktopLongPressTimer = null;
+
+  function clearLockWelcomePhraseError() {
+    var pe = document.getElementById('lock-welcome-phrase-error');
+    if (pe) {
+      pe.textContent = '';
+      pe.hidden = true;
+    }
+  }
+
+  function showLockMessage(msg) {
+    var el = document.getElementById('lock-msg');
+    if (!msg) {
+      el.style.display = 'none';
+      el.textContent = '';
+      return;
+    }
+    clearLockWelcomePhraseError();
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  function setupLockScreen() {
+    document.getElementById('lock-screen').removeAttribute('hidden');
+    document.getElementById('app-shell').setAttribute('hidden', '');
+    // Cacher le landing quand on arrive sur le lock
+    var landing = document.getElementById('landing-screen');
+    if (landing) landing.setAttribute('hidden', '');
+    showLockMessage('');
+    var saved = (getSavedUsername() || '').trim();
+    var w = document.getElementById('lock-mode-welcome');
+    var r = document.getElementById('lock-mode-return');
+    if (!saved) {
+      w.removeAttribute('hidden');
+      r.setAttribute('hidden', '');
+      document.getElementById('lock-input-username').value = '';
+      document.getElementById('lock-input-phrase-w').value = '';
+      var pc = document.getElementById('lock-input-phrase-confirm-w');
+      if (pc) pc.value = '';
+      clearLockWelcomePhraseError();
+    } else {
+      w.setAttribute('hidden', '');
+      r.removeAttribute('hidden');
+      var fullName = document.getElementById('lock-display-username-full');
+      if (fullName) fullName.textContent = saved;
+      document.getElementById('lock-input-phrase-only').value = '';
+    }
+  }
+
+  function tryUnlockFromWelcome() {
+    clearLockWelcomePhraseError();
+    showLockMessage('');
+    var u = document.getElementById('lock-input-username').value.trim();
+    var p = document.getElementById('lock-input-phrase-w').value;
+    var p2 = document.getElementById('lock-input-phrase-confirm-w').value;
+    if (!u) {
+      showLockMessage('Le nom d’utilisateur est requis.');
+      return;
+    }
+    if (u.length < 3) {
+      showLockMessage('Le nom d’utilisateur doit comporter au moins 3 caractères.');
+      return;
+    }
+    if (/\s/.test(u)) {
+      showLockMessage('Le nom d’utilisateur ne doit pas contenir d’espaces.');
+      return;
+    }
+    if (!p || !p.trim()) {
+      showLockMessage("La clé d'accès est requise.");
+      return;
+    }
+    p = p.trim();
+    p2 = (p2 || '').trim();
+    if (p !== p2) {
+      var pe = document.getElementById('lock-welcome-phrase-error');
+      if (pe) {
+        pe.textContent = "Les clés d'accès ne correspondent pas";
+        pe.hidden = false;
+      }
+      return;
+    }
+    var docId = usernameToFirestoreDocId(u);
+    if (docId === null) {
+      showLockMessage('Le nom d’utilisateur ne peut pas contenir « / ».');
+      return;
+    }
+    if (!docId.length) {
+      showLockMessage('Le nom d’utilisateur est requis.');
+      return;
+    }
+    var btn = document.getElementById('btn-lock-welcome');
+    if (btn) {
+      btn.disabled = true;
+    }
+    claimUsernameInFirestore(u, docId).then(function (result) {
+      if (btn) btn.disabled = false;
+      if (result.taken) {
+        showLockMessage('Ce pseudo est déjà utilisé');
+        return;
+      }
+      if (!result.ok) {
+        if (result.error && result.error.message === 'NO_FIRESTORE') {
+          showLockMessage('Connexion impossible. Vérifiez le chargement de la page et votre réseau.');
+        } else {
+          showLockMessage('Inscription impossible. Réessayez dans un instant.');
+        }
+        return;
+      }
+      setSavedUsername(u);
+      setStoredPhraseHashB64(computePhraseHashB64(p, u));
+      try {
+        localStorage.setItem(ACCOUNT_CREATED_AT_KEY, new Date().toISOString());
+      } catch (e2) {}
+      passphrase = p;
+      document.getElementById('lock-screen').setAttribute('hidden', '');
+      document.getElementById('app-shell').removeAttribute('hidden');
+      showLockMessage('');
+      clearLockWelcomePhraseError();
+      initApp();
+    });
+  }
+
+  function tryUnlockFromReturn() {
+    clearLockWelcomePhraseError();
+    showLockMessage('');
+    var p = document.getElementById('lock-input-phrase-only').value;
+    if (!p || !p.trim()) {
+      showLockMessage("La clé d'accès est requise.");
+      return;
+    }
+    p = p.trim();
+    var name = getSavedUsername();
+    if (!name) {
+      showLockMessage('Aucun compte enregistré sur cet appareil.');
+      return;
+    }
+    var stored = getStoredPhraseHashB64();
+    var candidate = computePhraseHashB64(p, name);
+    if (stored) {
+      if (!timingSafeEqualB64(stored, candidate)) {
+        showLockMessage("Clé d'accès incorrecte");
+        return;
+      }
+    } else {
+      setStoredPhraseHashB64(candidate);
+    }
+    passphrase = p;
+    document.getElementById('lock-screen').setAttribute('hidden', '');
+    document.getElementById('app-shell').removeAttribute('hidden');
+    showLockMessage('');
+    initApp();
+  }
+
+  function escapeHtml(str) {
+    var d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  function escapeAttr(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  function contactDisplayNameHtml(name) {
+    var n = (name || '').trim();
+    if (!n) return '';
+    if (!state || !state.privacy || !state.privacy.hideContactPseudos) {
+      return escapeHtml(n);
+    }
+    if (n.length === 1) {
+      return '<span class="contact-name-plain">' + escapeHtml(n) + '</span>';
+    }
+    return (
+      '<span class="contact-name-masked" title="' +
+      escapeAttr(n) +
+      '">' +
+      '<span class="contact-name-plain">' +
+      escapeHtml(n.charAt(0)) +
+      '</span><span class="contact-name-blurred">' +
+      escapeHtml(n.slice(1)) +
+      '</span></span>'
+    );
+  }
+
+  function updateChatTitleDisplay(contact) {
+    var el = document.getElementById('chat-title');
+    if (!el) return;
+    if (!contact) {
+      el.textContent = 'Sélectionnez une conversation';
+      el.removeAttribute('aria-label');
+      return;
+    }
+    if (state.privacy.hideContactPseudos) {
+      el.innerHTML = contactDisplayNameHtml(contact.name);
+      el.setAttribute('aria-label', contact.name);
+    } else {
+      el.textContent = contact.name;
+      el.removeAttribute('aria-label');
+    }
+  }
+
+  function hashString(str) {
+    var h = 0;
+    for (var i = 0; i < str.length; i++) {
+      h = ((h << 5) - h + str.charCodeAt(i)) | 0;
+    }
+    return Math.abs(h);
+  }
+
+  function avatarForName(name) {
+    var safe = (name || '?').trim();
+    var initial = safe ? safe.charAt(0).toUpperCase() : '?';
+    var hue = hashString(safe) % 360;
+    return { initial: initial, color: 'hsl(' + hue + ' 60% 46%)' };
+  }
+
+  function pad(n) {
+    return n < 10 ? '0' + n : String(n);
+  }
+
+  function formatTime(d) {
+    var now = new Date();
+    if (now - d < 86400000 && d.getDate() === now.getDate()) {
+      return pad(d.getHours()) + ':' + pad(d.getMinutes());
+    }
+    return d.getDate() + '/' + (d.getMonth() + 1);
+  }
+
+  function hideMsgContextMenu() {
+    var el = document.getElementById('msg-context-menu');
+    if (el) {
+      el.hidden = true;
+      contextMenuMsgId = null;
+    }
+  }
+
+  function hideReactionPicker() {
+    var p = document.getElementById('reaction-picker');
+    if (p) p.hidden = true;
+    reactionPickerMsgId = null;
+  }
+
+  function showReactionPicker(clientX, clientY, msgId) {
+    reactionPickerMsgId = msgId;
+    var p = document.getElementById('reaction-picker');
+    if (!p) return;
+    p.hidden = false;
+    p.style.left = Math.min(clientX, window.innerWidth - 220) + 'px';
+    p.style.top = Math.min(clientY, window.innerHeight - 52) + 'px';
+  }
+
+  function showMsgContextMenu(clientX, clientY, messageId) {
+    contextMenuMsgId = messageId;
+    var el = document.getElementById('msg-context-menu');
+    if (!el) return;
+    el.hidden = false;
+    el.style.left = Math.min(clientX, window.innerWidth - 180) + 'px';
+    el.style.top = Math.min(clientY, window.innerHeight - 52) + 'px';
+  }
+
+  function markConversationMessagesRead(contactId) {
+    initFirebase();
+    if (!firestoreDb || !contactId) return Promise.resolve();
+    var contact = getContactById(contactId);
+    if (!contact) return Promise.resolve();
+    var me = currentUsername();
+    var fromContact = normalizeContactName(contact.name);
+    if (!me || !fromContact) return Promise.resolve();
+    return firestoreDb
+      .collection('messages')
+      .where('from', '==', fromContact)
+      .where('to', '==', me)
+      .get()
+      .then(function (snapshot) {
+        var refs = [];
+        snapshot.forEach(function (doc) {
+          var d = doc.data() || {};
+          if (d.readAt) return;
+          refs.push(doc.ref);
+        });
+        function commitNextBatch() {
+          if (refs.length === 0) return Promise.resolve();
+          var batch = firestoreDb.batch();
+          var n = 0;
+          while (n < 500 && refs.length) {
+            batch.update(refs.pop(), { readAt: firebase.firestore.FieldValue.serverTimestamp() });
+            n++;
+          }
+          return batch.commit().then(commitNextBatch);
+        }
+        return commitNextBatch();
+      })
+      .catch(function (err) {
+        console.error(err);
+      });
+  }
+
+  function countUnreadIncomingForContact(contactId) {
+    if (!contactId) return 0;
+    var n = 0;
+    ensureData();
+    state.directMessages.forEach(function (m) {
+      if (m.contactId === contactId && !m.me && m.readAt == null) n += 1;
+    });
+    return n;
+  }
+
+  function markIncomingMessagesReadLocal(contactId) {
+    if (!contactId) return;
+    ensureData();
+    var now = Date.now();
+    var changed = false;
+    state.directMessages.forEach(function (m) {
+      if (m.contactId === contactId && !m.me && m.readAt == null) {
+        m.readAt = now;
+        changed = true;
+      }
+    });
+    if (changed) saveState(state);
+  }
+
+  function deleteMessageById(messageId) {
+    if (!messageId) return Promise.resolve();
+    initFirebase();
+    hideMsgContextMenu();
+    if (firestoreDb) {
+      return firestoreDb
+        .collection('messages')
+        .doc(messageId)
+        .delete()
+        .then(function () {
+          ensureData();
+          state.directMessages = state.directMessages.filter(function (m) {
+            return m.id !== messageId;
+          });
+          saveState(state);
+          renderMessages();
+          renderConvList();
+        })
+        .catch(function (err) {
+          console.error(err);
+          ensureData();
+          state.directMessages = state.directMessages.filter(function (m) {
+            return m.id !== messageId;
+          });
+          saveState(state);
+          renderMessages();
+          renderConvList();
+        });
+    }
+    ensureData();
+    state.directMessages = state.directMessages.filter(function (m) {
+      return m.id !== messageId;
+    });
+    saveState(state);
+    renderMessages();
+    renderConvList();
+    return Promise.resolve();
+  }
+
+  function deleteLocalConversation(contactId) {
+    if (!contactId) return;
+    ensureData();
+    if (!getContactById(contactId)) return;
+    state.directMessages = state.directMessages.filter(function (m) {
+      return m.contactId !== contactId;
+    });
+    state.contacts = state.contacts.filter(function (c) {
+      return c.id !== contactId;
+    });
+    saveState(state);
+    renderConvList();
+    selectConv(null);
+  }
+
+  function openDeleteConvModal(id) {
+    if (!id) return;
+    pendingDeleteConvId = id;
+    var o = document.getElementById('delete-conv-overlay');
+    if (!o) return;
+    o.classList.add('is-open');
+    o.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeDeleteConvModal() {
+    pendingDeleteConvId = null;
+    var o = document.getElementById('delete-conv-overlay');
+    if (!o) return;
+    o.classList.remove('is-open');
+    o.setAttribute('aria-hidden', 'true');
+  }
+
+  function renderConvList() {
+    var el = document.getElementById('conv-list');
+    el.innerHTML = '';
+    ensureData();
+    var contacts = state.contacts.slice();
+    contacts.sort(function (a, b) {
+      var aThread = getThreadMessages(a.id);
+      var bThread = getThreadMessages(b.id);
+      var aTime = aThread.length ? (aThread[aThread.length - 1].at || 0) : 0;
+      var bTime = bThread.length ? (bThread[bThread.length - 1].at || 0) : 0;
+      if (bTime !== aTime) return bTime - aTime;
+      return (a.name || '').localeCompare(b.name || '');
+    });
+    contacts.forEach(function (contact) {
+      var thread = getThreadMessages(contact.id);
+      var last = thread.length ? thread[thread.length - 1] : null;
+      var preview = 'Pas encore de message';
+      var timeStr = '';
+      var avatar = avatarForName(contact.name);
+      if (last) {
+        if (state.privacy && state.privacy.hideMessagePreviews) {
+          preview = '🔒 Message';
+        } else {
+          try {
+            var plain = decryptUtf8(last.cipher, passphrase).slice(0, 80);
+            preview = (last.me ? 'Vous : ' : '') + plain;
+          } catch (e) {
+            preview = '…';
+          }
+        }
+        timeStr = formatTime(new Date(last.at || Date.now()));
+      }
+      var unreadCount = countUnreadIncomingForContact(contact.id);
+      var hasUnread = unreadCount > 0 && contact.id !== activeId;
+      var titleUnreadClass = hasUnread ? 'title is-unread' : 'title';
+      var previewUnreadClass = hasUnread ? 'preview is-unread' : 'preview';
+      var badgeHtml = hasUnread
+        ? '<span class="unread-badge" aria-label="' +
+          escapeAttr(String(unreadCount) + ' non lus') +
+          '">' +
+          escapeHtml(String(unreadCount)) +
+          '</span>'
+        : '';
+      var host = document.createElement('div');
+      host.className = 'conv-host';
+      host.dataset.id = contact.id;
+      var shelf = document.createElement('button');
+      shelf.type = 'button';
+      shelf.className = 'conv-delete-shelf';
+      shelf.appendChild(document.createTextNode('🗑️'));
+      var shelfLab = document.createElement('span');
+      shelfLab.className = 'conv-delete-shelf__label';
+      shelfLab.textContent = 'Supprimer';
+      shelf.appendChild(shelfLab);
+      shelf.setAttribute('aria-label', 'Supprimer la conversation');
+      shelf.addEventListener('click', function (e) {
+        e.stopPropagation();
+        openDeleteConvModal(contact.id);
+      });
+      var surface = document.createElement('div');
+      surface.className = 'conv-surface';
+      var div = document.createElement('div');
+      div.className = 'conv' + (contact.id === activeId ? ' active' : '');
+      div.innerHTML =
+        '<span class="conv-avatar" style="background:' + avatar.color + ';">' + escapeHtml(avatar.initial) + '</span>' +
+        '<div class="conv-main">' +
+          '<div class="conv-title-row">' +
+            '<div class="' +
+            titleUnreadClass +
+            '" title="' +
+            escapeAttr(contact.name) +
+            '" aria-label="' +
+            escapeAttr(contact.name) +
+            '">' +
+            contactDisplayNameHtml(contact.name) +
+            '</div>' +
+            '<div class="conv-right-meta">' +
+            '<span class="time">' +
+            escapeHtml(timeStr) +
+            '</span>' +
+            badgeHtml +
+            '<button type="button" class="conv-delete-desk" data-stop-select="1" title="Supprimer" aria-label="Supprimer">🗑️</button>' +
+            '</div>' +
+          '</div>' +
+          '<div class="' +
+          previewUnreadClass +
+          '">' +
+          escapeHtml(preview) +
+          '</div>' +
+        '</div>';
+      var delDesk = div.querySelector('.conv-delete-desk');
+      if (delDesk) {
+        delDesk.addEventListener('click', function (e) {
+          e.stopPropagation();
+          openDeleteConvModal(contact.id);
+        });
+      }
+      surface.appendChild(div);
+      host.appendChild(shelf);
+      host.appendChild(surface);
+      var rowTx = 0;
+      var skipNextClick = false;
+      var SHELF = 70;
+      function applyRowTx() {
+        surface.style.transform = 'translate3d(' + rowTx + 'px,0,0)';
+      }
+      var stx;
+      var sty;
+      var baseTx;
+      var tracking;
+      var horiz;
+      var moved;
+      surface.addEventListener('click', function (e) {
+        if (e.target.closest && e.target.closest('.conv-delete-desk')) return;
+        if (skipNextClick) {
+          skipNextClick = false;
+          return;
+        }
+        if (isMobileNav() && rowTx < -8) {
+          rowTx = 0;
+          applyRowTx();
+          return;
+        }
+        selectConv(contact.id);
+      });
+      surface.addEventListener('touchstart', function (e) {
+        if (window.innerWidth > 640) return;
+        if (e.touches.length !== 1) return;
+        stx = e.touches[0].clientX;
+        sty = e.touches[0].clientY;
+        baseTx = rowTx;
+        tracking = true;
+        horiz = false;
+        moved = false;
+      }, { passive: true });
+      surface.addEventListener('touchmove', function (e) {
+        if (!tracking) return;
+        if (e.touches.length !== 1) return;
+        var x = e.touches[0].clientX;
+        var y = e.touches[0].clientY;
+        var dx = x - stx;
+        var dy = y - sty;
+        if (!horiz) {
+          if (Math.abs(dx) < 12 && Math.abs(dy) < 12) return;
+          if (Math.abs(dy) > Math.abs(dx)) {
+            tracking = false;
+            return;
+          }
+          horiz = true;
+        }
+        moved = true;
+        e.preventDefault();
+        rowTx = baseTx + dx;
+        if (rowTx > 0) rowTx = 0;
+        if (rowTx < -SHELF) rowTx = -SHELF;
+        surface.style.transition = 'none';
+        applyRowTx();
+      }, { passive: false });
+      surface.addEventListener('touchend', function () {
+        if (window.innerWidth > 640) {
+          return;
+        }
+        if (!tracking) return;
+        tracking = false;
+        surface.style.transition = 'transform 0.2s ease';
+        if (moved && horiz) {
+          if (rowTx <= -50) {
+            deleteLocalConversation(contact.id);
+            return;
+          }
+          if (rowTx < -SHELF / 2) {
+            rowTx = -SHELF;
+          } else {
+            rowTx = 0;
+          }
+          applyRowTx();
+          skipNextClick = true;
+        }
+      });
+      el.appendChild(host);
+    });
+  }
+
+  function isMobileNav() {
+    return window.innerWidth <= 640;
+  }
+
+  function showMobileList() {
+    var app = document.getElementById('app');
+    if (!app || !isMobileNav()) return;
+    app.classList.remove('mobile-show-chat');
+    app.classList.add('mobile-show-list');
+  }
+
+  function syncAppMobileLayout() {
+    var app = document.getElementById('app');
+    if (!app) return;
+    if (!isMobileNav()) {
+      app.classList.remove('mobile-show-list', 'mobile-show-chat');
+    } else {
+      if (app.classList.contains('mobile-show-list') || app.classList.contains('mobile-show-chat')) {
+        return;
+      }
+      if (activeId && getContactById(activeId)) {
+        app.classList.add('mobile-show-chat');
+      } else {
+        app.classList.add('mobile-show-list');
+      }
+    }
+  }
+
+  function selectConv(id) {
+    activeId = id;
+    var contact = getContactById(id);
+    if (!contact) {
+      document.getElementById('chat-empty').style.display = 'flex';
+      document.getElementById('chat-pane').style.display = 'none';
+      updateChatTitleDisplay(null);
+      document.getElementById('btn-conv-emergency').hidden = true;
+      var badge = document.getElementById('chat-secure-badge');
+      if (badge) {
+        badge.hidden = true;
+        badge.style.display = 'none';
+      }
+      renderConvList();
+      if (isMobileNav()) {
+        var app0 = document.getElementById('app');
+        if (app0) {
+          app0.classList.remove('mobile-show-chat');
+          app0.classList.add('mobile-show-list');
+        }
+      }
+      return;
+    }
+    if (isMobileNav()) {
+      var app1 = document.getElementById('app');
+      if (app1) {
+        app1.classList.remove('mobile-show-list');
+        app1.classList.add('mobile-show-chat');
+      }
+    }
+    markIncomingMessagesReadLocal(id);
+    document.getElementById('chat-empty').style.display = 'none';
+    var pane = document.getElementById('chat-pane');
+    pane.style.display = 'flex';
+    updateChatTitleDisplay(contact);
+    document.getElementById('btn-conv-emergency').hidden = !id;
+    var badge = document.getElementById('chat-secure-badge');
+    if (badge) { badge.hidden = !id; badge.style.display = id ? 'inline-flex' : 'none'; }
+    renderMessages();
+    renderConvList();
+    if (window.innerWidth > 640) {
+      document.getElementById('input').focus();
+    }
+    setTimeout(function () {
+      markConversationMessagesRead(id);
+    }, 0);
+
+    if (readDeleteTimer) {
+      clearTimeout(readDeleteTimer);
+      readDeleteTimer = null;
+    }
+    if (state.privacy.deleteOnRead && id) {
+      readDeleteTimer = setTimeout(function () {
+        ensureData();
+        state.directMessages = state.directMessages.filter(function (m) {
+          return !(m.contactId === contact.id && !m.me);
+        });
+        saveState(state);
+        renderMessages();
+        renderConvList();
+      }, 2500);
+    }
+  }
+
+  function scrollToMessageById(msgId) {
+    if (!msgId) return;
+    var el = null;
+    document.querySelectorAll('.bubble-wrap[data-msg-id]').forEach(function (w) {
+      if (w.getAttribute('data-msg-id') === msgId) el = w;
+    });
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.add('bubble-highlight-flash');
+    window.setTimeout(function () {
+      el.classList.remove('bubble-highlight-flash');
+    }, 1200);
+  }
+
+  function aggregateReactionCounts(reactionsByUser) {
+    var counts = {};
+    var me = currentUsername();
+    var myEmoji = me && reactionsByUser && reactionsByUser[me] ? reactionsByUser[me] : null;
+    if (reactionsByUser) {
+      Object.keys(reactionsByUser).forEach(function (u) {
+        var em = reactionsByUser[u];
+        if (!em) return;
+        counts[em] = (counts[em] || 0) + 1;
+      });
+    }
+    return { counts: counts, myEmoji: myEmoji };
+  }
+
+  function appendReactionRow(wrap, m) {
+    var agg = aggregateReactionCounts(m.reactionsByUser || {});
+    var keys = Object.keys(agg.counts);
+    if (keys.length === 0) return;
+    var row = document.createElement('div');
+    row.className = 'bubble-reactions';
+    keys.forEach(function (emoji) {
+      var n = agg.counts[emoji];
+      var chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'bubble-reaction-chip';
+      if (agg.myEmoji === emoji) chip.classList.add('is-mine');
+      chip.textContent = emoji + ' ' + n;
+      chip.dataset.emoji = emoji;
+      chip.dataset.msgId = m.id;
+      chip.addEventListener('click', function (e) {
+        e.stopPropagation();
+        toggleMessageReaction(m.id, emoji);
+      });
+      row.appendChild(chip);
+    });
+    wrap.appendChild(row);
+  }
+
+  function toggleMessageReaction(messageId, emoji) {
+    initFirebase();
+    var me = currentUsername();
+    if (!me || !firestoreDb || !messageId || !emoji) return;
+    var ref = firestoreDb.collection('messages').doc(messageId);
+    ref.get().then(function (snap) {
+      if (!snap.exists) return;
+      var data = snap.data() || {};
+      var map = {};
+      if (data.reactionsByUser && typeof data.reactionsByUser === 'object') {
+        Object.keys(data.reactionsByUser).forEach(function (k) {
+          map[k] = data.reactionsByUser[k];
+        });
+      }
+      if (map[me] === emoji) {
+        delete map[me];
+      } else {
+        map[me] = emoji;
+      }
+      return ref.update({ reactionsByUser: map });
+    }).catch(function () {});
+  }
+
+  function dayKeyForMessage(tMs) {
+    var d = new Date(tMs);
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  }
+
+  function formatMessageDateSeparatorLabel(tMs) {
+    var d0 = new Date(tMs);
+    d0.setHours(0, 0, 0, 0);
+    var tToday = new Date();
+    tToday.setHours(0, 0, 0, 0);
+    if (d0.getTime() === tToday.getTime()) {
+      return "Aujourd'hui";
+    }
+    var tYest = new Date(tToday);
+    tYest.setDate(tYest.getDate() - 1);
+    if (d0.getTime() === tYest.getTime()) {
+      return 'Hier';
+    }
+    return new Date(tMs).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+  }
+
+  function revealAllMessageMetas() {
+    var b = document.getElementById('messages');
+    if (!b) return;
+    b.classList.add('messages--reveal-metas');
+    if (messageMetasRevealTimeout) clearTimeout(messageMetasRevealTimeout);
+    messageMetasRevealTimeout = setTimeout(function () {
+      messageMetasRevealTimeout = null;
+      var b2 = document.getElementById('messages');
+      if (b2) b2.classList.remove('messages--reveal-metas');
+    }, 2000);
+  }
+
+  function renderMessages() {
+    var box = document.getElementById('messages');
+    box.innerHTML = '';
+    if (!activeId) return;
+    var thread = getThreadMessages(activeId);
+    var prevDayKey = null;
+    thread.forEach(function (m) {
+      var tMs = m.at || Date.now();
+      var dKey = dayKeyForMessage(tMs);
+      if (prevDayKey !== dKey) {
+        prevDayKey = dKey;
+        var sep = document.createElement('div');
+        sep.className = 'msg-date-separator';
+        sep.setAttribute('role', 'separator');
+        var line1 = document.createElement('span');
+        line1.className = 'msg-date-separator__line';
+        line1.setAttribute('aria-hidden', 'true');
+        var tlab = document.createElement('span');
+        tlab.className = 'msg-date-separator__text';
+        tlab.textContent = formatMessageDateSeparatorLabel(tMs);
+        var line2 = document.createElement('span');
+        line2.className = 'msg-date-separator__line';
+        line2.setAttribute('aria-hidden', 'true');
+        sep.appendChild(line1);
+        sep.appendChild(tlab);
+        sep.appendChild(line2);
+        box.appendChild(sep);
+      }
+      var row = document.createElement('div');
+      row.className = 'row' + (m.me ? ' me' : '');
+      var line = document.createElement('div');
+      line.className = 'msg-line';
+      var wrap = document.createElement('div');
+      wrap.className = 'bubble-wrap' + (m.me ? ' is-mine' : '');
+      wrap.dataset.msgId = m.id;
+      if (m.replyTo && m.replyTo.text) {
+        var rq = document.createElement('div');
+        rq.className = 'bubble-reply-quote';
+        var authPart = m.replyTo.author
+          ? '<span class="rq-author">' + escapeHtml(m.replyTo.author) + '</span> '
+          : '';
+        var snip = escapeHtml(m.replyTo.text.length > 160 ? m.replyTo.text.slice(0, 160) + '…' : m.replyTo.text);
+        rq.innerHTML = authPart + snip;
+        if (m.replyTo.messageId) {
+          rq.dataset.replyTarget = m.replyTo.messageId;
+          rq.addEventListener('click', function (e) {
+            e.stopPropagation();
+            scrollToMessageById(m.replyTo.messageId);
+          });
+        }
+        wrap.appendChild(rq);
+      } else if (m.replyToLegacy) {
+        var rqLegacy = document.createElement('div');
+        rqLegacy.className = 'bubble-reply-quote';
+        rqLegacy.textContent = m.replyToLegacy;
+        wrap.appendChild(rqLegacy);
+      } else if (typeof m.replyTo === 'string' && m.replyTo.length) {
+        var rqStr = document.createElement('div');
+        rqStr.className = 'bubble-reply-quote';
+        rqStr.textContent = m.replyTo;
+        wrap.appendChild(rqStr);
+      }
+      var b = document.createElement('div');
+      b.className = 'bubble';
+      try {
+        b.appendChild(document.createTextNode(decryptUtf8(m.cipher, passphrase)));
+      } catch (err) {
+        b.appendChild(document.createTextNode('(message indéchiffrable)'));
+      }
+      if (m.me) {
+        var readEl = document.createElement('span');
+        readEl.className = 'bubble-read' + (m.readAt ? ' is-read' : '');
+        readEl.setAttribute('aria-label', m.readAt ? 'Lu' : 'Envoyé');
+        readEl.textContent = m.readAt ? '✓✓' : '✓';
+        b.appendChild(readEl);
+      }
+      wrap.appendChild(b);
+      appendReactionRow(wrap, m);
+      var d = new Date(m.at || Date.now());
+      var timeEl = document.createElement('span');
+      timeEl.className = 'bubble-time';
+      timeEl.setAttribute('aria-hidden', 'true');
+      timeEl.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes());
+      if (m.me) {
+        line.appendChild(timeEl);
+        line.appendChild(wrap);
+      } else {
+        line.appendChild(wrap);
+        line.appendChild(timeEl);
+      }
+      var hoverTimeout = null;
+      wrap.addEventListener('mouseenter', function () {
+        if (hoverTimeout) { clearTimeout(hoverTimeout); hoverTimeout = null; }
+        line.classList.add('msg-line--bubble-hover');
+      });
+      wrap.addEventListener('mouseleave', function () {
+        hoverTimeout = setTimeout(function () {
+          line.classList.remove('msg-line--bubble-hover');
+          hoverTimeout = null;
+        }, 1500);
+      });
+      row.appendChild(line);
+      box.appendChild(row);
+    });
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function send() {
+    var input = document.getElementById('input');
+    var text = input.value.trim();
+    if (!text || !activeId) return;
+    var contact = getContactById(activeId);
+    if (!contact) return;
+    var me = currentUsername();
+    var to = normalizeContactName(contact.name);
+    var cipher = encryptUtf8(text, '');
+    ensureData();
+    input.value = '';
+    if (demoMode) {
+      state.directMessages.push({
+        id: nowId(),
+        contactId: activeId,
+        me: true,
+        cipher: cipher,
+        at: Date.now(),
+        replyTo: null,
+        replyToLegacy: null,
+        readAt: null,
+        reactionsByUser: {}
+      });
+      saveState(state);
+      renderMessages();
+      renderConvList();
+      return;
+    }
+    if (firestoreDb && me && to) {
+      var docPayload = {
+        from: me,
+        to: to,
+        participants: [me, to],
+        cipher: cipher,
+        at: firebase.firestore.FieldValue.serverTimestamp(),
+        atMs: Date.now()
+      };
+      firestoreDb.collection('messages').add(docPayload).catch(function () {
+        state.directMessages.push({
+          id: nowId(),
+          contactId: activeId,
+          me: true,
+          cipher: cipher,
+          at: Date.now(),
+          replyTo: null,
+          replyToLegacy: null,
+          readAt: null,
+          reactionsByUser: {}
+        });
+        saveState(state);
+        renderMessages();
+        renderConvList();
+      });
+      return;
+    }
+    state.directMessages.push({
+      id: nowId(),
+      contactId: activeId,
+      me: true,
+      cipher: cipher,
+      at: Date.now(),
+      replyTo: null,
+      replyToLegacy: null,
+      readAt: null,
+      reactionsByUser: {}
+    });
+    saveState(state);
+    renderMessages();
+    renderConvList();
+  }
+
+  function clearPhraseApplyError() {
+    var el = document.getElementById('phrase-apply-error');
+    if (el) {
+      el.textContent = '';
+      el.hidden = true;
+    }
+  }
+
+  function setPrivacyBannerUsername(displayName) {
+    var el = document.getElementById('privacy-username-full');
+    if (!el) return;
+    var u = (displayName || '').trim();
+    el.textContent = u ? u : '—';
+  }
+
+  function formatFirestoreDateForMemberSince(createdAt) {
+    if (!createdAt) return null;
+    var d;
+    if (typeof createdAt.toDate === 'function') {
+      d = createdAt.toDate();
+    } else if (typeof createdAt.toMillis === 'function') {
+      d = new Date(createdAt.toMillis());
+    } else if (createdAt instanceof Date) {
+      d = createdAt;
+    } else if (createdAt && typeof createdAt.seconds === 'number') {
+      d = new Date(createdAt.seconds * 1000);
+    } else {
+      return null;
+    }
+    if (!(d instanceof Date) || isNaN(d.getTime())) return null;
+    return (
+      'Compte créé le ' +
+      pad(d.getDate()) +
+      '/' +
+      pad(d.getMonth() + 1) +
+      '/' +
+      d.getFullYear()
+    );
+  }
+
+  function loadPrivacyMemberSince() {
+    var el = document.getElementById('privacy-member-since');
+    if (!el) return;
+    el.textContent = '';
+    el.setAttribute('hidden', '');
+    var iso = '';
+    try {
+      iso = localStorage.getItem(ACCOUNT_CREATED_AT_KEY) || '';
+    } catch (e0) {}
+    if (iso) {
+      var d0 = new Date(iso);
+      if (!isNaN(d0.getTime())) {
+        el.textContent =
+          'Compte créé le ' +
+          pad(d0.getDate()) +
+          '/' +
+          pad(d0.getMonth() + 1) +
+          '/' +
+          d0.getFullYear();
+        el.removeAttribute('hidden');
+        return;
+      }
+    }
+    var name = (getSavedUsername() || '').trim();
+    if (!name) return;
+    var docId = usernameToFirestoreDocId(name);
+    if (docId === null || docId === '') return;
+    initFirebase();
+    if (!firestoreDb) return;
+    firestoreDb
+      .collection('users')
+      .doc(docId)
+      .get()
+      .then(function (snap) {
+        var overlay = document.getElementById('privacy-overlay');
+        if (!overlay || !overlay.classList.contains('is-open')) return;
+        if (!snap.exists) return;
+        var formatted = formatFirestoreDateForMemberSince((snap.data() || {}).createdAt);
+        if (!formatted) return;
+        el.textContent = formatted;
+        el.removeAttribute('hidden');
+      })
+      .catch(function () {});
+  }
+
+  function openPrivacyModal() {
+    var o = document.getElementById('privacy-overlay');
+    setPrivacyBannerUsername(getSavedUsername());
+    var np = document.getElementById('modal-new-phrase');
+    var cp = document.getElementById('modal-confirm-phrase');
+    if (np) np.value = '';
+    if (cp) cp.value = '';
+    clearPhraseApplyError();
+    o.classList.add('is-open');
+    o.setAttribute('aria-hidden', 'false');
+    loadPrivacyMemberSince();
+    syncPrivacyForm();
+  }
+
+  function closePrivacyModal() {
+    var o = document.getElementById('privacy-overlay');
+    o.classList.remove('is-open');
+    o.setAttribute('aria-hidden', 'true');
+    syncPrivacyForm();
+  }
+
+  function slotIndexToTime(idx) {
+    idx = parseInt(idx, 10);
+    if (isNaN(idx)) idx = 6;
+    if (idx < 0) idx = 0;
+    if (idx > 47) idx = 47;
+    var h = Math.floor(idx / 2);
+    var m = (idx % 2) * 30;
+    return pad(h) + ':' + pad(m);
+  }
+
+  function timeToSlotIndex(t) {
+    if (!t || typeof t !== 'string') return 6;
+    var parts = t.split(':');
+    var h = parseInt(parts[0], 10);
+    var m = parseInt(parts[1], 10);
+    if (isNaN(h)) h = 3;
+    if (isNaN(m)) m = 0;
+    h = Math.max(0, Math.min(23, h));
+    var half = m >= 30 ? 1 : 0;
+    return Math.min(47, h * 2 + half);
+  }
+
+  function updateDailySliderDisplay() {
+    var slider = document.getElementById('opt-daily-slider');
+    var disp = document.getElementById('opt-daily-time-display');
+    if (!slider || !disp) return;
+    var idx = parseInt(slider.value, 10);
+    var hm = slotIndexToTime(idx);
+    disp.textContent = hm;
+    slider.setAttribute('aria-valuetext', hm);
+  }
+
+  function clearDailyTimeError() {
+    var el = document.getElementById('opt-daily-time-error');
+    if (el) {
+      el.textContent = '';
+      el.hidden = true;
+    }
+  }
+
+  function showDailyTimeError() {
+    var el = document.getElementById('opt-daily-time-error');
+    if (el) {
+      el.textContent = 'Veuillez sélectionner une heure.';
+      el.hidden = false;
+    }
+  }
+
+  function showPrivacySavedToast() {
+    var t = document.getElementById('privacy-saved-toast');
+    if (!t) return;
+    t.setAttribute('aria-hidden', 'false');
+    t.classList.add('is-visible');
+    clearTimeout(window._privacySavedToastTimer);
+    window._privacySavedToastTimer = setTimeout(function () {
+      t.classList.remove('is-visible');
+      t.setAttribute('aria-hidden', 'true');
+    }, 1400);
+  }
+
+  function savePrivacyOptionsAuto() {
+    if (!state) return;
+    state.privacy.deleteOnRead = document.getElementById('opt-read').checked;
+    state.privacy.weeklyDelete = false;
+    state.privacy.tripleTapKillEnabled = document.getElementById('opt-triple-tap-kill').checked;
+    var dailyEl = document.getElementById('opt-daily');
+    if (!dailyEl.checked) {
+      state.privacy.dailyDelete = false;
+      dailyAwaitingTimeChoice = false;
+      clearDailyTimeError();
+    } else if (dailyAwaitingTimeChoice) {
+      state.privacy.dailyDelete = false;
+    } else {
+      var slider = document.getElementById('opt-daily-slider');
+      var idx = slider ? parseInt(slider.value, 10) : 6;
+      state.privacy.dailyTime = slotIndexToTime(idx);
+      state.privacy.dailyDelete = true;
+      clearDailyTimeError();
+    }
+    saveState(state);
+    startScheduleLoop();
+    if (!(dailyEl.checked && dailyAwaitingTimeChoice)) {
+      showPrivacySavedToast();
+    }
+  }
+
+  function syncPrivacyForm() {
+    if (!state) return;
+    document.getElementById('opt-read').checked = !!state.privacy.deleteOnRead;
+    document.getElementById('opt-daily').checked = !!state.privacy.dailyDelete;
+    document.getElementById('opt-triple-tap-kill').checked = !!state.privacy.tripleTapKillEnabled;
+    var hidePseudo = document.getElementById('opt-hide-contact-pseudos');
+    if (hidePseudo) hidePseudo.checked = !!state.privacy.hideContactPseudos;
+    dailyAwaitingTimeChoice = false;
+    clearDailyTimeError();
+    var slider = document.getElementById('opt-daily-slider');
+    var row = document.getElementById('opt-daily-time-row');
+    if (slider) {
+      slider.value = String(timeToSlotIndex(state.privacy.dailyTime));
+      updateDailySliderDisplay();
+    }
+    if (row) row.hidden = !state.privacy.dailyDelete;
+    var omp = document.getElementById('opt-hide-message-previews');
+    if (omp) omp.checked = !!state.privacy.hideMessagePreviews;
+    var hnc = document.getElementById('opt-hide-notification-content');
+    if (hnc) hnc.checked = !!state.privacy.hideNotificationContent;
+    var bss = document.getElementById('opt-block-screenshots');
+    if (bss) bss.checked = !!state.privacy.blockScreenshots;
+    applyPrivacyGuards();
+  }
+
+  function openDeleteIncomingModal(mode) {
+    deleteConfirmAction = mode || null;
+    var o = document.getElementById('delete-incoming-overlay');
+    var inp = document.getElementById('delete-incoming-passphrase');
+    var err = document.getElementById('delete-incoming-pass-error');
+    var title = document.getElementById('delete-incoming-title');
+    var hint = document.getElementById('delete-incoming-hint');
+    var btn = document.getElementById('delete-incoming-confirm');
+    if (mode === 'all-messages') {
+      if (title) title.textContent = 'Supprimer tous les messages';
+      if (hint) {
+        hint.textContent = "Saisissez votre clé d'accès pour effacer tous les messages reçus et envoyés dans toutes les conversations. La liste de vos contacts est conservée.";
+      }
+      if (btn) btn.textContent = 'Supprimer tous les messages';
+    } else if (mode === 'all-conversations') {
+      if (title) title.textContent = 'Supprimer toutes les conversations';
+      if (hint) {
+        hint.textContent = "Saisissez votre clé d'accès pour effacer messages, contacts et conversations. L’application reviendra à un état vierge. Action irréversible.";
+      }
+      if (btn) btn.textContent = 'Tout effacer';
+    }
+    if (inp) inp.value = '';
+    if (err) {
+      err.textContent = '';
+      err.hidden = true;
+    }
+    o.classList.add('is-open');
+    o.setAttribute('aria-hidden', 'false');
+    setTimeout(function () {
+      if (inp) inp.focus();
+    }, 120);
+  }
+
+  function closeDeleteIncomingModal() {
+    deleteConfirmAction = null;
+    var o = document.getElementById('delete-incoming-overlay');
+    o.classList.remove('is-open');
+    o.setAttribute('aria-hidden', 'true');
+  }
+
+  /**
+   * Efface tous les messages (Firestore si dispo, puis local), conserve les contacts.
+   * @returns {Promise<void>}
+   */
+  function deleteAllMessagesKeepContacts() {
+    ensureData();
+    initFirebase();
+    var me = currentUsername();
+    function clearLocalAndRender() {
+      state.directMessages = [];
+      saveState(state);
+      renderConvList();
+      renderMessages();
+    }
+    if (!firestoreDb || !me) {
+      clearLocalAndRender();
+      return Promise.resolve();
+    }
+    return firestoreDb
+      .collection('messages')
+      .where('participants', 'array-contains', me)
+      .get()
+      .then(function (snapshot) {
+        var refs = [];
+        snapshot.forEach(function (doc) {
+          refs.push(doc.ref);
+        });
+        function commitNextBatch() {
+          if (refs.length === 0) return Promise.resolve();
+          var batch = firestoreDb.batch();
+          var n = 0;
+          while (n < 500 && refs.length) {
+            batch.delete(refs.pop());
+            n++;
+          }
+          return batch.commit().then(commitNextBatch);
+        }
+        return commitNextBatch();
+      })
+      .then(function () {
+        clearLocalAndRender();
+      })
+      .catch(function (err) {
+        console.error(err);
+        alert('La suppression sur le serveur a échoué. Aucun message local n’a été modifié.');
+        return Promise.reject(err);
+      });
+  }
+
+  function openPinModal(onSuccess) {
+    var o = document.getElementById('pin-overlay');
+    var input = document.getElementById('pin-input');
+    input.value = '';
+    o._onSuccess = onSuccess;
+    o.classList.add('is-open');
+    o.setAttribute('aria-hidden', 'false');
+    setTimeout(function () { input.focus(); }, 200);
+  }
+
+  function closePinModal() {
+    var o = document.getElementById('pin-overlay');
+    o.classList.remove('is-open');
+    o.setAttribute('aria-hidden', 'true');
+    o._onSuccess = null;
+  }
+
+  function generateEmergencyCode() {
+    var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    var out = '';
+    for (var i = 0; i < 4; i++) {
+      out += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return out;
+  }
+
+  function refreshEmergencyConfirmState() {
+    var input = document.getElementById('emergency-passphrase');
+    var error = document.getElementById('emergency-error');
+    var confirmBtn = document.getElementById('emergency-confirm');
+    var typed = (input.value || '').trim().toUpperCase();
+    input.value = typed;
+    confirmBtn.disabled = typed !== emergencyChallengeCode;
+    if (!typed) {
+      error.textContent = '';
+      return;
+    }
+    if (typed !== emergencyChallengeCode) {
+      error.textContent = 'Le code saisi ne correspond pas.';
+      return;
+    }
+    error.textContent = '';
+  }
+
+  function openEmergencyModal() {
+    var overlay = document.getElementById('emergency-overlay');
+    var input = document.getElementById('emergency-passphrase');
+    var error = document.getElementById('emergency-error');
+    var codeBox = document.getElementById('emergency-code');
+    var confirmBtn = document.getElementById('emergency-confirm');
+    emergencyChallengeCode = generateEmergencyCode();
+    codeBox.textContent = emergencyChallengeCode;
+    input.value = '';
+    error.textContent = '';
+    confirmBtn.disabled = true;
+    overlay.classList.add('is-open');
+    overlay.setAttribute('aria-hidden', 'false');
+    setTimeout(function () { input.focus(); }, 120);
+  }
+
+  function closeEmergencyModal() {
+    var overlay = document.getElementById('emergency-overlay');
+    emergencyChallengeCode = '';
+    overlay.classList.remove('is-open');
+    overlay.setAttribute('aria-hidden', 'true');
+  }
+
+  function ensurePin(cb) {
+    if (!state.privacy.pin) {
+      var np = prompt('Définissez un PIN à 4 chiffres pour les suppressions :');
+      if (!np || !/^\d{4,8}$/.test(np)) {
+        alert('PIN invalide (4 à 8 chiffres).');
+        return;
+      }
+      state.privacy.pin = np;
+      saveState(state);
+    }
+    cb();
+  }
+
+  function verifyPin(entered) {
+    return state.privacy.pin && entered === state.privacy.pin;
+  }
+
+  function fullReset() {
+    try {
+      localStorage.clear();
+    } catch (e) {}
+    window.location.reload();
+  }
+
+  function applyLocalPurgeIncomingForContact(contactId) {
+    ensureData();
+    state.directMessages = state.directMessages.filter(function (m) {
+      return !(m.contactId === contactId && !m.me);
+    });
+    saveState(state);
+    renderMessages();
+    renderConvList();
+  }
+
+  /**
+   * Supprime dans Firestore les messages reçus (from = contact, to = moi), puis aligne l’état local.
+   * @returns {Promise<void>}
+   */
+  function purgeIncomingForContact(contactId) {
+    if (!contactId) return Promise.resolve();
+    ensureData();
+    var contact = getContactById(contactId);
+    if (!contact) return Promise.resolve();
+
+    initFirebase();
+    var me = currentUsername();
+    var fromContact = normalizeContactName(contact.name);
+    if (!me || !fromContact) {
+      applyLocalPurgeIncomingForContact(contactId);
+      return Promise.resolve();
+    }
+
+    if (!firestoreDb) {
+      applyLocalPurgeIncomingForContact(contactId);
+      return Promise.resolve();
+    }
+
+    return firestoreDb
+      .collection('messages')
+      .where('from', '==', fromContact)
+      .where('to', '==', me)
+      .get()
+      .then(function (snapshot) {
+        var refs = [];
+        snapshot.forEach(function (doc) {
+          refs.push(doc.ref);
+        });
+        function commitNextBatch() {
+          if (refs.length === 0) return Promise.resolve();
+          var batch = firestoreDb.batch();
+          var n = 0;
+          while (n < 500 && refs.length) {
+            batch.delete(refs.pop());
+            n++;
+          }
+          return batch.commit().then(commitNextBatch);
+        }
+        return commitNextBatch();
+      })
+      .then(function () {
+        applyLocalPurgeIncomingForContact(contactId);
+      })
+      .catch(function (err) {
+        console.error(err);
+        alert('La suppression sur le serveur a échoué. Aucun message local n’a été modifié.');
+        return Promise.reject(err);
+      });
+  }
+
+  function runScheduledPurge() {
+    ensureData();
+    state.directMessages = [];
+    saveState(state);
+    renderConvList();
+    renderMessages();
+  }
+
+  function startScheduleLoop() {
+    if (scheduleTimer) clearInterval(scheduleTimer);
+    scheduleTimer = setInterval(function () {
+      var now = new Date();
+      var hm = pad(now.getHours()) + ':' + pad(now.getMinutes());
+      var t = state.privacy.dailyTime || '03:00';
+      if (state.privacy.dailyDelete && hm === t) {
+        runScheduledPurge();
+      }
+    }, 30000);
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      closeDeleteIncomingModal();
+      closePinModal();
+      closePrivacyModal();
+      closeEmergencyModal();
+      hideMsgContextMenu();
+    }
+  });
+
+  /* Incognito : triple-clic rapide → confirmation d'urgence ; sinon → menu confidentialité */
+  var incognitoTimer = null;
+  var incognitoCount = 0;
+  var incognitoStart = 0;
+  function bindIncognito() {
+    document.getElementById('btn-incognito').addEventListener('click', function () {
+      var now = Date.now();
+      if (now - incognitoStart > 480) {
+        incognitoStart = now;
+        incognitoCount = 0;
+      }
+      incognitoCount++;
+      if (incognitoCount >= 3) {
+        clearTimeout(incognitoTimer);
+        incognitoCount = 0;
+        if (state && state.privacy && state.privacy.tripleTapKillEnabled) {
+          openEmergencyModal();
+        } else {
+          openPrivacyModal();
+        }
+        return;
+      }
+      clearTimeout(incognitoTimer);
+      incognitoTimer = setTimeout(function () {
+        if (incognitoCount > 0 && incognitoCount < 3) {
+          openPrivacyModal();
+        }
+        incognitoCount = 0;
+      }, 420);
+    });
+  }
+
+  var idleLockTimer = null;
+  var IDLE_LOCK_MS = 60 * 1000;
+  var tabHiddenAt = null;
+  var windowBlurAt = null;
+  var idleLockListenersBound = false;
+
+  function isAppShellUnlocked() {
+    var shell = document.getElementById('app-shell');
+    return !!(shell && !shell.hasAttribute('hidden'));
+  }
+
+  function clearIdleLockTimer() {
+    if (idleLockTimer != null) {
+      window.clearTimeout(idleLockTimer);
+      idleLockTimer = null;
+    }
+  }
+
+  function resetIdleLockTimer() {
+    clearIdleLockTimer();
+    if (!idleLockListenersBound || !isAppShellUnlocked()) return;
+    idleLockTimer = window.setTimeout(function () {
+      idleLockTimer = null;
+      autoLockSession();
+    }, IDLE_LOCK_MS);
+  }
+
+  function autoLockSession() {
+    if (!isAppShellUnlocked()) return;
+    clearIdleLockTimer();
+    passphrase = '';
+    setupLockScreen();
+  }
+
+  function onIdleLockUserActivity() {
+    if (!isAppShellUnlocked()) return;
+    resetIdleLockTimer();
+  }
+
+  function bindIdleLockListeners() {
+    if (!idleLockListenersBound) {
+      idleLockListenersBound = true;
+      var cap = { capture: true, passive: true };
+      ['click', 'keydown', 'touchstart'].forEach(function (name) {
+        document.addEventListener(name, onIdleLockUserActivity, cap);
+      });
+      document.addEventListener('visibilitychange', function () {
+        if (document.hidden) {
+          tabHiddenAt = Date.now();
+          clearIdleLockTimer();
+        } else {
+          if (tabHiddenAt != null && Date.now() - tabHiddenAt >= IDLE_LOCK_MS && isAppShellUnlocked()) {
+            autoLockSession();
+          }
+          tabHiddenAt = null;
+          resetIdleLockTimer();
+        }
+      });
+      window.addEventListener('blur', function () {
+        windowBlurAt = Date.now();
+        clearIdleLockTimer();
+      });
+      window.addEventListener('focus', function () {
+        if (windowBlurAt != null && Date.now() - windowBlurAt >= IDLE_LOCK_MS && isAppShellUnlocked()) {
+          autoLockSession();
+        }
+        windowBlurAt = null;
+        resetIdleLockTimer();
+      });
+    }
+    resetIdleLockTimer();
+  }
+
+  function initApp() {
+    if (window.__secureChatReady) {
+      bindIdleLockListeners();
+      applyPrivacyGuards();
+      syncDemoModeBadge();
+      return;
+    }
+    window.__secureChatReady = true;
+
+    state = loadState();
+    activeId = null;
+
+    ensureData();
+
+    document.getElementById('privacy-close').addEventListener('click', closePrivacyModal);
+    document.getElementById('privacy-overlay').addEventListener('click', function (e) {
+      if (e.target === e.currentTarget) closePrivacyModal();
+    });
+
+    document.getElementById('opt-triple-tap-kill').addEventListener('change', function () {
+      savePrivacyOptionsAuto();
+    });
+
+    document.getElementById('opt-hide-contact-pseudos').addEventListener('change', function () {
+      ensureData();
+      state.privacy.hideContactPseudos = !!this.checked;
+      saveState(state);
+      renderConvList();
+      var c = getContactById(activeId);
+      updateChatTitleDisplay(c || null);
+    });
+
+    document.getElementById('opt-hide-message-previews').addEventListener('change', function () {
+      ensureData();
+      state.privacy.hideMessagePreviews = !!this.checked;
+      saveState(state);
+      renderConvList();
+    });
+
+    document.getElementById('opt-hide-notification-content').addEventListener('change', function () {
+      ensureData();
+      state.privacy.hideNotificationContent = !!this.checked;
+      saveState(state);
+    });
+
+    document.getElementById('opt-block-screenshots').addEventListener('change', function () {
+      ensureData();
+      state.privacy.blockScreenshots = !!this.checked;
+      saveState(state);
+      applyPrivacyGuards();
+    });
+
+    document.getElementById('opt-read').addEventListener('change', function () {
+      savePrivacyOptionsAuto();
+    });
+
+    document.getElementById('opt-daily').addEventListener('change', function () {
+      var row = document.getElementById('opt-daily-time-row');
+      if (row) row.hidden = !this.checked;
+      if (this.checked) {
+        dailyAwaitingTimeChoice = true;
+        showDailyTimeError();
+        updateDailySliderDisplay();
+      } else {
+        dailyAwaitingTimeChoice = false;
+        clearDailyTimeError();
+      }
+      savePrivacyOptionsAuto();
+    });
+
+    var optDailySlider = document.getElementById('opt-daily-slider');
+    if (optDailySlider) {
+      optDailySlider.addEventListener('input', function () {
+        updateDailySliderDisplay();
+        if (document.getElementById('opt-daily').checked) {
+          dailyAwaitingTimeChoice = false;
+          clearDailyTimeError();
+          savePrivacyOptionsAuto();
+        }
+      });
+    }
+
+    document.getElementById('btn-privacy-logout').addEventListener('click', function () {
+      try {
+        localStorage.clear();
+      } catch (e) {}
+      window.location.reload();
+    });
+
+    document.getElementById('apply-phrase').addEventListener('click', function () {
+      clearPhraseApplyError();
+      var newPhrase = document.getElementById('modal-new-phrase').value;
+      var confirmPhrase = document.getElementById('modal-confirm-phrase').value;
+      if (!newPhrase || !newPhrase.trim()) {
+        alert("Entrez une nouvelle clé d'accès.");
+        return;
+      }
+      newPhrase = newPhrase.trim();
+      confirmPhrase = (confirmPhrase || '').trim();
+      if (newPhrase !== confirmPhrase) {
+        var errEl = document.getElementById('phrase-apply-error');
+        if (errEl) {
+          errEl.textContent = "Les clés d'accès ne correspondent pas.";
+          errEl.hidden = false;
+        }
+        return;
+      }
+      var oldP = passphrase;
+      ensureData();
+      state.directMessages.forEach(function (m) {
+        try {
+          var plain = decryptUtf8(m.cipher, oldP);
+          m.cipher = encryptUtf8(plain, newPhrase);
+        } catch (e) {
+          m.cipher = encryptUtf8('[message endommagé]', newPhrase);
+        }
+      });
+      passphrase = newPhrase;
+      setStoredPhraseHashB64(computePhraseHashB64(newPhrase, getSavedUsername()));
+      saveState(state);
+      document.getElementById('modal-new-phrase').value = '';
+      document.getElementById('modal-confirm-phrase').value = '';
+      clearPhraseApplyError();
+      closePrivacyModal();
+      renderMessages();
+      renderConvList();
+    });
+
+    (function bindPhraseFieldsClearError() {
+      function onPhraseInput() {
+        clearPhraseApplyError();
+      }
+      var np = document.getElementById('modal-new-phrase');
+      var cp = document.getElementById('modal-confirm-phrase');
+      if (np) np.addEventListener('input', onPhraseInput);
+      if (cp) cp.addEventListener('input', onPhraseInput);
+    })();
+
+    document.getElementById('btn-delete-all-messages-open').addEventListener('click', function () {
+      openDeleteIncomingModal('all-messages');
+    });
+
+    document.getElementById('btn-delete-all-conversations-open').addEventListener('click', function () {
+      openDeleteIncomingModal('all-conversations');
+    });
+
+    document.getElementById('delete-incoming-close').addEventListener('click', closeDeleteIncomingModal);
+    document.getElementById('delete-incoming-overlay').addEventListener('click', function (e) {
+      if (e.target === e.currentTarget) closeDeleteIncomingModal();
+    });
+    document.getElementById('delete-incoming-confirm').addEventListener('click', function () {
+      var inp = document.getElementById('delete-incoming-passphrase');
+      var err = document.getElementById('delete-incoming-pass-error');
+      var typed = (inp && inp.value) ? inp.value.trim() : '';
+      var action = deleteConfirmAction;
+      if (typed !== passphrase) {
+        if (err) {
+          err.textContent = "Clé d'accès incorrecte.";
+          err.hidden = false;
+        }
+        return;
+      }
+      if (err) {
+        err.textContent = '';
+        err.hidden = true;
+      }
+      closeDeleteIncomingModal();
+      if (action === 'all-messages') {
+        deleteAllMessagesKeepContacts().then(function () {
+          closePrivacyModal();
+        }).catch(function () {});
+      } else if (action === 'all-conversations') {
+        fullReset();
+      }
+    });
+    document.getElementById('delete-incoming-passphrase').addEventListener('input', function () {
+      var err = document.getElementById('delete-incoming-pass-error');
+      if (err) {
+        err.textContent = '';
+        err.hidden = true;
+      }
+    });
+
+    document.getElementById('delete-conv-close').addEventListener('click', closeDeleteConvModal);
+    document.getElementById('delete-conv-cancel').addEventListener('click', closeDeleteConvModal);
+    document.getElementById('delete-conv-overlay').addEventListener('click', function (e) {
+      if (e.target === e.currentTarget) closeDeleteConvModal();
+    });
+    document.getElementById('delete-conv-confirm').addEventListener('click', function () {
+      var id = pendingDeleteConvId;
+      if (!id) return;
+      closeDeleteConvModal();
+      deleteLocalConversation(id);
+    });
+
+    document.getElementById('pin-close').addEventListener('click', closePinModal);
+    document.getElementById('pin-overlay').addEventListener('click', function (e) {
+      if (e.target === e.currentTarget) closePinModal();
+    });
+
+    document.getElementById('pin-confirm').addEventListener('click', function () {
+      var val = document.getElementById('pin-input').value.trim();
+      var overlay = document.getElementById('pin-overlay');
+      if (!verifyPin(val)) {
+        alert('PIN incorrect.');
+        return;
+      }
+      if (typeof overlay._onSuccess === 'function') overlay._onSuccess();
+    });
+
+    document.getElementById('send').addEventListener('click', send);
+    document.getElementById('input').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        send();
+      }
+    });
+
+    var msgBox = document.getElementById('messages');
+    if (msgBox) {
+      var msgSwipeX0 = 0;
+      var msgSwipeY0 = 0;
+      var msgSwipeArmed = false;
+      msgBox.addEventListener(
+        'touchstart',
+        function (e) {
+          if (e.touches.length !== 1) return;
+          msgSwipeX0 = e.touches[0].clientX;
+          msgSwipeY0 = e.touches[0].clientY;
+          msgSwipeArmed = true;
+        },
+        { passive: true }
+      );
+      msgBox.addEventListener(
+        'touchend',
+        function (e) {
+          if (!msgSwipeArmed) return;
+          msgSwipeArmed = false;
+          if (e.changedTouches.length !== 1) return;
+          var x = e.changedTouches[0].clientX;
+          var y = e.changedTouches[0].clientY;
+          if (msgSwipeX0 - x > 40 && Math.abs(y - msgSwipeY0) < 80) {
+            revealAllMessageMetas();
+          }
+        },
+        { passive: true }
+      );
+      msgBox.addEventListener('click', function (e) {
+        if (suppressNextBubbleClick) {
+          suppressNextBubbleClick = false;
+          return;
+        }
+        if (e.target.closest && e.target.closest('#msg-context-menu')) return;
+        if (e.target.closest && e.target.closest('#reaction-picker')) return;
+        if (e.target.closest && e.target.closest('.bubble-reaction-chip')) return;
+        if (e.target.closest && e.target.closest('.bubble-reply-quote')) return;
+        var wrap = e.target.closest('.bubble-wrap');
+        if (!wrap) return;
+        var id = wrap.getAttribute('data-msg-id');
+        if (!id || !activeId) return;
+        showReactionPicker(e.clientX, e.clientY, id);
+      });
+      msgBox.addEventListener('contextmenu', function (e) {
+        var wrap = e.target.closest('.bubble-wrap.is-mine');
+        if (!wrap) return;
+        e.preventDefault();
+        var id = wrap.getAttribute('data-msg-id');
+        if (id) showMsgContextMenu(e.clientX, e.clientY, id);
+      });
+      msgBox.addEventListener('mousedown', function (e) {
+        if (e.button !== 0) return;
+        var wrap = e.target.closest('.bubble-wrap.is-mine');
+        if (!wrap) return;
+        clearTimeout(desktopLongPressTimer);
+        var id = wrap.getAttribute('data-msg-id');
+        desktopLongPressTimer = window.setTimeout(function () {
+          desktopLongPressTimer = null;
+          if (id) showMsgContextMenu(e.clientX, e.clientY, id);
+        }, 500);
+      });
+      window.addEventListener('mouseup', function () {
+        if (desktopLongPressTimer != null) {
+          window.clearTimeout(desktopLongPressTimer);
+          desktopLongPressTimer = null;
+        }
+      });
+      msgBox.addEventListener('touchstart', function (e) {
+        var wrap = e.target.closest('.bubble-wrap.is-mine');
+        if (!wrap) return;
+        longPressStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        var id = wrap.getAttribute('data-msg-id');
+        longPressTimer = window.setTimeout(function () {
+          longPressTimer = null;
+          if (id) {
+            suppressNextBubbleClick = true;
+            showMsgContextMenu(longPressStart.x, longPressStart.y + 8, id);
+          }
+        }, 500);
+      }, { passive: true });
+      msgBox.addEventListener('touchmove', function (e) {
+        if (longPressTimer == null) return;
+        var dx = Math.abs(e.touches[0].clientX - longPressStart.x);
+        var dy = Math.abs(e.touches[0].clientY - longPressStart.y);
+        if (dx > 14 || dy > 14) {
+          window.clearTimeout(longPressTimer);
+          longPressTimer = null;
+        }
+      }, { passive: true });
+      msgBox.addEventListener('touchend', function () {
+        if (longPressTimer != null) {
+          window.clearTimeout(longPressTimer);
+          longPressTimer = null;
+        }
+      });
+    }
+
+    var reactionPickerEl = document.getElementById('reaction-picker');
+    if (reactionPickerEl) {
+      reactionPickerEl.addEventListener('click', function (e) {
+        var btn = e.target.closest('.reaction-picker-btn');
+        if (!btn || !reactionPickerMsgId) return;
+        var emoji = btn.getAttribute('data-emoji');
+        if (emoji) toggleMessageReaction(reactionPickerMsgId, emoji);
+        hideReactionPicker();
+      });
+    }
+
+    document.addEventListener('click', function (e) {
+      if (e.target.closest && e.target.closest('#msg-context-menu')) return;
+      if (e.target.closest && e.target.closest('#reaction-picker')) return;
+      hideMsgContextMenu();
+      hideReactionPicker();
+    });
+
+    var ctxDel = document.getElementById('ctx-delete-msg');
+    if (ctxDel) {
+      ctxDel.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (contextMenuMsgId) deleteMessageById(contextMenuMsgId);
+      });
+    }
+
+    function createOrOpenContactFromInput() {
+      var input = document.getElementById('new-contact-input');
+      if (!input) return;
+      openContactAfterVerified(input.value);
+    }
+
+    var newContactInput = document.getElementById('new-contact-input');
+    if (newContactInput) {
+      newContactInput.addEventListener('input', function () {
+        clearNewContactError();
+        scheduleContactSuggestions();
+      });
+      newContactInput.addEventListener('keydown', function (e) {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        hideContactSuggestions();
+        createOrOpenContactFromInput();
+      });
+    }
+
+    document.addEventListener('click', function (e) {
+      if (e.target.closest && e.target.closest('.new-contact-wrap')) return;
+      hideContactSuggestions();
+    });
+
+    bindIncognito();
+    var btnChatBack = document.getElementById('btn-chat-back');
+    if (btnChatBack) {
+      btnChatBack.addEventListener('click', function (e) {
+        e.preventDefault();
+        showMobileList();
+      });
+    }
+    window.addEventListener('resize', function () {
+      syncAppMobileLayout();
+    });
+
+    document.getElementById('btn-conv-emergency').addEventListener('click', openEmergencyModal);
+    document.getElementById('emergency-close').addEventListener('click', closeEmergencyModal);
+    document.getElementById('emergency-overlay').addEventListener('click', function (e) {
+      if (e.target === e.currentTarget) closeEmergencyModal();
+    });
+    document.getElementById('emergency-confirm').addEventListener('click', function () {
+      var val = (document.getElementById('emergency-passphrase').value || '').trim().toUpperCase();
+      var error = document.getElementById('emergency-error');
+      if (val !== emergencyChallengeCode || !emergencyChallengeCode) {
+        error.textContent = 'Code invalide. Aucune donnée n’a été modifiée.';
+        return;
+      }
+      closeEmergencyModal();
+      purgeIncomingForContact(activeId || null).catch(function () {});
+    });
+    document.getElementById('emergency-passphrase').addEventListener('input', refreshEmergencyConfirmState);
+    document.getElementById('emergency-passphrase').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (!document.getElementById('emergency-confirm').disabled) {
+          document.getElementById('emergency-confirm').click();
+        }
+      }
+    });
+
+    renderConvList();
+    if (state.contacts.length) {
+      if (isMobileNav()) {
+        selectConv(null);
+      } else {
+        selectConv(state.contacts[0].id);
+      }
+    } else {
+      selectConv(null);
+    }
+    syncAppMobileLayout();
+    subscribeRealtimeMessages();
+    syncPrivacyForm();
+    startScheduleLoop();
+    bindIdleLockListeners();
+  }
+
+  document.getElementById('btn-lock-welcome').addEventListener('click', tryUnlockFromWelcome);
+  document.getElementById('btn-lock-return').addEventListener('click', tryUnlockFromReturn);
+
+  document.getElementById('lock-input-phrase-w').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      var c = document.getElementById('lock-input-phrase-confirm-w');
+      if (c) c.focus();
+    }
+  });
+  document.getElementById('lock-input-phrase-confirm-w').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') tryUnlockFromWelcome();
+  });
+  document.getElementById('lock-input-username').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') document.getElementById('lock-input-phrase-w').focus();
+  });
+  (function bindLockWelcomePhraseInputs() {
+    function onWelcomePhraseInput() {
+      clearLockWelcomePhraseError();
+    }
+    var a = document.getElementById('lock-input-phrase-w');
+    var b = document.getElementById('lock-input-phrase-confirm-w');
+    if (a) a.addEventListener('input', onWelcomePhraseInput);
+    if (b) b.addEventListener('input', onWelcomePhraseInput);
+  })();
+  document.getElementById('lock-input-phrase-only').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') tryUnlockFromReturn();
+  });
+
+  // Landing screen : cliquer sur le bouton affiche le lock screen
+  var landingBtn = document.getElementById('btn-landing-enter');
+  if (landingBtn) {
+    landingBtn.addEventListener('click', function () {
+      var landing = document.getElementById('landing-screen');
+      if (landing) landing.setAttribute('hidden', '');
+      setupLockScreen();
+    });
+  }
+
+  // Au démarrage : montrer le landing seulement si première visite
+  var savedUser = getSavedUsername();
+  if (savedUser) {
+    // Utilisateur connu → aller directement au lock screen
+    setupLockScreen();
+  } else {
+    // Nouvelle visite → montrer le landing
+    document.getElementById('lock-screen').setAttribute('hidden', '');
+    document.getElementById('app-shell').setAttribute('hidden', '');
+  }
+})();
+  </script>
+</body>
+</html>
