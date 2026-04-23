@@ -2781,6 +2781,9 @@
           });
         });
         state.directMessages = remoteMessages.sort(function (a, b) { return (a.at || 0) - (b.at || 0); });
+        saveState(state);
+        renderConvList();
+        if (activeId) renderMessages();
         purgeExpiredMessages().then(function () {
           return purgeOnReadSenderMessages();
         }).catch(function () {});
