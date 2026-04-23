@@ -770,6 +770,25 @@
       padding: 10px 12px;
       border-bottom: 1px solid var(--line);
     }
+    .aside-conv-label-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px 4px;
+    }
+    .aside-conv-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+    }
+    .aside-conv-line {
+      flex: 1;
+      height: 1px;
+      background: var(--line);
+    }
     .toolbar button {
       width: 100%;
       padding: 12px;
@@ -1348,8 +1367,8 @@
     #app-shell[hidden] { display: none !important; }
     .toolbar .new-contact-input {
       width: 100%;
-      padding: 12px 14px;
-      border-radius: var(--radius-sm);
+      padding: 12px 14px 12px 34px;
+      border-radius: 20px;
       border: 1px solid var(--line);
       background: var(--bg);
       color: var(--fg);
@@ -1365,6 +1384,17 @@
     .new-contact-wrap {
       position: relative;
       width: 100%;
+    }
+    .new-contact-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
     .new-contact-error {
       margin: 6px 0 0;
@@ -1864,7 +1894,7 @@
         padding: 8px 8px;
       }
       .toolbar .new-contact-input {
-        padding: 8px 10px;
+        padding: 8px 10px 8px 30px;
         font-size: 12px;
       }
       .badge {
@@ -2045,16 +2075,19 @@
 
     <div id="app">
       <aside>
-        <header>
-          Conversations
-        </header>
         <div class="toolbar">
           <div class="new-contact-wrap">
+            <span class="new-contact-icon" aria-hidden="true">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+              </svg>
+            </span>
             <input
               type="text"
               id="new-contact-input"
               class="new-contact-input"
-              placeholder="Saisir un nom pour discuter..."
+              placeholder="Trouver un utilisateur..."
               autocomplete="off"
               aria-label="Rechercher un utilisateur"
               aria-autocomplete="list"
@@ -2063,6 +2096,10 @@
             <p id="new-contact-error" class="new-contact-error" hidden role="alert"></p>
             <ul id="new-contact-suggestions" class="new-contact-suggestions" hidden role="listbox" aria-label="Suggestions de pseudos"></ul>
           </div>
+        </div>
+        <div class="aside-conv-label-row">
+          <span class="aside-conv-label">CONVERSATIONS</span>
+          <span class="aside-conv-line" aria-hidden="true"></span>
         </div>
         <div class="list" id="conv-list"></div>
       </aside>
@@ -3141,7 +3178,7 @@
     var el = document.getElementById('chat-title');
     if (!el) return;
     if (!contact) {
-      el.textContent = 'Sélectionnez une conversation';
+      el.textContent = '';
       el.removeAttribute('aria-label');
       updateEphemeralIndicator(null);
       updateEphemeralBanner(null);
@@ -3919,7 +3956,7 @@
       document.getElementById('chat-empty').style.display = 'flex';
       document.getElementById('chat-pane').style.display = 'none';
       updateChatTitleDisplay(null);
-      document.getElementById('btn-conv-menu').hidden = true;
+      document.getElementById('btn-conv-menu').hidden = false;
       closeConversationMenu();
       renderConvList();
       if (isMobileNav()) {
@@ -3944,7 +3981,7 @@
     pane.style.display = 'flex';
     updateChatTitleDisplay(contact);
     subscribeConversationEphemeralSettings(id);
-    document.getElementById('btn-conv-menu').hidden = !id;
+    document.getElementById('btn-conv-menu').hidden = false;
     renderMessages();
     renderConvList();
     if (window.innerWidth > 640) {
