@@ -241,6 +241,13 @@
       display: flex;
       align-items: center;
     }
+    .chat-title-stack {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+    }
     .btn-chat-back {
       display: none;
       flex-shrink: 0;
@@ -265,6 +272,15 @@
       min-width: 0;
       font-weight: 600;
       font-size: 17px;
+    }
+    #chat-ephemeral-indicator {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
     }
     .contact-name-blurred {
       filter: blur(5px);
@@ -331,6 +347,32 @@
     }
     .conv-menu-item:hover { background: var(--surface-2); }
     .conv-menu-item.danger { color: var(--danger); }
+    .ephemeral-modal-panel {
+      max-width: 320px;
+    }
+    .ephemeral-delay-list {
+      display: grid;
+      gap: 6px;
+    }
+    .ephemeral-delay-item {
+      width: 100%;
+      text-align: left;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--fg);
+      border-radius: 10px;
+      padding: 10px 12px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 14px;
+    }
+    .ephemeral-delay-item:hover {
+      background: var(--surface-2);
+    }
+    .ephemeral-delay-item.is-active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-dim);
+    }
     header span.sub {
       font-weight: 400;
       font-size: 12px;
@@ -1897,7 +1939,10 @@
         <header id="chat-head">
           <div class="chat-head-left">
             <button type="button" id="btn-chat-back" class="btn-chat-back" aria-label="Retour à la liste des conversations">←</button>
-            <span id="chat-title">Sélectionnez une conversation</span>
+            <div class="chat-title-stack">
+              <span id="chat-title">Sélectionnez une conversation</span>
+              <span id="chat-ephemeral-indicator" hidden></span>
+            </div>
             <span id="chat-secure-badge" hidden style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:500;color:#30d158;background:rgba(48,209,88,0.1);border:1px solid rgba(48,209,88,0.25);border-radius:20px;padding:3px 8px;margin-left:8px;">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M12 2a5 5 0 00-5 5v3H6a2 2 0 00-2 2v7a3 3 0 003 3h10a3 3 0 003-3v-7a2 2 0 00-2-2h-1V7a5 5 0 00-5-5z" fill="#30d158"/></svg>
               Chiffré
@@ -1906,6 +1951,7 @@
           <div class="chat-head-right">
             <button type="button" id="btn-conv-menu" class="conv-menu-btn" title="Options de conversation" aria-label="Options de conversation" hidden>⋯</button>
             <div id="conv-menu-dropdown" class="conv-menu-dropdown" role="menu" hidden>
+              <button type="button" id="conv-menu-ephemeral" class="conv-menu-item" role="menuitem">⏱ Messages éphémères</button>
               <button type="button" id="conv-menu-delete" class="conv-menu-item danger" role="menuitem">🗑️ Supprimer la conversation</button>
             </div>
           </div>
@@ -2113,6 +2159,18 @@
           <button type="button" class="btn-modal-neutral" id="delete-conv-cancel">Annuler</button>
           <button type="button" class="btn-danger" id="delete-conv-confirm">Supprimer</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="ephemeral-overlay" class="modal-overlay" aria-hidden="true">
+    <div class="modal-panel ephemeral-modal-panel" role="dialog" aria-labelledby="ephemeral-title">
+      <div class="modal-head">
+        <h2 id="ephemeral-title">Messages éphémères</h2>
+        <button type="button" class="modal-close" id="ephemeral-close" aria-label="Fermer">×</button>
+      </div>
+      <div class="modal-body">
+        <div id="ephemeral-delay-list" class="ephemeral-delay-list"></div>
       </div>
     </div>
   </div>
@@ -2333,8 +2391,12 @@
     state.directMessages.forEach(function (m) {
       var exists = state.contacts.some(function (c) { return c.id === m.contactId; });
       if (!exists) {
-        state.contacts.push({ id: m.contactId, name: m.contactId });
+        state.contacts.push({ id: m.contactId, name: m.contactId, ephemeralDelay: null });
       }
+    });
+    state.contacts.forEach(function (c) {
+      if (!c || typeof c !== 'object') return;
+      if (c.ephemeralDelay === undefined) c.ephemeralDelay = null;
     });
   }
 
@@ -2374,7 +2436,7 @@
       suffix += 1;
       id = baseId + '_' + suffix;
     }
-    var created = { id: id, name: clean };
+    var created = { id: id, name: clean, ephemeralDelay: null };
     state.contacts.push(created);
     saveState(state);
     return created;
@@ -2713,6 +2775,7 @@
             me: from === me,
             cipher: typeof data.cipher === 'string' ? data.cipher : encryptUtf8(String(data.text || ''), ''),
             at: at,
+            expiresAt: (typeof data.expiresAt === 'number' && isFinite(data.expiresAt)) ? data.expiresAt : null,
             replyTo: replyToObj,
             replyToLegacy: replyToLegacy,
             readAt: readAtMs,
@@ -2720,9 +2783,7 @@
           });
         });
         state.directMessages = remoteMessages.sort(function (a, b) { return (a.at || 0) - (b.at || 0); });
-        saveState(state);
-        renderConvList();
-        renderMessages();
+        purgeExpiredMessages();
       }, function () {
         // Fallback silencieux: l'app continue en local si Firestore échoue.
       });
@@ -2750,6 +2811,7 @@
   var scheduleTimer = null;
   var dailyAwaitingTimeChoice = false;
   var conversationMenuOpen = false;
+  var ephemeralTimers = Object.create(null);
   var contextMenuMsgId = null;
   var longPressTimer = null;
   var longPressStart = null;
@@ -2952,6 +3014,7 @@
     if (!contact) {
       el.textContent = 'Sélectionnez une conversation';
       el.removeAttribute('aria-label');
+      updateEphemeralIndicator(null);
       return;
     }
     if (state.privacy.hideContactPseudos) {
@@ -2961,6 +3024,30 @@
       el.textContent = contact.name;
       el.removeAttribute('aria-label');
     }
+    updateEphemeralIndicator(contact);
+  }
+
+  function formatEphemeralDelayLabel(delaySeconds) {
+    if (!delaySeconds) return 'Désactivé';
+    if (delaySeconds === 30) return '30 sec';
+    if (delaySeconds === 60) return '1 min';
+    if (delaySeconds === 300) return '5 min';
+    if (delaySeconds === 3600) return '1 h';
+    if (delaySeconds === 86400) return '24 h';
+    if (delaySeconds === 604800) return '7 jours';
+    return String(delaySeconds) + ' sec';
+  }
+
+  function updateEphemeralIndicator(contact) {
+    var el = document.getElementById('chat-ephemeral-indicator');
+    if (!el) return;
+    if (!contact || !contact.ephemeralDelay) {
+      el.hidden = true;
+      el.textContent = '';
+      return;
+    }
+    el.textContent = '⏱ Messages éphémères : ' + formatEphemeralDelayLabel(contact.ephemeralDelay);
+    el.hidden = false;
   }
 
   function hashString(str) {
@@ -3002,6 +3089,72 @@
     var p = document.getElementById('reaction-picker');
     if (p) p.hidden = true;
     reactionPickerMsgId = null;
+  }
+
+  function clearEphemeralTimerForMessage(messageId) {
+    if (!messageId || !ephemeralTimers[messageId]) return;
+    window.clearTimeout(ephemeralTimers[messageId]);
+    delete ephemeralTimers[messageId];
+  }
+
+  function syncEphemeralTimers() {
+    ensureData();
+    var now = Date.now();
+    var keep = Object.create(null);
+    state.directMessages.forEach(function (m) {
+      if (!m || typeof m.id !== 'string') return;
+      if (typeof m.expiresAt !== 'number' || !isFinite(m.expiresAt) || m.expiresAt <= now) {
+        clearEphemeralTimerForMessage(m.id);
+        return;
+      }
+      keep[m.id] = true;
+      if (ephemeralTimers[m.id]) return;
+      var wait = Math.max(0, m.expiresAt - now);
+      ephemeralTimers[m.id] = window.setTimeout(function () {
+        delete ephemeralTimers[m.id];
+        deleteMessageById(m.id).catch(function () {});
+      }, wait);
+    });
+    Object.keys(ephemeralTimers).forEach(function (id) {
+      if (keep[id]) return;
+      clearEphemeralTimerForMessage(id);
+    });
+  }
+
+  function purgeExpiredMessages() {
+    ensureData();
+    var now = Date.now();
+    var expiredIds = [];
+    state.directMessages.forEach(function (m) {
+      if (m && typeof m.id === 'string' && typeof m.expiresAt === 'number' && isFinite(m.expiresAt) && m.expiresAt <= now) {
+        expiredIds.push(m.id);
+      }
+    });
+    if (!expiredIds.length) {
+      syncEphemeralTimers();
+      return Promise.resolve();
+    }
+    var expiredMap = Object.create(null);
+    expiredIds.forEach(function (id) {
+      expiredMap[id] = true;
+      clearEphemeralTimerForMessage(id);
+    });
+    state.directMessages = state.directMessages.filter(function (m) {
+      return !expiredMap[m.id];
+    });
+    saveState(state);
+    renderConvList();
+    renderMessages();
+    syncEphemeralTimers();
+    if (!demoMode) {
+      initFirebase();
+      if (firestoreDb) {
+        return Promise.all(expiredIds.map(function (id) {
+          return firestoreDb.collection('messages').doc(id).delete().catch(function () {});
+        })).then(function () {});
+      }
+    }
+    return Promise.resolve();
   }
 
   function showReactionPicker(clientX, clientY, msgId) {
@@ -3087,6 +3240,7 @@
     if (!messageId) return Promise.resolve();
     initFirebase();
     hideMsgContextMenu();
+    clearEphemeralTimerForMessage(messageId);
     if (firestoreDb) {
       return firestoreDb
         .collection('messages')
@@ -3100,6 +3254,7 @@
           saveState(state);
           renderMessages();
           renderConvList();
+          syncEphemeralTimers();
         })
         .catch(function (err) {
           console.error(err);
@@ -3110,6 +3265,7 @@
           saveState(state);
           renderMessages();
           renderConvList();
+          syncEphemeralTimers();
         });
     }
     ensureData();
@@ -3119,6 +3275,7 @@
     saveState(state);
     renderMessages();
     renderConvList();
+    syncEphemeralTimers();
     return Promise.resolve();
   }
 
@@ -3152,6 +3309,51 @@
     if (!o) return;
     o.classList.remove('is-open');
     o.setAttribute('aria-hidden', 'true');
+  }
+
+  var EPHEMERAL_DELAY_OPTIONS = [
+    { value: null, label: 'Désactivé' },
+    { value: 30, label: '30 secondes' },
+    { value: 60, label: '1 minute' },
+    { value: 300, label: '5 minutes' },
+    { value: 3600, label: '1 heure' },
+    { value: 86400, label: '24 heures' },
+    { value: 604800, label: '7 jours' }
+  ];
+
+  function openEphemeralModal() {
+    if (!activeId) return;
+    var overlay = document.getElementById('ephemeral-overlay');
+    var list = document.getElementById('ephemeral-delay-list');
+    var contact = getContactById(activeId);
+    if (!overlay || !list || !contact) return;
+    list.innerHTML = '';
+    EPHEMERAL_DELAY_OPTIONS.forEach(function (opt) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'ephemeral-delay-item';
+      if (contact.ephemeralDelay === opt.value) btn.classList.add('is-active');
+      btn.textContent = opt.label;
+      btn.addEventListener('click', function () {
+        ensureData();
+        var activeContact = getContactById(activeId);
+        if (!activeContact) return;
+        activeContact.ephemeralDelay = opt.value;
+        saveState(state);
+        updateChatTitleDisplay(activeContact);
+        closeEphemeralModal();
+      });
+      list.appendChild(btn);
+    });
+    overlay.classList.add('is-open');
+    overlay.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeEphemeralModal() {
+    var overlay = document.getElementById('ephemeral-overlay');
+    if (!overlay) return;
+    overlay.classList.remove('is-open');
+    overlay.setAttribute('aria-hidden', 'true');
   }
 
   function renderConvList() {
@@ -3655,6 +3857,9 @@
     var me = currentUsername();
     var to = normalizeContactName(contact.name);
     var cipher = encryptUtf8(text, '');
+    var nowTs = Date.now();
+    var ephemeralDelay = (contact && typeof contact.ephemeralDelay === 'number') ? contact.ephemeralDelay : null;
+    var expiresAt = ephemeralDelay ? (nowTs + (ephemeralDelay * 1000)) : null;
     ensureData();
     input.value = '';
     if (demoMode) {
@@ -3663,7 +3868,8 @@
         contactId: activeId,
         me: true,
         cipher: cipher,
-        at: Date.now(),
+        at: nowTs,
+        expiresAt: expiresAt,
         replyTo: null,
         replyToLegacy: null,
         readAt: null,
@@ -3672,6 +3878,7 @@
       saveState(state);
       renderMessages();
       renderConvList();
+      syncEphemeralTimers();
       return;
     }
     if (firestoreDb && me && to) {
@@ -3681,15 +3888,17 @@
         participants: [me, to],
         cipher: cipher,
         at: firebase.firestore.FieldValue.serverTimestamp(),
-        atMs: Date.now()
+        atMs: nowTs
       };
+      if (expiresAt) docPayload.expiresAt = expiresAt;
       firestoreDb.collection('messages').add(docPayload).catch(function () {
         state.directMessages.push({
           id: nowId(),
           contactId: activeId,
           me: true,
           cipher: cipher,
-          at: Date.now(),
+          at: nowTs,
+          expiresAt: expiresAt,
           replyTo: null,
           replyToLegacy: null,
           readAt: null,
@@ -3698,6 +3907,7 @@
         saveState(state);
         renderMessages();
         renderConvList();
+        syncEphemeralTimers();
       });
       return;
     }
@@ -3706,7 +3916,8 @@
       contactId: activeId,
       me: true,
       cipher: cipher,
-      at: Date.now(),
+      at: nowTs,
+      expiresAt: expiresAt,
       replyTo: null,
       replyToLegacy: null,
       readAt: null,
@@ -3715,6 +3926,7 @@
     saveState(state);
     renderMessages();
     renderConvList();
+    syncEphemeralTimers();
   }
 
   function clearPhraseApplyError() {
@@ -4111,6 +4323,7 @@
       closeDeleteIncomingModal();
       closePinModal();
       closePrivacyModal();
+      closeEphemeralModal();
       closeConversationMenu();
       hideMsgContextMenu();
     }
@@ -4230,6 +4443,7 @@
     activeId = null;
 
     ensureData();
+    purgeExpiredMessages();
 
     document.getElementById('privacy-close').addEventListener('click', closePrivacyModal);
     document.getElementById('privacy-overlay').addEventListener('click', function (e) {
@@ -4613,6 +4827,18 @@
         if (activeId) openDeleteConvModal(activeId);
       });
     }
+    var convMenuEphemeral = document.getElementById('conv-menu-ephemeral');
+    if (convMenuEphemeral) {
+      convMenuEphemeral.addEventListener('click', function (e) {
+        e.stopPropagation();
+        closeConversationMenu();
+        openEphemeralModal();
+      });
+    }
+    document.getElementById('ephemeral-close').addEventListener('click', closeEphemeralModal);
+    document.getElementById('ephemeral-overlay').addEventListener('click', function (e) {
+      if (e.target === e.currentTarget) closeEphemeralModal();
+    });
 
     renderConvList();
     if (state.contacts.length) {
