@@ -1405,6 +1405,15 @@
       color: var(--fg);
       text-align: center;
     }
+    .lock-return-username .lock-name-first {
+      display: inline;
+    }
+    .lock-return-username .lock-name-blurred {
+      display: inline;
+      filter: blur(5px);
+      user-select: none;
+      -webkit-user-select: none;
+    }
     #lock-mode-return label {
       text-align: left;
     }
@@ -2865,6 +2874,27 @@
     el.style.display = 'block';
   }
 
+  function setMaskedLockUsername(name) {
+    var fullName = document.getElementById('lock-display-username-full');
+    if (!fullName) return;
+    var safe = String(name || '');
+    fullName.innerHTML = '';
+    if (!safe.length) {
+      fullName.textContent = '';
+      return;
+    }
+    var first = document.createElement('span');
+    first.className = 'lock-name-first';
+    first.textContent = safe.charAt(0);
+    fullName.appendChild(first);
+    if (safe.length > 1) {
+      var rest = document.createElement('span');
+      rest.className = 'lock-name-blurred';
+      rest.textContent = safe.slice(1);
+      fullName.appendChild(rest);
+    }
+  }
+
   function setupLockScreen() {
     document.getElementById('lock-screen').removeAttribute('hidden');
     document.getElementById('app-shell').setAttribute('hidden', '');
@@ -2886,8 +2916,7 @@
     } else {
       w.setAttribute('hidden', '');
       r.removeAttribute('hidden');
-      var fullName = document.getElementById('lock-display-username-full');
-      if (fullName) fullName.textContent = saved;
+      setMaskedLockUsername(saved);
       document.getElementById('lock-input-phrase-only').value = '';
     }
   }
