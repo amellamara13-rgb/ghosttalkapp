@@ -2033,38 +2033,6 @@
           <p class="hint">Supprime tout sans exception. Comme si vous n'aviez jamais utilisé GhostTalk.</p>
         </section>
 
-        <section class="privacy-section" aria-labelledby="privacy-section-auto-title">
-          <div class="privacy-section__head">
-            <span class="privacy-section__icon privacy-section__icon--svg" aria-hidden="true">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                <circle cx="12" cy="12" r="9" />
-                <path d="M12 7v5l3 3" />
-              </svg>
-            </span>
-            <h3 class="privacy-section__title" id="privacy-section-auto-title">Suppression automatique</h3>
-          </div>
-          <div class="check-group">
-            <label>
-              <input type="checkbox" id="opt-read" />
-              <span>Suppression dès la lecture</span>
-            </label>
-            <label>
-              <input type="checkbox" id="opt-daily" />
-              <span>Suppression quotidienne</span>
-            </label>
-            <div class="time-slider-row" id="opt-daily-time-row" hidden>
-              <div class="time-slider-inline">
-                <div class="time-slider-wrap">
-                  <input type="range" id="opt-daily-slider" min="0" max="47" step="1" value="6" aria-valuetext="" aria-label="Heure de suppression, par pas de 30 minutes" />
-                </div>
-                <div class="time-slider-display" id="opt-daily-time-display" aria-live="polite">03:00</div>
-              </div>
-              <p id="opt-daily-time-error" class="phrase-apply-error" hidden role="alert"></p>
-            </div>
-          </div>
-          <p class="hint hint--privacy-retention">Par défaut, vos messages sont conservés indéfiniment. Ils ne seront supprimés que si vous effectuez une suppression manuelle ou activez une option de suppression ci-dessus.</p>
-        </section>
-
         <section class="privacy-section" aria-labelledby="privacy-section-conf-priv-title">
           <div class="privacy-section__head">
             <span class="privacy-section__icon" aria-hidden="true">🔒</span>
@@ -2320,9 +2288,6 @@
   function defaultPrivacy() {
     return {
       deleteOnRead: false,
-      dailyDelete: false,
-      dailyTime: '03:00',
-      weeklyDelete: false,
       pin: null,
       tripleTapKillEnabled: false,
       hideContactPseudos: false,
@@ -2808,8 +2773,6 @@
   var activeId = null;
   var pendingDeleteConvId = null;
   var readDeleteTimer = null;
-  var scheduleTimer = null;
-  var dailyAwaitingTimeChoice = false;
   var conversationMenuOpen = false;
   var ephemeralTimers = Object.create(null);
   var contextMenuMsgId = null;
@@ -4045,44 +4008,6 @@
     return pad(h) + ':' + pad(m);
   }
 
-  function timeToSlotIndex(t) {
-    if (!t || typeof t !== 'string') return 6;
-    var parts = t.split(':');
-    var h = parseInt(parts[0], 10);
-    var m = parseInt(parts[1], 10);
-    if (isNaN(h)) h = 3;
-    if (isNaN(m)) m = 0;
-    h = Math.max(0, Math.min(23, h));
-    var half = m >= 30 ? 1 : 0;
-    return Math.min(47, h * 2 + half);
-  }
-
-  function updateDailySliderDisplay() {
-    var slider = document.getElementById('opt-daily-slider');
-    var disp = document.getElementById('opt-daily-time-display');
-    if (!slider || !disp) return;
-    var idx = parseInt(slider.value, 10);
-    var hm = slotIndexToTime(idx);
-    disp.textContent = hm;
-    slider.setAttribute('aria-valuetext', hm);
-  }
-
-  function clearDailyTimeError() {
-    var el = document.getElementById('opt-daily-time-error');
-    if (el) {
-      el.textContent = '';
-      el.hidden = true;
-    }
-  }
-
-  function showDailyTimeError() {
-    var el = document.getElementById('opt-daily-time-error');
-    if (el) {
-      el.textContent = 'Veuillez sélectionner une heure.';
-      el.hidden = false;
-    }
-  }
-
   function showPrivacySavedToast() {
     var t = document.getElementById('privacy-saved-toast');
     if (!t) return;
@@ -4097,46 +4022,16 @@
 
   function savePrivacyOptionsAuto() {
     if (!state) return;
-    state.privacy.deleteOnRead = document.getElementById('opt-read').checked;
-    state.privacy.weeklyDelete = false;
     state.privacy.tripleTapKillEnabled = document.getElementById('opt-triple-tap-kill').checked;
-    var dailyEl = document.getElementById('opt-daily');
-    if (!dailyEl.checked) {
-      state.privacy.dailyDelete = false;
-      dailyAwaitingTimeChoice = false;
-      clearDailyTimeError();
-    } else if (dailyAwaitingTimeChoice) {
-      state.privacy.dailyDelete = false;
-    } else {
-      var slider = document.getElementById('opt-daily-slider');
-      var idx = slider ? parseInt(slider.value, 10) : 6;
-      state.privacy.dailyTime = slotIndexToTime(idx);
-      state.privacy.dailyDelete = true;
-      clearDailyTimeError();
-    }
     saveState(state);
-    startScheduleLoop();
-    if (!(dailyEl.checked && dailyAwaitingTimeChoice)) {
-      showPrivacySavedToast();
-    }
+    showPrivacySavedToast();
   }
 
   function syncPrivacyForm() {
     if (!state) return;
-    document.getElementById('opt-read').checked = !!state.privacy.deleteOnRead;
-    document.getElementById('opt-daily').checked = !!state.privacy.dailyDelete;
     document.getElementById('opt-triple-tap-kill').checked = !!state.privacy.tripleTapKillEnabled;
     var hidePseudo = document.getElementById('opt-hide-contact-pseudos');
     if (hidePseudo) hidePseudo.checked = !!state.privacy.hideContactPseudos;
-    dailyAwaitingTimeChoice = false;
-    clearDailyTimeError();
-    var slider = document.getElementById('opt-daily-slider');
-    var row = document.getElementById('opt-daily-time-row');
-    if (slider) {
-      slider.value = String(timeToSlotIndex(state.privacy.dailyTime));
-      updateDailySliderDisplay();
-    }
-    if (row) row.hidden = !state.privacy.dailyDelete;
     var omp = document.getElementById('opt-hide-message-previews');
     if (omp) omp.checked = !!state.privacy.hideMessagePreviews;
     var hnc = document.getElementById('opt-hide-notification-content');
@@ -4296,26 +4191,6 @@
       localStorage.clear();
     } catch (e) {}
     window.location.reload();
-  }
-
-  function runScheduledPurge() {
-    ensureData();
-    state.directMessages = [];
-    saveState(state);
-    renderConvList();
-    renderMessages();
-  }
-
-  function startScheduleLoop() {
-    if (scheduleTimer) clearInterval(scheduleTimer);
-    scheduleTimer = setInterval(function () {
-      var now = new Date();
-      var hm = pad(now.getHours()) + ':' + pad(now.getMinutes());
-      var t = state.privacy.dailyTime || '03:00';
-      if (state.privacy.dailyDelete && hm === t) {
-        runScheduledPurge();
-      }
-    }, 30000);
   }
 
   document.addEventListener('keydown', function (e) {
@@ -4482,36 +4357,6 @@
       saveState(state);
       applyPrivacyGuards();
     });
-
-    document.getElementById('opt-read').addEventListener('change', function () {
-      savePrivacyOptionsAuto();
-    });
-
-    document.getElementById('opt-daily').addEventListener('change', function () {
-      var row = document.getElementById('opt-daily-time-row');
-      if (row) row.hidden = !this.checked;
-      if (this.checked) {
-        dailyAwaitingTimeChoice = true;
-        showDailyTimeError();
-        updateDailySliderDisplay();
-      } else {
-        dailyAwaitingTimeChoice = false;
-        clearDailyTimeError();
-      }
-      savePrivacyOptionsAuto();
-    });
-
-    var optDailySlider = document.getElementById('opt-daily-slider');
-    if (optDailySlider) {
-      optDailySlider.addEventListener('input', function () {
-        updateDailySliderDisplay();
-        if (document.getElementById('opt-daily').checked) {
-          dailyAwaitingTimeChoice = false;
-          clearDailyTimeError();
-          savePrivacyOptionsAuto();
-        }
-      });
-    }
 
     document.getElementById('btn-privacy-logout').addEventListener('click', function () {
       try {
@@ -4853,7 +4698,6 @@
     syncAppMobileLayout();
     subscribeRealtimeMessages();
     syncPrivacyForm();
-    startScheduleLoop();
     bindIdleLockListeners();
   }
 
