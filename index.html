@@ -440,12 +440,12 @@
     }
     @media (min-width: 641px) {
       .conv-delete-desk {
-        display: inline-flex;
+        display: none;
         align-items: center;
         justify-content: center;
-        width: 32px;
-        height: 32px;
-        margin: 0 0 0 2px;
+        width: 28px;
+        height: 28px;
+        margin: 0;
         padding: 0;
         border: none;
         background: transparent;
@@ -453,14 +453,12 @@
         cursor: pointer;
         font-size: 16px;
         line-height: 1;
-        opacity: 0;
-        transition: opacity 0.15s ease;
         flex-shrink: 0;
         border-radius: 8px;
         -webkit-tap-highlight-color: transparent;
       }
       .conv:hover .conv-delete-desk {
-        opacity: 1;
+        display: inline-flex;
       }
     }
     @media (max-width: 640px) {
@@ -493,7 +491,7 @@
     }
     .conv-title-row {
       display: flex;
-      align-items: center;
+      align-items: baseline;
       justify-content: space-between;
       gap: 6px;
     }
@@ -518,7 +516,7 @@
       display: flex;
       align-items: center;
       justify-content: flex-end;
-      gap: 8px;
+      gap: 6px;
       flex-shrink: 0;
     }
     .title.is-unread {
@@ -3797,14 +3795,14 @@
         '<div class="conv-main">' +
           '<div class="conv-title-row">' +
             '<span class="' + titleUnreadClass + '">' + contactDisplayNameHtml(contact.name) + '</span>' +
-            '<div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">' +
+            '<div class="conv-right-meta">' +
               '<span class="time">' + escapeHtml(timeStr) + '</span>' +
               badgeHtml +
-              '<button type="button" class="conv-delete-desk" data-stop-select="1" title="Supprimer" aria-label="Supprimer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ff453a" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>' +
             '</div>' +
           '</div>' +
           '<div class="' + previewUnreadClass + '">' + escapeHtml(preview) + '</div>' +
-        '</div>';
+        '</div>' +
+        '<button type="button" class="conv-delete-desk" data-stop-select="1" title="Supprimer" aria-label="Supprimer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ff453a" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>';
       var delDesk = div.querySelector('.conv-delete-desk');
       if (delDesk) {
         delDesk.addEventListener('click', function (e) {
