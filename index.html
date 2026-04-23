@@ -531,11 +531,24 @@
       top: 50%;
       transform: translateY(-50%);
     }
-    .conv-notif-count {
-      font-size: 10px;
-      font-weight: 700;
-      color: var(--accent);
-      line-height: 1;
+    .conv-notif-mobile {
+      display: none;
+    }
+    @media (max-width: 640px) {
+      .conv-notif-mobile {
+        display: flex;
+        min-width: 20px;
+        height: 20px;
+        border-radius: 999px;
+        background: var(--accent);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        align-items: center;
+        justify-content: center;
+        padding: 0 5px;
+        flex-shrink: 0;
+      }
     }
     .title.is-unread {
       font-weight: 700;
@@ -1929,7 +1942,13 @@
       }
       .conv {
         padding: 16px 12px;
-        gap: 6px;
+        gap: 10px;
+      }
+      .conv-left {
+        display: none;
+      }
+      .conv-delete-desk {
+        display: none !important;
       }
       .conv .title {
         font-size: 15px;
@@ -3811,6 +3830,9 @@
       var leftHtml = hasUnread
         ? '<div class="conv-notif-bar"></div><span class="conv-notif-count">' + escapeHtml(String(unreadCount)) + '</span>'
         : '';
+      var mobileBadgeHtml = hasUnread
+        ? '<span class="conv-notif-mobile">' + escapeHtml(String(unreadCount)) + '</span>'
+        : '';
       div.innerHTML =
         '<div class="conv-left">' + leftHtml + '</div>' +
         '<span class="conv-avatar" style="background:' + avatar.color + ';">' + escapeHtml(avatar.initial) + '</span>' +
@@ -3821,6 +3843,7 @@
           '</div>' +
           '<div class="' + previewUnreadClass + '">' + escapeHtml(preview) + '</div>' +
         '</div>' +
+        mobileBadgeHtml +
         '<button type="button" class="conv-delete-desk" data-stop-select="1" title="Supprimer" aria-label="Supprimer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ff453a" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>';
       var delDesk = div.querySelector('.conv-delete-desk');
       if (delDesk) {
