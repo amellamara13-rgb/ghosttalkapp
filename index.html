@@ -513,9 +513,12 @@
       gap: 8px;
       flex-shrink: 0;
     }
-    .conv .title.is-unread,
-    .conv .preview.is-unread {
+    .title.is-unread {
       font-weight: 700;
+    }
+    .preview.is-unread {
+      font-weight: 600;
+      color: var(--fg);
     }
     .unread-badge {
       min-width: 18px;
@@ -3261,7 +3264,10 @@
     var ids = [];
     state.directMessages.forEach(function (m) {
       if (!m || m.preserved === true) return;
-      if (m.ephemeralMode !== 'on_read') return;
+      var contactEph = getContactById(m.contactId);
+      var isOnRead = m.ephemeralMode === 'on_read' ||
+        (contactEph && contactEph.ephemeralDelay === 'on_read');
+      if (!isOnRead) return;
       if (m.me && m.readAt != null) ids.push(m.id);
     });
     return purgeMessagesByIds(ids);
@@ -3273,7 +3279,10 @@
     var ids = [];
     state.directMessages.forEach(function (m) {
       if (!m || m.preserved === true) return;
-      if (m.ephemeralMode !== 'on_read') return;
+      var contactEph = getContactById(m.contactId);
+      var isOnRead = m.ephemeralMode === 'on_read' ||
+        (contactEph && contactEph.ephemeralDelay === 'on_read');
+      if (!isOnRead) return;
       if (m.contactId === contactId && !m.me) ids.push(m.id);
     });
     return purgeMessagesByIds(ids);
@@ -3376,7 +3385,7 @@
     var n = 0;
     ensureData();
     state.directMessages.forEach(function (m) {
-      if (m.contactId === contactId && !m.me && m.readAt == null) n += 1;
+      if (m.contactId === contactId && m.me === false && m.readAt === null) n += 1;
     });
     return n;
   }
