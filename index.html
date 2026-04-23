@@ -280,7 +280,7 @@
       background: rgba(255,255,255,0.03);
       border-radius: 8px;
       padding: 3px 8px;
-      margin-top: 4px;
+      margin-top: 8px;
       font-size: 10px;
       color: rgba(255,255,255,0.25);
     }
@@ -1895,10 +1895,6 @@
       }
       #app.mobile-show-chat .btn-chat-back {
         display: inline-flex;
-        -webkit-appearance: none;
-        appearance: none;
-        color: var(--accent) !important;
-        -webkit-text-fill-color: var(--accent);
       }
       #app aside header {
         padding: 10px 10px;
@@ -1946,31 +1942,21 @@
       }
       .messages {
         padding: 16px 12px;
-        gap: 0;
-      }
-      .msg-line {
-        gap: 2px;
-      }
-      .msg-date-separator {
-        padding: 4px 0;
+        gap: 4px !important;
       }
       .bubble-wrap {
         max-width: min(85%, 340px);
       }
       .bubble {
         font-size: 14px;
-        line-height: 1.3;
-        padding: 4px 11px;
+        padding: 7px 11px !important;
       }
       .row.me .bubble {
-        padding-bottom: 10px;
-        padding-right: 24px;
+        padding-bottom: 14px !important;
+        padding-right: 26px !important;
       }
       .msg-line > .bubble-time {
         font-size: 11px;
-      }
-      #chat-ephemeral-indicator {
-        margin-top: 2px;
       }
       .composer {
         padding: 8px 8px 10px;
