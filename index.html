@@ -4079,6 +4079,17 @@
     var cipher = encryptUtf8(text, '');
     var nowTs = Date.now();
     var ephemeralDelay = contact ? contact.ephemeralDelay : null;
+    if (!ephemeralDelay && activeId) {
+      var convDocId = conversationDocIdForContact(contact);
+      if (convDocId && firestoreDb) {
+        firestoreDb.collection('conversations').doc(convDocId).get()
+          .then(function(snap) {
+            if (!snap.exists) return;
+            var val = (snap.data() || {}).ephemeralDelay;
+            if (val) applyContactEphemeralDelay(activeId, val);
+          }).catch(function(){});
+      }
+    }
     var expiresAt = (typeof ephemeralDelay === 'number') ? (nowTs + (ephemeralDelay * 1000)) : null;
     var ephemeralMode = ephemeralDelay === 'on_read' ? 'on_read' : null;
     ensureData();
