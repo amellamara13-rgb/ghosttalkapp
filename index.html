@@ -774,10 +774,14 @@
       border-bottom: 1px solid var(--line);
     }
     .aside-conv-label-row {
+      padding: 8px 12px 0;
+    }
+    .aside-conv-label-inner {
       display: flex;
       align-items: center;
-      gap: 8px;
-      padding: 8px 12px 4px;
+      gap: 6px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--line);
     }
     .aside-conv-label {
       font-size: 11px;
@@ -2101,8 +2105,10 @@
           </div>
         </div>
         <div class="aside-conv-label-row">
-          <span class="aside-conv-label">CONVERSATIONS</span>
-          <span class="aside-conv-line" aria-hidden="true"></span>
+          <div class="aside-conv-label-inner">
+            <span class="aside-conv-label">CONVERSATIONS</span>
+            <span class="aside-conv-line" aria-hidden="true"></span>
+          </div>
         </div>
         <div class="list" id="conv-list"></div>
       </aside>
