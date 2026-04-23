@@ -387,13 +387,13 @@
       border-bottom: 1px solid var(--line);
     }
     .conv {
-      padding: 14px 16px;
+      padding: 7px 12px;
       border-bottom: none;
       cursor: pointer;
       transition: background 0.15s;
       display: flex;
-      align-items: flex-start;
-      gap: 10px;
+      align-items: center;
+      gap: 8px;
     }
     .conv:hover, .conv.active { background: var(--surface-2); }
     .conv-surface {
@@ -466,13 +466,13 @@
       }
     }
     .conv-avatar {
-      width: 34px;
-      height: 34px;
+      width: 30px;
+      height: 30px;
       border-radius: 50%;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 13px;
+      font-size: 11px;
       font-weight: 700;
       color: #fff;
       flex-shrink: 0;
@@ -482,6 +482,9 @@
     .conv-main {
       min-width: 0;
       flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
     }
     .conv-title-row {
       display: flex;
@@ -490,22 +493,22 @@
       gap: 10px;
     }
     .conv .title {
-      font-weight: 500;
-      font-size: 15px;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--fg);
       min-width: 0;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
     .conv .preview {
-      font-size: 13px;
+      font-size: 11px;
       color: var(--muted);
-      margin-top: 4px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    .conv .time { font-size: 12px; color: var(--muted); flex-shrink: 0; }
+    .conv .time { font-size: 11px; color: var(--muted); flex-shrink: 0; margin-left: 6px; }
     .conv-right-meta {
       display: flex;
       align-items: center;
