@@ -545,7 +545,7 @@
       padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
     }
     .ephemeral-banner {
       background: rgba(58, 118, 240, 0.08);
@@ -557,10 +557,10 @@
     }
     .bubble {
       max-width: 100%;
-      padding: 10px 14px;
+      padding: 10px 16px;
       border-radius: var(--radius);
-      font-size: 16px;
-      line-height: 1.35;
+      font-size: 15px;
+      line-height: 1.4;
       word-break: break-word;
     }
     .bubble.is-preserved {
@@ -580,6 +580,7 @@
     .row:not(.me) .bubble {
       background: var(--bubble-them);
       color: var(--fg);
+      border-radius: 18px 18px 18px 4px;
     }
     .row.me .bubble {
       position: relative;
@@ -587,6 +588,7 @@
       padding-right: 28px;
       background: var(--bubble-me);
       color: #fff;
+      border-radius: 18px 18px 4px 18px;
     }
     .row.me .bubble .bubble-read {
       position: absolute;
