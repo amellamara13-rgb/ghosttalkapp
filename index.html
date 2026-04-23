@@ -539,6 +539,14 @@
       flex-direction: column;
       gap: 10px;
     }
+    .ephemeral-banner {
+      background: rgba(58, 118, 240, 0.08);
+      border-bottom: 1px solid var(--line);
+      padding: 6px 16px;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+    }
     .bubble {
       max-width: 100%;
       padding: 10px 14px;
@@ -1983,6 +1991,7 @@
           </div>
         </div>
         <div id="chat-pane" style="display: none; flex: 1; flex-direction: column; min-height: 0;">
+          <div id="ephemeral-banner" class="ephemeral-banner" hidden></div>
           <div class="messages" id="messages"></div>
           <div class="composer">
             <div class="composer-inner">
@@ -2216,6 +2225,7 @@
   var firebaseApp = null;
   var firestoreDb = null;
   var unsubscribeRealtime = null;
+  var unsubscribeConversationSettings = null;
 
   function getSavedUsername() {
     try {
@@ -3005,6 +3015,7 @@
       el.textContent = 'Sélectionnez une conversation';
       el.removeAttribute('aria-label');
       updateEphemeralIndicator(null);
+      updateEphemeralBanner(null);
       return;
     }
     if (state.privacy.hideContactPseudos) {
@@ -3015,6 +3026,7 @@
       el.removeAttribute('aria-label');
     }
     updateEphemeralIndicator(contact);
+    updateEphemeralBanner(contact);
   }
 
   function formatEphemeralDelayLabel(delaySeconds) {
@@ -3028,6 +3040,16 @@
     return String(delaySeconds) + ' sec';
   }
 
+  function formatEphemeralBannerLabel(delaySeconds) {
+    if (delaySeconds === 'on_read') return 'Dès la lecture';
+    if (delaySeconds === 60) return '1 minute';
+    if (delaySeconds === 300) return '5 minutes';
+    if (delaySeconds === 3600) return '1 heure';
+    if (delaySeconds === 86400) return '24 heures';
+    if (delaySeconds === 604800) return '7 jours';
+    return formatEphemeralDelayLabel(delaySeconds);
+  }
+
   function updateEphemeralIndicator(contact) {
     var el = document.getElementById('chat-ephemeral-indicator');
     if (!el) return;
@@ -3038,6 +3060,70 @@
     }
     el.textContent = '⏱ Messages éphémères : ' + formatEphemeralDelayLabel(contact.ephemeralDelay);
     el.hidden = false;
+  }
+
+  function updateEphemeralBanner(contact) {
+    var el = document.getElementById('ephemeral-banner');
+    if (!el) return;
+    if (!contact || !contact.ephemeralDelay) {
+      el.hidden = true;
+      el.textContent = '';
+      return;
+    }
+    var label = formatEphemeralBannerLabel(contact.ephemeralDelay);
+    el.textContent = '⏱ Messages éphémères activés · ' + label;
+    el.hidden = false;
+  }
+
+  function conversationDocIdForContact(contact) {
+    if (!contact) return null;
+    var me = usernameToFirestoreDocId(normalizeContactName(currentUsername()));
+    var other = usernameToFirestoreDocId(normalizeContactName(contact.name));
+    if (!me || !other) return null;
+    return [me, other].sort().join('_');
+  }
+
+  function applyContactEphemeralDelay(contactId, delayValue) {
+    var contact = getContactById(contactId);
+    if (!contact) return;
+    contact.ephemeralDelay = delayValue;
+    saveState(state);
+    if (activeId === contactId) {
+      updateChatTitleDisplay(contact);
+      updateEphemeralBanner(contact);
+    }
+  }
+
+  function stopConversationSettingsSubscription() {
+    if (unsubscribeConversationSettings) {
+      unsubscribeConversationSettings();
+      unsubscribeConversationSettings = null;
+    }
+  }
+
+  function subscribeConversationEphemeralSettings(contactId) {
+    stopConversationSettingsSubscription();
+    if (!contactId || demoMode) return;
+    initFirebase();
+    if (!firestoreDb) return;
+    var contact = getContactById(contactId);
+    var docId = conversationDocIdForContact(contact);
+    if (!docId) return;
+    var ref = firestoreDb.collection('conversations').doc(docId);
+    ref.get().then(function (snap) {
+      if (activeId !== contactId) return;
+      var data = snap && snap.exists ? (snap.data() || {}) : {};
+      var val = data.ephemeralDelay;
+      var normalized = (val === 'on_read' || typeof val === 'number') ? val : null;
+      applyContactEphemeralDelay(contactId, normalized);
+    }).catch(function () {});
+    unsubscribeConversationSettings = ref.onSnapshot(function (snap) {
+      if (activeId !== contactId) return;
+      var data = snap && snap.exists ? (snap.data() || {}) : {};
+      var val = data.ephemeralDelay;
+      var normalized = (val === 'on_read' || typeof val === 'number') ? val : null;
+      applyContactEphemeralDelay(contactId, normalized);
+    }, function () {});
   }
 
   function hashString(str) {
@@ -3422,6 +3508,24 @@
     { value: 604800, label: '7 jours' }
   ];
 
+  function setConversationEphemeralDelay(contactId, delayValue) {
+    ensureData();
+    var contact = getContactById(contactId);
+    if (!contact) return Promise.resolve();
+    applyContactEphemeralDelay(contactId, delayValue);
+    if (demoMode) return Promise.resolve();
+    initFirebase();
+    if (!firestoreDb) return Promise.resolve();
+    var me = currentUsername();
+    var docId = conversationDocIdForContact(contact);
+    if (!docId || !me) return Promise.resolve();
+    return firestoreDb.collection('conversations').doc(docId).set({
+      ephemeralDelay: delayValue == null ? null : delayValue,
+      ephemeralSetBy: me,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true }).catch(function () {});
+  }
+
   function openEphemeralModal() {
     if (!activeId) return;
     var overlay = document.getElementById('ephemeral-overlay');
@@ -3436,12 +3540,8 @@
       if (contact.ephemeralDelay === opt.value) btn.classList.add('is-active');
       btn.textContent = opt.label;
       btn.addEventListener('click', function () {
-        ensureData();
-        var activeContact = getContactById(activeId);
-        if (!activeContact) return;
-        activeContact.ephemeralDelay = opt.value;
-        saveState(state);
-        updateChatTitleDisplay(activeContact);
+        if (!activeId) return;
+        setConversationEphemeralDelay(activeId, opt.value).catch(function () {});
         closeEphemeralModal();
       });
       list.appendChild(btn);
@@ -3675,8 +3775,12 @@
     if (previousId && previousId !== id) {
       purgeOnReadRecipientMessagesForConversation(previousId).catch(function () {});
     }
+    if (!id) {
+      stopConversationSettingsSubscription();
+    }
     var contact = getContactById(id);
     if (!contact) {
+      stopConversationSettingsSubscription();
       document.getElementById('chat-empty').style.display = 'flex';
       document.getElementById('chat-pane').style.display = 'none';
       updateChatTitleDisplay(null);
@@ -3709,6 +3813,7 @@
     var pane = document.getElementById('chat-pane');
     pane.style.display = 'flex';
     updateChatTitleDisplay(contact);
+    subscribeConversationEphemeralSettings(id);
     document.getElementById('btn-conv-menu').hidden = !id;
     var badge = document.getElementById('chat-secure-badge');
     if (badge) { badge.hidden = !id; badge.style.display = id ? 'inline-flex' : 'none'; }
@@ -4471,6 +4576,7 @@
       applyPrivacyGuards();
       syncDemoModeBadge();
       startEphemeralSweepLoop();
+      if (activeId) subscribeConversationEphemeralSettings(activeId);
       return;
     }
     window.__secureChatReady = true;
