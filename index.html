@@ -4214,6 +4214,7 @@
     var ephemeralMode = ephemeralDelay === 'on_read' ? 'on_read' : null;
     ensureData();
     input.value = '';
+    autoResizeComposerInput();
     if (demoMode) {
       state.directMessages.push({
         id: nowId(),
@@ -4289,6 +4290,17 @@
     renderMessages();
     renderConvList();
     syncEphemeralTimers();
+  }
+
+  function autoResizeComposerInput() {
+    var input = document.getElementById('input');
+    if (!input) return;
+    if (!input.value || input.value.trim() === '') {
+      input.style.height = '';
+      return;
+    }
+    input.style.height = 'auto';
+    input.style.height = Math.min(input.scrollHeight, 120) + 'px';
   }
 
   function clearPhraseApplyError() {
@@ -4890,6 +4902,8 @@
     });
 
     document.getElementById('send').addEventListener('click', send);
+    document.getElementById('input').addEventListener('input', autoResizeComposerInput);
+    autoResizeComposerInput();
     document.getElementById('input').addEventListener('keydown', function (e) {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
