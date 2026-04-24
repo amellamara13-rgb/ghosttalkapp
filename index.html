@@ -2952,13 +2952,15 @@
         list.appendChild(li);
       });
       list.hidden = false;
-      var inp = document.getElementById('new-contact-input');
-      if (inp) {
-        var rect = inp.getBoundingClientRect();
-        list.style.top = (rect.bottom + 4) + 'px';
-        list.style.left = rect.left + 'px';
-        list.style.width = rect.width + 'px';
-      }
+      requestAnimationFrame(function() {
+        var inp = document.getElementById('new-contact-input');
+        if (inp) {
+          var rect = inp.getBoundingClientRect();
+          list.style.top = (rect.bottom + 4) + 'px';
+          list.style.left = rect.left + 'px';
+          list.style.width = rect.width + 'px';
+        }
+      });
     });
   }
 
