@@ -1587,6 +1587,33 @@
     .search-msg-preview { font-size: 13px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
     .search-highlight { background: var(--accent); color: #fff; border-radius: 3px; padding: 0 2px; }
     .search-empty { padding: 24px 16px; text-align: center; font-size: 14px; color: var(--muted); }
+    .add-contact-cards {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 4px;
+    }
+    .add-contact-card {
+      flex: 1;
+      padding: 16px 10px;
+      border-radius: 12px;
+      background: var(--bg);
+      border: 0.5px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .add-contact-card:hover { border-color: var(--accent); }
+    .add-contact-card.is-active { border-color: var(--accent); background: rgba(58,118,240,0.06); }
+    .add-contact-card-label { font-size: 13px; font-weight: 600; color: var(--fg); text-align: center; }
+    .add-contact-card-sub { font-size: 11px; color: var(--muted); text-align: center; }
+    .add-contact-qr-placeholder {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 10px; padding: 24px 0;
+      font-size: 13px; color: var(--muted); text-align: center;
+    }
 
     .lock-card--wide { max-width: 400px; text-align: left; }
     .lock-card label {
@@ -5409,10 +5436,30 @@
     function openAddContactModal() {
       var overlay = document.getElementById('add-contact-overlay');
       if (overlay) { overlay.classList.add('is-open'); overlay.removeAttribute('aria-hidden'); }
-      setTimeout(function() {
-        var inp = document.getElementById('new-contact-input');
-        if (inp) inp.focus();
-      }, 100);
+      var pseudoSection = document.getElementById('add-contact-pseudo-section');
+      var qrSection = document.getElementById('add-contact-qr-section');
+      var cardPseudo = document.getElementById('add-contact-by-pseudo');
+      var cardQr = document.getElementById('add-contact-by-qr');
+      if (pseudoSection) pseudoSection.hidden = true;
+      if (qrSection) qrSection.hidden = true;
+      if (cardPseudo) cardPseudo.classList.remove('is-active');
+      if (cardQr) cardQr.classList.remove('is-active');
+      if (cardPseudo) cardPseudo.onclick = function() {
+        if (pseudoSection) pseudoSection.hidden = false;
+        if (qrSection) qrSection.hidden = true;
+        cardPseudo.classList.add('is-active');
+        if (cardQr) cardQr.classList.remove('is-active');
+        setTimeout(function() {
+          var inp = document.getElementById('new-contact-input');
+          if (inp) inp.focus();
+        }, 50);
+      };
+      if (cardQr) cardQr.onclick = function() {
+        if (qrSection) qrSection.hidden = false;
+        if (pseudoSection) pseudoSection.hidden = true;
+        cardQr.classList.add('is-active');
+        if (cardPseudo) cardPseudo.classList.remove('is-active');
+      };
     }
     function closeAddContactModal() {
       var overlay = document.getElementById('add-contact-overlay');
@@ -5542,26 +5589,48 @@
         <button type="button" class="modal-close-btn" id="add-contact-close-btn" aria-label="Fermer">✕</button>
       </div>
       <div class="modal-body">
-        <div class="new-contact-wrap" style="margin-bottom:8px;">
-          <span class="new-contact-icon" aria-hidden="true">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round">
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.35-4.35"></path>
-            </svg>
-          </span>
-          <input
-            type="text"
-            id="new-contact-input"
-            class="new-contact-input"
-            placeholder="Entrez un pseudo..."
-            autocomplete="off"
-            aria-label="Rechercher un utilisateur"
-            aria-autocomplete="list"
-            aria-controls="new-contact-suggestions"
-          />
+        <div class="add-contact-cards">
+          <div class="add-contact-card" id="add-contact-by-pseudo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="28" height="28"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span class="add-contact-card-label">Par pseudo</span>
+            <span class="add-contact-card-sub">Chercher un utilisateur</span>
+          </div>
+          <div class="add-contact-card" id="add-contact-by-qr">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="28" height="28"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="14" width="3" height="3"/><rect x="14" y="18" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/></svg>
+            <span class="add-contact-card-label">Par QR code</span>
+            <span class="add-contact-card-sub">Scanner le code</span>
+          </div>
         </div>
-        <p id="new-contact-error" class="new-contact-error" hidden role="alert"></p>
-        <ul id="new-contact-suggestions" class="new-contact-suggestions" hidden role="listbox" aria-label="Suggestions de pseudos"></ul>
+
+        <div id="add-contact-pseudo-section" hidden>
+          <div class="new-contact-wrap" style="margin-bottom:8px;">
+            <span class="new-contact-icon" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(58,118,240,0.6)" stroke-width="2" stroke-linecap="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+              </svg>
+            </span>
+            <input
+              type="text"
+              id="new-contact-input"
+              class="new-contact-input"
+              placeholder="Entrez un pseudo..."
+              autocomplete="off"
+              aria-label="Rechercher un utilisateur"
+              aria-autocomplete="list"
+              aria-controls="new-contact-suggestions"
+            />
+          </div>
+          <p id="new-contact-error" class="new-contact-error" hidden role="alert"></p>
+          <ul id="new-contact-suggestions" class="new-contact-suggestions" hidden role="listbox" aria-label="Suggestions de pseudos"></ul>
+        </div>
+
+        <div id="add-contact-qr-section" hidden>
+          <div class="add-contact-qr-placeholder">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round" width="48" height="48"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            <span>Scanner bientôt disponible</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
