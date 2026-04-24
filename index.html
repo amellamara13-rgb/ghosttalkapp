@@ -1520,10 +1520,10 @@
       right: 10px;
       top: 50%;
       transform: translateY(-50%);
-      width: 18px;
-      height: 18px;
+      width: 22px;
+      height: 22px;
       border-radius: 50%;
-      background: #8e8e93;
+      background: rgba(120, 120,128, 0.35);
       border: none;
       cursor: pointer;
       display: flex;
@@ -1531,9 +1531,11 @@
       justify-content: center;
       padding: 0;
       flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
     }
     .search-clear-btn[hidden] { display: none !important; }
-    .search-wrap .new-contact-input.has-value { padding-right: 36px; }
+    .search-clear-btn svg { width: 10px; height: 10px; stroke: #fff; fill: none; stroke-width: 2.5; stroke-linecap: round; }
+    .search-wrap .new-contact-input.has-value { padding-right: 40px; }
     .search-contacts-section { padding: 8px 0 4px; }
     .search-section-label {
       font-size: 11px;
@@ -2240,7 +2242,7 @@
               aria-label="Rechercher"
             />
             <button type="button" id="search-clear-btn" class="search-clear-btn" hidden aria-label="Effacer">
-              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#0b0b0d" stroke-width="2.8" stroke-linecap="round">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round">
                 <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
               </svg>
             </button>
