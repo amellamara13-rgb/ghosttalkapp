@@ -324,7 +324,7 @@
       text-transform: uppercase;
     }
     #chat-ephemeral-indicator {
-      display: inline-flex;
+      display: none;
       align-items: center;
       gap: 4px;
       background: rgba(255,255,255,0.08);
@@ -333,6 +333,9 @@
       margin-top: 2px;
       font-size: 11px;
       color: #8e8e93;
+    }
+    #chat-ephemeral-indicator:not([hidden]) {
+      display: inline-flex;
     }
     .contact-name-blurred {
       filter: blur(5px);
