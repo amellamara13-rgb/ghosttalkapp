@@ -1497,21 +1497,43 @@
       border: 1px dashed var(--line);
     }
     .search-wrap {
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      position: relative;
       width: 100%;
     }
-    .search-cancel-btn {
-      background: none;
-      border: none;
-      color: var(--accent);
-      font-size: 14px;
-      cursor: pointer;
-      padding: 0 4px;
-      flex-shrink: 0;
-      white-space: nowrap;
+    .search-wrap .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1;
     }
+    .search-wrap .new-contact-input {
+      width: 100%;
+      padding: 10px 36px 10px 36px;
+    }
+    .search-clear-btn {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #8e8e93;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      flex-shrink: 0;
+    }
+    .search-clear-btn[hidden] { display: none !important; }
+    .search-wrap .new-contact-input.has-value { padding-right: 36px; }
     .search-contacts-section { padding: 8px 0 4px; }
     .search-section-label {
       font-size: 11px;
@@ -2204,7 +2226,7 @@
         <div class="toolbar">
           <div class="search-wrap">
             <span class="search-icon" aria-hidden="true">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(58,118,240,0.6)" stroke-width="2" stroke-linecap="round">
                 <circle cx="11" cy="11" r="8"></circle>
                 <path d="m21 21-4.35-4.35"></path>
               </svg>
@@ -2217,7 +2239,11 @@
               autocomplete="off"
               aria-label="Rechercher"
             />
-            <button type="button" id="search-cancel-btn" class="search-cancel-btn" hidden>Annuler</button>
+            <button type="button" id="search-clear-btn" class="search-clear-btn" hidden aria-label="Effacer">
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#0b0b0d" stroke-width="2.8" stroke-linecap="round">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
           </div>
         </div>
 
@@ -5256,20 +5282,19 @@
     }
 
     var searchInput = document.getElementById('search-input');
-    var searchCancelBtn = document.getElementById('search-cancel-btn');
+    var searchClearBtn = document.getElementById('search-clear-btn');
     var searchResultsPanel = document.getElementById('search-results-panel');
     var convListSection = document.getElementById('conv-list-section');
 
     function showSearchResults() {
       if (searchResultsPanel) searchResultsPanel.hidden = false;
       if (convListSection) convListSection.hidden = true;
-      if (searchCancelBtn) searchCancelBtn.hidden = false;
     }
     function hideSearchResults() {
       if (searchResultsPanel) searchResultsPanel.hidden = true;
       if (convListSection) convListSection.hidden = false;
-      if (searchCancelBtn) searchCancelBtn.hidden = true;
-      if (searchInput) searchInput.value = '';
+      if (searchInput) { searchInput.value = ''; searchInput.classList.remove('has-value'); }
+      if (searchClearBtn) searchClearBtn.hidden = true;
     }
 
     function getAvatarColor(name) {
@@ -5358,11 +5383,24 @@
     }
 
     if (searchInput) {
-      searchInput.addEventListener('input', function() { runSearch(searchInput.value); });
-      searchInput.addEventListener('focus', function() { if (searchInput.value) runSearch(searchInput.value); });
+      searchInput.addEventListener('input', function() {
+        var hasVal = searchInput.value.length > 0;
+        if (searchClearBtn) searchClearBtn.hidden = !hasVal;
+        searchInput.classList.toggle('has-value', hasVal);
+        runSearch(searchInput.value);
+      });
+      searchInput.addEventListener('focus', function() {
+        if (searchInput.value) runSearch(searchInput.value);
+      });
+      searchInput.addEventListener('blur', function() {
+        setTimeout(function() { if (!searchInput.value) hideSearchResults(); }, 150);
+      });
     }
-    if (searchCancelBtn) {
-      searchCancelBtn.addEventListener('click', function() { hideSearchResults(); searchInput && searchInput.blur(); });
+    if (searchClearBtn) {
+      searchClearBtn.addEventListener('click', function() {
+        hideSearchResults();
+        searchInput && searchInput.focus();
+      });
     }
 
     function openAddContactModal() {
