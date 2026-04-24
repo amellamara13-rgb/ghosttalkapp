@@ -375,7 +375,26 @@
     }
     .conv-menu-btn:active { transform: scale(0.97); }
     .conv-menu-btn[hidden] { display: none !important; }
-    .conv-menu-dropdown {
+    .conv-options-item {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 20px;
+      border: none;
+      background: transparent;
+      color: var(--fg);
+      font-size: 16px;
+      font-family: inherit;
+      cursor: pointer;
+      text-align: left;
+      border-top: 0.5px solid var(--line);
+      transition: background 0.15s;
+    }
+    .conv-options-item:first-child { border-top: none; }
+    .conv-options-item:hover { background: var(--surface-2); }
+    .conv-options-item.danger { color: var(--danger); }
+    .conv-options-icon { font-size: 20px; flex-shrink: 0; }
       position: absolute;
       top: calc(100% + 6px);
       right: 0;
@@ -2347,17 +2366,12 @@
         <header id="chat-head">
           <div class="chat-head-left">
             <button type="button" id="btn-chat-back" class="btn-chat-back" aria-label="Retour à la liste des conversations"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
-            <span id="chat-head-avatar" class="chat-head-avatar"></span>
+            <span id="chat-head-avatar" class="chat-head-avatar" role="button" style="cursor:pointer;" title="Options de conversation" aria-label="Options de conversation"></span>
             <div class="chat-title-stack">
               <span id="chat-title">Sélectionnez une conversation</span>
             </div>
           </div>
           <div class="chat-head-right">
-            <button type="button" id="btn-conv-menu" class="conv-menu-btn" title="Options de conversation" aria-label="Options de conversation" hidden>⋯</button>
-            <div id="conv-menu-dropdown" class="conv-menu-dropdown" role="menu" hidden>
-              <button type="button" id="conv-menu-ephemeral" class="conv-menu-item" role="menuitem">⏱ Messages éphémères</button>
-              <button type="button" id="conv-menu-delete" class="conv-menu-item danger" role="menuitem">🗑️ Supprimer la conversation</button>
-            </div>
           </div>
         </header>
         <div id="chat-empty" class="empty-main">
@@ -5534,18 +5548,37 @@
       syncAppMobileLayout();
     });
 
-    var btnConvMenu = document.getElementById('btn-conv-menu');
-    if (btnConvMenu) {
-      btnConvMenu.addEventListener('click', function (e) {
+    function openConvOptionsModal() {
+      var overlay = document.getElementById('conv-options-overlay');
+      if (overlay) { overlay.classList.add('is-open'); overlay.removeAttribute('aria-hidden'); }
+    }
+    function closeConvOptionsModal() {
+      var overlay = document.getElementById('conv-options-overlay');
+      if (overlay) { overlay.classList.remove('is-open'); overlay.setAttribute('aria-hidden', 'true'); }
+    }
+
+    var chatHeadAvatar = document.getElementById('chat-head-avatar');
+    if (chatHeadAvatar) {
+      chatHeadAvatar.addEventListener('click', function (e) {
         e.stopPropagation();
-        toggleConversationMenu();
+        if (activeId) openConvOptionsModal();
       });
     }
+
+    var convOptionsClose = document.getElementById('conv-options-close-btn');
+    if (convOptionsClose) convOptionsClose.addEventListener('click', closeConvOptionsModal);
+    var convOptionsOverlay = document.getElementById('conv-options-overlay');
+    if (convOptionsOverlay) {
+      convOptionsOverlay.addEventListener('click', function(e) {
+        if (e.target === convOptionsOverlay) closeConvOptionsModal();
+      });
+    }
+
     var convMenuDelete = document.getElementById('conv-menu-delete');
     if (convMenuDelete) {
       convMenuDelete.addEventListener('click', function (e) {
         e.stopPropagation();
-        closeConversationMenu();
+        closeConvOptionsModal();
         if (activeId) openDeleteConvModal(activeId);
       });
     }
@@ -5553,7 +5586,7 @@
     if (convMenuEphemeral) {
       convMenuEphemeral.addEventListener('click', function (e) {
         e.stopPropagation();
-        closeConversationMenu();
+        closeConvOptionsModal();
         openEphemeralModal();
       });
     }
@@ -5670,6 +5703,24 @@
             <span>Scanner bientôt disponible</span>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+  <div id="conv-options-overlay" class="modal-overlay" aria-hidden="true">
+    <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="conv-options-title">
+      <div class="modal-head">
+        <span class="modal-title" id="conv-options-title">Options</span>
+        <button type="button" class="modal-close-btn" id="conv-options-close-btn" aria-label="Fermer">✕</button>
+      </div>
+      <div class="modal-body" style="padding: 8px 0 8px;">
+        <button type="button" id="conv-menu-ephemeral" class="conv-options-item">
+          <span class="conv-options-icon">⏱</span>
+          <span>Messages éphémères</span>
+        </button>
+        <button type="button" id="conv-menu-delete" class="conv-options-item danger">
+          <span class="conv-options-icon">🗑️</span>
+          <span>Supprimer la conversation</span>
+        </button>
       </div>
     </div>
   </div>
