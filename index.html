@@ -445,7 +445,41 @@
       transition: transform 0.2s ease;
     }
     .conv-delete-shelf {
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 74px;
+      z-index: 0;
+      margin: 0;
+      padding: 0;
+      border: none;
       display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      background: #0b0b0d;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .conv-delete-shelf__bubble {
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: #2c2c30;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .conv-delete-shelf__bubble svg {
+      width: 18px;
+      height: 18px;
+      stroke: #ececec;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
     .conv-delete-desk {
       display: none;
@@ -476,20 +510,8 @@
       }
     }
     @media (max-width: 640px) {
-      .conv-delete-desk {
-        display: inline-flex !important;
-        visibility: visible !important;
-        width: 34px;
-        height: 34px;
-        border-radius: 50%;
-        background: #2c2c30;
-        border: none;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        flex-shrink: 0;
-        padding: 0;
-      }
+      .conv-delete-shelf { display: flex; }
+      .conv-delete-desk { display: none !important; }
     }
     .conv-avatar {
       width: 34px;
@@ -3977,14 +3999,10 @@
       var shelf = document.createElement('button');
       shelf.type = 'button';
       shelf.className = 'conv-delete-shelf';
-      var shelfIcon = document.createElement('div');
-      shelfIcon.style.cssText = 'width:38px;height:38px;border-radius:50%;background:#2c2c30;display:flex;align-items:center;justify-content:center;margin-bottom:4px;';
-      shelfIcon.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ececec" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>';
-      shelf.appendChild(shelfIcon);
-      var shelfLab = document.createElement('span');
-      shelfLab.className = 'conv-delete-shelf__label';
-      shelfLab.textContent = 'Supprimer';
-      shelf.appendChild(shelfLab);
+      var shelfBubble = document.createElement('div');
+      shelfBubble.className = 'conv-delete-shelf__bubble';
+      shelfBubble.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>';
+      shelf.appendChild(shelfBubble);
       shelf.setAttribute('aria-label', 'Supprimer la conversation');
       shelf.addEventListener('click', function (e) {
         e.stopPropagation();
@@ -4021,9 +4039,56 @@
       surface.appendChild(div);
       host.appendChild(shelf);
       host.appendChild(surface);
+      var rowTx = 0;
+      var skipNextClick = false;
+      var SHELF = 74;
+      function applyRowTx() {
+        surface.style.transform = 'translate3d(' + rowTx + 'px,0,0)';
+      }
+      var stx, sty, baseTx, tracking, horiz, moved;
       surface.addEventListener('click', function (e) {
         if (e.target.closest && e.target.closest('.conv-delete-desk')) return;
+        if (skipNextClick) { skipNextClick = false; return; }
+        if (isMobileNav() && rowTx < -8) {
+          rowTx = 0;
+          surface.style.transition = 'transform 0.2s ease';
+          applyRowTx();
+          return;
+        }
         selectConv(contact.id);
+      });
+      surface.addEventListener('touchstart', function (e) {
+        if (window.innerWidth > 640) return;
+        if (e.touches.length !== 1) return;
+        stx = e.touches[0].clientX;
+        sty = e.touches[0].clientY;
+        baseTx = rowTx;
+        tracking = true; horiz = false; moved = false;
+      }, { passive: true });
+      surface.addEventListener('touchmove', function (e) {
+        if (!tracking || e.touches.length !== 1) return;
+        var dx = e.touches[0].clientX - stx;
+        var dy = e.touches[0].clientY - sty;
+        if (!horiz) {
+          if (Math.abs(dx) < 12 && Math.abs(dy) < 12) return;
+          if (Math.abs(dy) > Math.abs(dx)) { tracking = false; return; }
+          horiz = true;
+        }
+        moved = true;
+        e.preventDefault();
+        rowTx = Math.min(0, Math.max(-SHELF, baseTx + dx));
+        surface.style.transition = 'none';
+        applyRowTx();
+      }, { passive: false });
+      surface.addEventListener('touchend', function () {
+        if (window.innerWidth > 640 || !tracking) return;
+        tracking = false;
+        surface.style.transition = 'transform 0.2s ease';
+        if (moved && horiz) {
+          rowTx = rowTx < -SHELF / 2 ? -SHELF : 0;
+          applyRowTx();
+          skipNextClick = true;
+        }
       });
       el.appendChild(host);
     });
