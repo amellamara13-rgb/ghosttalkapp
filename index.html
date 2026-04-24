@@ -263,8 +263,8 @@
       background: var(--bg);
     }
     header {
-      padding: 14px 16px;
-      border-bottom: 1px solid var(--line);
+      padding: 10px 16px;
+      border-bottom: none;
       font-weight: 600;
       font-size: 17px;
       display: flex;
@@ -287,13 +287,13 @@
     .btn-chat-back {
       display: none;
       flex-shrink: 0;
-      width: 40px;
-      height: 40px;
-      margin: 0 4px 0 0;
+      width: 34px;
+      height: 34px;
+      margin: 0 8px 0 0;
       padding: 0;
       border: none;
-      border-radius: 10px;
-      background: transparent;
+      border-radius: 50%;
+      background: #1c1c1f;
       color: var(--accent);
       font-size: 22px;
       line-height: 1;
@@ -302,12 +302,26 @@
       justify-content: center;
     }
     .btn-chat-back:hover {
-      background: rgba(255, 255, 255, 0.08);
+      background: #2c2c30;
     }
     #chat-title {
       min-width: 0;
       font-weight: 600;
       font-size: 17px;
+    }
+    .chat-head-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+      margin-right: 8px;
+      text-transform: uppercase;
     }
     #chat-ephemeral-indicator {
       display: inline-flex;
@@ -316,7 +330,7 @@
       background: rgba(255,255,255,0.03);
       border-radius: 8px;
       padding: 3px 8px;
-      margin-top: 8px;
+      margin-top: 2px;
       font-size: 10px;
       color: rgba(255,255,255,0.25);
     }
@@ -2329,7 +2343,8 @@
       <main>
         <header id="chat-head">
           <div class="chat-head-left">
-            <button type="button" id="btn-chat-back" class="btn-chat-back" aria-label="Retour à la liste des conversations">←</button>
+            <button type="button" id="btn-chat-back" class="btn-chat-back" aria-label="Retour à la liste des conversations"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+            <span id="chat-head-avatar" class="chat-head-avatar"></span>
             <div class="chat-title-stack">
               <span id="chat-title">Sélectionnez une conversation</span>
               <span id="chat-ephemeral-indicator" hidden></span>
@@ -3409,10 +3424,12 @@
 
   function updateChatTitleDisplay(contact) {
     var el = document.getElementById('chat-title');
+    var avatarEl = document.getElementById('chat-head-avatar');
     if (!el) return;
     if (!contact) {
       el.textContent = '';
       el.removeAttribute('aria-label');
+      if (avatarEl) { avatarEl.style.display = 'none'; avatarEl.textContent = ''; }
       updateEphemeralIndicator(null);
       return;
     }
@@ -3422,6 +3439,12 @@
     } else {
       el.textContent = contact.name;
       el.removeAttribute('aria-label');
+    }
+    if (avatarEl) {
+      var av = avatarFor(contact.name);
+      avatarEl.textContent = av.initial;
+      avatarEl.style.background = av.color;
+      avatarEl.style.display = 'inline-flex';
     }
     updateEphemeralIndicator(contact);
   }
