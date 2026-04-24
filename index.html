@@ -5370,9 +5370,11 @@
 
       var contactsRow = document.getElementById('search-contacts-row');
       contactsRow.innerHTML = '';
+      var contactsSection = document.querySelector('.search-contacts-section');
       if (matchedContacts.length === 0) {
-        contactsRow.innerHTML = '<span style="font-size:13px;color:var(--muted);padding:4px 0;">Aucun contact</span>';
+        if (contactsSection) contactsSection.hidden = true;
       } else {
+        if (contactsSection) contactsSection.hidden = false;
         matchedContacts.forEach(function(c) {
           var chip = document.createElement('div');
           chip.className = 'search-contact-chip';
