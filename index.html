@@ -1496,6 +1496,72 @@
       background: rgba(58, 118, 240, 0.08);
       border: 1px dashed var(--line);
     }
+    .search-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+    }
+    .search-cancel-btn {
+      background: none;
+      border: none;
+      color: var(--accent);
+      font-size: 14px;
+      cursor: pointer;
+      padding: 0 4px;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .search-contacts-section { padding: 8px 0 4px; }
+    .search-section-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 6px 16px 4px;
+    }
+    .search-contacts-row {
+      display: flex;
+      gap: 14px;
+      padding: 4px 16px 10px;
+      overflow-x: auto;
+    }
+    .search-contacts-row::-webkit-scrollbar { display: none; }
+    .search-contact-chip {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+    .search-contact-chip-avatar {
+      width: 46px; height: 46px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px; font-weight: 700; color: #fff;
+    }
+    .search-contact-chip-name {
+      font-size: 11px; color: var(--fg); text-align: center;
+      max-width: 52px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .search-msg-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 10px 16px; border-top: 0.5px solid var(--line); cursor: pointer;
+    }
+    .search-msg-item:active { background: var(--surface-2); }
+    .search-msg-avatar {
+      width: 38px; height: 38px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .search-msg-info { flex: 1; min-width: 0; }
+    .search-msg-top { display: flex; justify-content: space-between; align-items: baseline; }
+    .search-msg-name { font-size: 14px; font-weight: 600; color: var(--fg); }
+    .search-msg-time { font-size: 11px; color: var(--muted); }
+    .search-msg-preview { font-size: 13px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+    .search-highlight { background: var(--accent); color: #fff; border-radius: 3px; padding: 0 2px; }
+    .search-empty { padding: 24px 16px; text-align: center; font-size: 14px; color: var(--muted); }
 
     .lock-card--wide { max-width: 400px; text-align: left; }
     .lock-card label {
@@ -2136,8 +2202,8 @@
     <div id="app">
       <aside>
         <div class="toolbar">
-          <div class="new-contact-wrap">
-            <span class="new-contact-icon" aria-hidden="true">
+          <div class="search-wrap">
+            <span class="search-icon" aria-hidden="true">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round">
                 <circle cx="11" cy="11" r="8"></circle>
                 <path d="m21 21-4.35-4.35"></path>
@@ -2145,25 +2211,34 @@
             </span>
             <input
               type="text"
-              id="new-contact-input"
+              id="search-input"
               class="new-contact-input"
               placeholder="Recherche"
               autocomplete="off"
-              aria-label="Rechercher un utilisateur"
-              aria-autocomplete="list"
-              aria-controls="new-contact-suggestions"
+              aria-label="Rechercher"
             />
-            <p id="new-contact-error" class="new-contact-error" hidden role="alert"></p>
-            <ul id="new-contact-suggestions" class="new-contact-suggestions" hidden role="listbox" aria-label="Suggestions de pseudos"></ul>
+            <button type="button" id="search-cancel-btn" class="search-cancel-btn" hidden>Annuler</button>
           </div>
         </div>
-        <div class="aside-conv-label-row">
-          <div class="aside-conv-label-inner">
-            <span class="aside-conv-label">CONVERSATIONS</span>
-            <span class="aside-conv-line" aria-hidden="true"></span>
+
+        <div id="search-results-panel" hidden>
+          <div class="search-contacts-section">
+            <div class="search-section-label">Contacts</div>
+            <div id="search-contacts-row" class="search-contacts-row"></div>
           </div>
+          <div class="search-section-label">Messages</div>
+          <div id="search-messages-list" class="search-messages-list"></div>
         </div>
-        <div class="list" id="conv-list"></div>
+
+        <div id="conv-list-section">
+          <div class="aside-conv-label-row">
+            <div class="aside-conv-label-inner">
+              <span class="aside-conv-label">CONVERSATIONS</span>
+              <span class="aside-conv-line" aria-hidden="true"></span>
+            </div>
+          </div>
+          <div class="list" id="conv-list"></div>
+        </div>
       </aside>
       <main>
         <header id="chat-head">
@@ -2852,6 +2927,7 @@
             var inp = document.getElementById('new-contact-input');
             if (inp) inp.value = '';
             hideContactSuggestions();
+            closeAddContactModal && closeAddContactModal();
             renderConvList();
             if (contact) selectConv(contact.id);
           });
@@ -4835,8 +4911,7 @@
     var btnNewContactHeader = document.getElementById('btn-new-contact-header');
     if (btnNewContactHeader) {
       btnNewContactHeader.addEventListener('click', function () {
-        var input = document.getElementById('new-contact-input');
-        if (input) { input.focus(); input.scrollIntoView({ behavior: 'smooth' }); }
+        openAddContactModal();
       });
     }
 
@@ -5180,6 +5255,141 @@
       });
     }
 
+    var searchInput = document.getElementById('search-input');
+    var searchCancelBtn = document.getElementById('search-cancel-btn');
+    var searchResultsPanel = document.getElementById('search-results-panel');
+    var convListSection = document.getElementById('conv-list-section');
+
+    function showSearchResults() {
+      if (searchResultsPanel) searchResultsPanel.hidden = false;
+      if (convListSection) convListSection.hidden = true;
+      if (searchCancelBtn) searchCancelBtn.hidden = false;
+    }
+    function hideSearchResults() {
+      if (searchResultsPanel) searchResultsPanel.hidden = true;
+      if (convListSection) convListSection.hidden = false;
+      if (searchCancelBtn) searchCancelBtn.hidden = true;
+      if (searchInput) searchInput.value = '';
+    }
+
+    function getAvatarColor(name) {
+      var colors = ['#4a7cf0','#2ecc71','#e67e22','#9b59b6','#e74c3c','#1abc9c','#f39c12','#16a085'];
+      return colors[(name.charCodeAt(0) || 0) % colors.length];
+    }
+
+    function runSearch(query) {
+      var q = query.trim().toLowerCase();
+      if (!q) { hideSearchResults(); return; }
+      showSearchResults();
+      var contacts = (state && state.contacts) ? state.contacts : [];
+
+      var matchedContacts = contacts.filter(function(c) {
+        return (c.name || '').toLowerCase().indexOf(q) !== -1;
+      });
+
+      var contactsRow = document.getElementById('search-contacts-row');
+      contactsRow.innerHTML = '';
+      if (matchedContacts.length === 0) {
+        contactsRow.innerHTML = '<span style="font-size:13px;color:var(--muted);padding:4px 0;">Aucun contact</span>';
+      } else {
+        matchedContacts.forEach(function(c) {
+          var chip = document.createElement('div');
+          chip.className = 'search-contact-chip';
+          var initial = (c.name || '?').charAt(0).toUpperCase();
+          var color = getAvatarColor(c.name || '');
+          chip.innerHTML =
+            '<div class="search-contact-chip-avatar" style="background:' + color + ';">' + escapeHtml(initial) + '</div>' +
+            '<span class="search-contact-chip-name">' + escapeHtml(c.name) + '</span>';
+          chip.addEventListener('click', function() {
+            hideSearchResults();
+            selectConv(c.id);
+          });
+          contactsRow.appendChild(chip);
+        });
+      }
+
+      var msgList = document.getElementById('search-messages-list');
+      msgList.innerHTML = '';
+      var allMessages = [];
+      contacts.forEach(function(c) {
+        var thread = getThreadMessages(c.id);
+        thread.forEach(function(m) {
+          var text = '';
+          try { text = decryptUtf8(m.cipher, passphrase); } catch(e) {}
+          if (text.toLowerCase().indexOf(q) !== -1) {
+            allMessages.push({ contact: c, msg: m, text: text });
+          }
+        });
+      });
+
+      allMessages.sort(function(a, b) { return (b.msg.at || 0) - (a.msg.at || 0); });
+
+      if (allMessages.length === 0) {
+        msgList.innerHTML = '<div class="search-empty">Aucun message trouvé</div>';
+      } else {
+        allMessages.forEach(function(item) {
+          var c = item.contact;
+          var text = item.text;
+          var color = getAvatarColor(c.name || '');
+          var initial = (c.name || '?').charAt(0).toUpperCase();
+          var timeStr = item.msg.at ? new Date(item.msg.at).toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' }) : '';
+
+          var idx = text.toLowerCase().indexOf(q);
+          var before = escapeHtml(text.slice(0, idx));
+          var match = escapeHtml(text.slice(idx, idx + q.length));
+          var after = escapeHtml(text.slice(idx + q.length));
+          var preview = before + '<span class="search-highlight">' + match + '</span>' + after;
+
+          var el = document.createElement('div');
+          el.className = 'search-msg-item';
+          el.innerHTML =
+            '<div class="search-msg-avatar" style="background:' + color + ';">' + escapeHtml(initial) + '</div>' +
+            '<div class="search-msg-info">' +
+              '<div class="search-msg-top"><span class="search-msg-name">' + escapeHtml(c.name) + '</span><span class="search-msg-time">' + escapeHtml(timeStr) + '</span></div>' +
+              '<div class="search-msg-preview">' + preview + '</div>' +
+            '</div>';
+          el.addEventListener('click', function() {
+            hideSearchResults();
+            selectConv(c.id);
+          });
+          msgList.appendChild(el);
+        });
+      }
+    }
+
+    if (searchInput) {
+      searchInput.addEventListener('input', function() { runSearch(searchInput.value); });
+      searchInput.addEventListener('focus', function() { if (searchInput.value) runSearch(searchInput.value); });
+    }
+    if (searchCancelBtn) {
+      searchCancelBtn.addEventListener('click', function() { hideSearchResults(); searchInput && searchInput.blur(); });
+    }
+
+    function openAddContactModal() {
+      var overlay = document.getElementById('add-contact-overlay');
+      if (overlay) { overlay.classList.add('is-open'); overlay.removeAttribute('aria-hidden'); }
+      setTimeout(function() {
+        var inp = document.getElementById('new-contact-input');
+        if (inp) inp.focus();
+      }, 100);
+    }
+    function closeAddContactModal() {
+      var overlay = document.getElementById('add-contact-overlay');
+      if (overlay) { overlay.classList.remove('is-open'); overlay.setAttribute('aria-hidden', 'true'); }
+      var inp = document.getElementById('new-contact-input');
+      if (inp) inp.value = '';
+      clearNewContactError();
+      hideContactSuggestions();
+    }
+    var addContactClose = document.getElementById('add-contact-close-btn');
+    if (addContactClose) addContactClose.addEventListener('click', closeAddContactModal);
+    var addContactOverlay = document.getElementById('add-contact-overlay');
+    if (addContactOverlay) {
+      addContactOverlay.addEventListener('click', function(e) {
+        if (e.target === addContactOverlay) closeAddContactModal();
+      });
+    }
+
     document.addEventListener('click', function (e) {
       if (e.target.closest && e.target.closest('.new-contact-wrap')) return;
       hideContactSuggestions();
@@ -5284,5 +5494,36 @@
   }
 })();
   </script>
+  <div id="add-contact-overlay" class="modal-overlay" aria-hidden="true">
+    <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="add-contact-title">
+      <div class="modal-head">
+        <span class="modal-title" id="add-contact-title">Nouveau contact</span>
+        <button type="button" class="modal-close-btn" id="add-contact-close-btn" aria-label="Fermer">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="new-contact-wrap" style="margin-bottom:8px;">
+          <span class="new-contact-icon" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+          </span>
+          <input
+            type="text"
+            id="new-contact-input"
+            class="new-contact-input"
+            placeholder="Entrez un pseudo..."
+            autocomplete="off"
+            aria-label="Rechercher un utilisateur"
+            aria-autocomplete="list"
+            aria-controls="new-contact-suggestions"
+          />
+        </div>
+        <p id="new-contact-error" class="new-contact-error" hidden role="alert"></p>
+        <ul id="new-contact-suggestions" class="new-contact-suggestions" hidden role="listbox" aria-label="Suggestions de pseudos"></ul>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
