@@ -5056,7 +5056,8 @@
       }
     });
 
-    document.getElementById('delete-conv-close').addEventListener('click', closeDeleteConvModal);
+    var deleteConvClose = document.getElementById('delete-conv-close');
+    if (deleteConvClose) deleteConvClose.addEventListener('click', closeDeleteConvModal);
     document.getElementById('delete-conv-cancel').addEventListener('click', closeDeleteConvModal);
     document.getElementById('delete-conv-overlay').addEventListener('click', function (e) {
       if (e.target === e.currentTarget) closeDeleteConvModal();
