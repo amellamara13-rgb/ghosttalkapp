@@ -667,31 +667,35 @@
       border-radius: 22px 22px 22px 6px;
     }
     .row.me .bubble {
-      position: relative;
       background: var(--bubble-me);
       color: #fff;
       border-radius: 22px 22px 6px 22px;
     }
+    .row.me .msg-line {
+      align-items: flex-start;
+    }
     .row.me .bubble .bubble-read {
+      display: none;
+    }
+    .row.me .bubble-wrap {
+      position: relative;
+    }
+    .row.me .bubble-read-dot {
       position: absolute;
-      top: -3px;
-      right: -3px;
+      top: -4px;
+      right: -4px;
       width: 10px;
       height: 10px;
       border-radius: 50%;
       border: 2px solid var(--bg);
       background: rgba(255,255,255,0.35);
-      font-size: 0;
-      line-height: 0;
-      letter-spacing: 0;
-      display: inline-block;
       box-sizing: border-box;
+      pointer-events: none;
     }
-    .row.me .bubble .bubble-read.is-read {
+    .row.me .bubble-read-dot.is-read {
       background: #60a5fa;
-      border-color: var(--bg);
     }
-    .row.me .bubble .bubble-read.is-delivered {
+    .row.me .bubble-read-dot.is-delivered {
       background: rgba(255,255,255,0.9);
     }
     .composer {
@@ -4540,10 +4544,9 @@
       }
       if (m.me) {
         var readEl = document.createElement('span');
-        readEl.className = 'bubble-read' + (m.readAt ? ' is-read' : '');
+        readEl.className = 'bubble-read-dot' + (m.readAt ? ' is-read' : '');
         readEl.setAttribute('aria-label', m.readAt ? 'Lu' : 'Envoyé');
-        readEl.textContent = '';
-        b.appendChild(readEl);
+        wrap.appendChild(readEl);
       }
       wrap.appendChild(b);
       if (m.preserved === true && m.preservedBy) {
