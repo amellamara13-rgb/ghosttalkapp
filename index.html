@@ -5552,11 +5552,11 @@
 
     function openConvOptionsModal() {
       var overlay = document.getElementById('conv-options-overlay');
-      if (overlay) { overlay.classList.add('is-open'); overlay.removeAttribute('aria-hidden'); }
+      if (overlay) { overlay.removeAttribute('hidden'); setTimeout(function(){ overlay.classList.add('is-open'); overlay.removeAttribute('aria-hidden'); }, 10); }
     }
     function closeConvOptionsModal() {
       var overlay = document.getElementById('conv-options-overlay');
-      if (overlay) { overlay.classList.remove('is-open'); overlay.setAttribute('aria-hidden', 'true'); }
+      if (overlay) { overlay.classList.remove('is-open'); overlay.setAttribute('aria-hidden', 'true'); setTimeout(function(){ overlay.setAttribute('hidden',''); }, 300); }
     }
 
     var chatHeadAvatar = document.getElementById('chat-head-avatar');
@@ -5708,7 +5708,7 @@
       </div>
     </div>
   </div>
-  <div id="conv-options-overlay" class="modal-overlay" aria-hidden="true">
+  <div id="conv-options-overlay" class="modal-overlay" aria-hidden="true" hidden>
     <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="conv-options-title">
       <div class="modal-head">
         <span class="modal-title" id="conv-options-title">Options</span>
