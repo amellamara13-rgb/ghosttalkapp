@@ -4147,6 +4147,8 @@
     if (!app || !isMobileNav()) return;
     app.classList.remove('mobile-show-chat');
     app.classList.add('mobile-show-list');
+    var topStrip = document.querySelector('.top-strip');
+    if (topStrip) topStrip.style.display = '';
   }
 
   function syncAppMobileLayout() {
@@ -4183,7 +4185,8 @@
       document.getElementById('chat-empty').style.display = 'flex';
       document.getElementById('chat-pane').style.display = 'none';
       updateChatTitleDisplay(null);
-      document.getElementById('btn-conv-menu').hidden = true;
+      var btnConvMenuEl = document.getElementById('btn-conv-menu');
+      if (btnConvMenuEl) btnConvMenuEl.hidden = true;
       closeConversationMenu();
       renderConvList();
       if (isMobileNav()) {
@@ -4201,6 +4204,8 @@
         app1.classList.remove('mobile-show-list');
         app1.classList.add('mobile-show-chat');
       }
+      var topStrip = document.querySelector('.top-strip');
+      if (topStrip) topStrip.style.display = 'none';
     }
     markIncomingMessagesReadLocal(id);
     document.getElementById('chat-head').style.display = 'flex';
