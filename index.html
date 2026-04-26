@@ -5172,9 +5172,12 @@
 
     var deleteConvClose = document.getElementById('delete-conv-close');
     if (deleteConvClose) deleteConvClose.addEventListener('click', closeDeleteConvModal);
-    document.getElementById('delete-conv-cancel').addEventListener('click', closeDeleteConvModal);
+    document.getElementById('delete-conv-cancel').addEventListener('click', function() {
+      closeDeleteConvModal();
+      openConvOptionsModal();
+    });
     document.getElementById('delete-conv-overlay').addEventListener('click', function (e) {
-      if (e.target === e.currentTarget) closeDeleteConvModal();
+      if (e.target === e.currentTarget) { closeDeleteConvModal(); openConvOptionsModal(); }
     });
     document.getElementById('delete-conv-confirm').addEventListener('click', function () {
       var id = pendingDeleteConvId;
