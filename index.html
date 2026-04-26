@@ -5705,35 +5705,58 @@
       convMenuTheme.addEventListener('click', function (e) {
         e.stopPropagation();
         var contact = getContactById(activeId);
-        var pendingColor = (contact && contact.bubbleColor) ? contact.bubbleColor : '#3a76f0';
-        var swatchColors = ['#3a76f0','#2ecc71','#a78bfa','#f472b6','#f97316','#ef4444','#14b8a6','#eab308'];
-        var b1 = document.getElementById('theme-bubble-preview-1');
-        var b2 = document.getElementById('theme-bubble-preview-2');
-        if (b1) b1.style.background = pendingColor;
-        if (b2) b2.style.background = pendingColor;
-        var swatchContainer = document.getElementById('theme-swatches');
-        if (swatchContainer) {
-          swatchContainer.innerHTML = '';
-          swatchColors.forEach(function(color) {
+        var lsKey = 'gt_theme_' + activeId;
+        var stored = {};
+        try { stored = JSON.parse(localStorage.getItem(lsKey) || '{}'); } catch(e2){}
+        var pendingColor = stored.bubbleColor || '#3a76f0';
+        var pendingBg = stored.bgColor || '#111114';
+        var bubbleColors = ['#3a76f0','#2ecc71','#a78bfa','#f472b6','#f97316','#ef4444','#14b8a6','#eab308'];
+        var bgColors = ['#111114','#0a0a0f','#0f1a2e','#0f1f0f','#1a0f2e','#1f0a0a','#0a1a1a','#1a1500','#1a1a1a','#2c2c2c','#f5f5f0','#e8f0fe'];
+        function applyPreview(bc, bg) {
+          var b1 = document.getElementById('theme-bubble-preview-1');
+          var b2 = document.getElementById('theme-bubble-preview-2');
+          var bgEl = document.getElementById('theme-preview-bg');
+          if (b1) b1.style.background = bc;
+          if (b2) b2.style.background = bc;
+          if (bgEl) bgEl.style.background = bg;
+          var t1 = document.getElementById('theme-bubble-them-1');
+          var t2 = document.getElementById('theme-bubble-them-2');
+          var isLight = bg === '#f5f5f0' || bg === '#e8f0fe';
+          var themColor = isLight ? 'rgba(0,0,0,0.12)' : '#2c2c30';
+          var textColor = isLight ? '#111' : '#fff';
+          if (t1) { t1.style.background = themColor; t1.style.color = textColor; }
+          if (t2) { t2.style.background = themColor; t2.style.color = textColor; }
+        }
+        applyPreview(pendingColor, pendingBg);
+        function buildSwatches(containerId, colors, current, onSelect) {
+          var container = document.getElementById(containerId);
+          if (!container) return;
+          container.innerHTML = '';
+          colors.forEach(function(color) {
             var s = document.createElement('button');
             s.type = 'button';
-            s.style.cssText = 'width:32px;height:32px;border-radius:50%;background:' + color + ';border:none;cursor:pointer;flex-shrink:0;';
-            if (color === pendingColor) { s.style.outline = '2.5px solid #fff'; s.style.outlineOffset = '2px'; }
+            var border = (color === '#f5f5f0' || color === '#e8f0fe') ? 'border:0.5px solid rgba(255,255,255,0.2);' : 'border:none;';
+            s.style.cssText = 'width:28px;height:28px;border-radius:50%;background:' + color + ';cursor:pointer;flex-shrink:0;' + border;
+            if (color === current) { s.style.outline = '2.5px solid #fff'; s.style.outlineOffset = '2px'; }
             s.addEventListener('click', function() {
-              pendingColor = color;
-              document.querySelectorAll('#theme-swatches button').forEach(function(b){ b.style.outline = 'none'; });
+              document.querySelectorAll('#' + containerId + ' button').forEach(function(b){ b.style.outline='none'; });
               s.style.outline = '2.5px solid #fff'; s.style.outlineOffset = '2px';
-              if (b1) b1.style.background = color;
-              if (b2) b2.style.background = color;
+              onSelect(color);
             });
-            swatchContainer.appendChild(s);
+            container.appendChild(s);
           });
         }
+        buildSwatches('theme-swatches', bubbleColors, pendingColor, function(c) {
+          pendingColor = c; applyPreview(pendingColor, pendingBg);
+        });
+        buildSwatches('theme-bg-swatches', bgColors, pendingBg, function(c) {
+          pendingBg = c; applyPreview(pendingColor, pendingBg);
+        });
         var validateBtn = document.getElementById('theme-validate-btn');
         if (validateBtn) {
           validateBtn.onclick = function() {
-            var contact2 = getContactById(activeId);
-            if (contact2) { contact2.bubbleColor = pendingColor; saveState(state); }
+            try { localStorage.setItem(lsKey, JSON.stringify({ bubbleColor: pendingColor, bgColor: pendingBg })); } catch(e2){}
+            if (contact) { contact.bubbleColor = pendingColor; contact.bgColor = pendingBg; saveState(state); }
             convShowScreen('main');
           };
         }
@@ -5746,11 +5769,12 @@
       convMenuNotifs.addEventListener('click', function (e) {
         e.stopPropagation();
         var contact = getContactById(activeId);
-        var pendingNotif = (contact && contact.notifMode) ? contact.notifMode : 'on';
+        var lsKeyN = 'gt_notif_' + activeId;
+        var pendingNotif;
+        try { pendingNotif = localStorage.getItem(lsKeyN) || 'on'; } catch(e2){ pendingNotif = 'on'; }
         var notifsOptionsList = [
           { value: 'on', label: 'Activés', sub: 'Sons et notifications normaux' },
-          { value: 'mute', label: 'Sourdine', sub: 'Notifications silencieuses' },
-          { value: 'off', label: 'Désactivés', sub: 'Aucune notification' }
+          { value: 'mute', label: 'Sourdine', sub: 'Notifications silencieuses, sans son' }
         ];
         var container = document.getElementById('notifs-options');
         function renderNotifsList() {
@@ -5766,10 +5790,7 @@
                 '<p style="margin:0;font-size:12px;color:rgba(255,255,255,0.4);">' + opt.sub + '</p>' +
               '</div>' +
               '<div style="width:8px;height:8px;border-radius:50%;background:' + (opt.value === pendingNotif ? '#3a76f0' : 'rgba(255,255,255,0.15)') + ';flex-shrink:0;"></div>';
-            row.addEventListener('click', function() {
-              pendingNotif = opt.value;
-              renderNotifsList();
-            });
+            row.addEventListener('click', function() { pendingNotif = opt.value; renderNotifsList(); });
             container.appendChild(row);
           });
         }
@@ -5777,8 +5798,8 @@
         var validateBtn = document.getElementById('notifs-validate-btn');
         if (validateBtn) {
           validateBtn.onclick = function() {
-            var contact2 = getContactById(activeId);
-            if (contact2) { contact2.notifMode = pendingNotif; saveState(state); }
+            try { localStorage.setItem(lsKeyN, pendingNotif); } catch(e2){}
+            if (contact) { contact.notifMode = pendingNotif; saveState(state); }
             convShowScreen('main');
           };
         }
@@ -5999,6 +6020,7 @@
 
       <!-- ═══ SOUS-ÉCRAN : MESSAGES ÉPHÉMÈRES ═══ -->
       <!-- ═══ SOUS-ÉCRAN : MESSAGES ÉPHÉMÈRES ═══ -->
+      <!-- ═══ SOUS-ÉCRAN : MESSAGES ÉPHÉMÈRES ═══ -->
       <div id="conv-screen-ephemeral" style="display:none;">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;border-bottom:0.5px solid rgba(255,255,255,0.1);">
           <button type="button" class="conv-back-btn" data-target="main" aria-label="Retour" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.1);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
@@ -6008,6 +6030,10 @@
           <button type="button" id="ephemeral-validate-btn" aria-label="Valider" style="width:36px;height:36px;border-radius:50%;background:#3a76f0;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <svg width="14" height="11" viewBox="0 0 14 11" fill="none"><path d="M1 5.5L5 9.5L13 1" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
+        </div>
+        <div style="padding:12px 20px 4px;display:flex;align-items:flex-start;gap:8px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;margin-top:1px;"><circle cx="12" cy="12" r="9" stroke="#a78bfa" stroke-width="1.6"/><path d="M12 8v4M12 16h.01" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.4);line-height:1.5;">Les messages disparaissent automatiquement après le délai choisi, pour les deux participants.</p>
         </div>
         <div id="ephemeral-delay-list-inline" style="padding:6px 0 10px;"></div>
       </div>
@@ -6023,12 +6049,16 @@
             <svg width="14" height="11" viewBox="0 0 14 11" fill="none"><path d="M1 5.5L5 9.5L13 1" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
         </div>
-        <div style="display:flex;flex-direction:column;align-items:center;padding:20px 20px 18px;">
+        <div style="display:flex;flex-direction:column;align-items:center;padding:20px 20px 8px;">
           <div id="pseudo-screen-avatar" style="width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#fff;margin-bottom:18px;"></div>
           <div style="width:100%;display:flex;flex-direction:column;gap:10px;">
             <input type="text" id="pseudo-input-prenom" placeholder="Prénom" autocomplete="off" style="width:100%;box-sizing:border-box;padding:12px 14px;border-radius:12px;border:0.5px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.07);color:#fff;font-size:15px;font-family:inherit;outline:none;" />
             <input type="text" id="pseudo-input-nom" placeholder="Nom" autocomplete="off" style="width:100%;box-sizing:border-box;padding:12px 14px;border-radius:12px;border:0.5px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.07);color:#fff;font-size:15px;font-family:inherit;outline:none;" />
           </div>
+        </div>
+        <div style="padding:10px 20px 18px;display:flex;align-items:flex-start;gap:8px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;margin-top:1px;"><circle cx="12" cy="12" r="9" stroke="#60a5fa" stroke-width="1.6"/><path d="M12 8v4M12 16h.01" stroke="#60a5fa" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.4);line-height:1.5;">Ce nom est visible uniquement sur votre appareil. Votre contact conserve son nom d'origine.</p>
         </div>
       </div>
 
@@ -6043,25 +6073,36 @@
             <svg width="14" height="11" viewBox="0 0 14 11" fill="none"><path d="M1 5.5L5 9.5L13 1" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
         </div>
-        <div style="padding:14px 16px 10px;background:#111114;">
+        <!-- Aperçu conversation -->
+        <div id="theme-preview-bg" style="padding:14px 16px 10px;background:#111114;transition:background 0.2s;">
           <div style="display:flex;flex-direction:column;gap:8px;">
             <div style="display:flex;justify-content:flex-start;">
-              <div style="background:#2c2c30;color:#fff;border-radius:18px 18px 18px 4px;padding:8px 13px;font-size:13px;max-width:200px;">Salut, ça va ?</div>
+              <div id="theme-bubble-them-1" style="background:#2c2c30;color:#fff;border-radius:18px 18px 18px 4px;padding:8px 13px;font-size:13px;max-width:200px;">Salut, ça va ?</div>
             </div>
             <div style="display:flex;justify-content:flex-end;">
               <div id="theme-bubble-preview-1" style="color:#fff;border-radius:18px 18px 4px 18px;padding:8px 13px;font-size:13px;max-width:200px;background:#3a76f0;">Oui et toi !</div>
             </div>
             <div style="display:flex;justify-content:flex-start;">
-              <div style="background:#2c2c30;color:#fff;border-radius:18px 18px 18px 4px;padding:8px 13px;font-size:13px;max-width:200px;">On se voit ce soir ?</div>
+              <div id="theme-bubble-them-2" style="background:#2c2c30;color:#fff;border-radius:18px 18px 18px 4px;padding:8px 13px;font-size:13px;max-width:200px;">On se voit ce soir ?</div>
             </div>
             <div style="display:flex;justify-content:flex-end;">
               <div id="theme-bubble-preview-2" style="color:#fff;border-radius:18px 18px 4px 18px;padding:8px 13px;font-size:13px;max-width:200px;background:#3a76f0;">Avec plaisir !</div>
             </div>
           </div>
         </div>
-        <div style="padding:14px 20px 18px;">
+        <!-- Swatches couleur bulles -->
+        <div style="padding:12px 20px 6px;">
           <p style="margin:0 0 10px;font-size:11px;font-weight:600;color:rgba(255,255,255,0.35);letter-spacing:0.08em;text-transform:uppercase;">Couleur des bulles</p>
-          <div id="theme-swatches" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;"></div>
+          <div id="theme-swatches" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;"></div>
+        </div>
+        <!-- Swatches couleur fond -->
+        <div style="padding:8px 20px 16px;">
+          <p style="margin:0 0 10px;font-size:11px;font-weight:600;color:rgba(255,255,255,0.35);letter-spacing:0.08em;text-transform:uppercase;">Couleur du fond</p>
+          <div id="theme-bg-swatches" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;"></div>
+        </div>
+        <div style="padding:0 20px 14px;display:flex;align-items:flex-start;gap:8px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;margin-top:1px;"><circle cx="12" cy="12" r="9" stroke="#f472b6" stroke-width="1.6"/><path d="M12 8v4M12 16h.01" stroke="#f472b6" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.4);line-height:1.5;">Ces couleurs sont visibles uniquement sur votre appareil.</p>
         </div>
       </div>
 
@@ -6076,7 +6117,11 @@
             <svg width="14" height="11" viewBox="0 0 14 11" fill="none"><path d="M1 5.5L5 9.5L13 1" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
         </div>
-        <div id="notifs-options" style="padding:6px 0 10px;"></div>
+        <div id="notifs-options" style="padding:6px 0 6px;"></div>
+        <div style="padding:4px 20px 18px;display:flex;align-items:flex-start;gap:8px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;margin-top:1px;"><circle cx="12" cy="12" r="9" stroke="#4ade80" stroke-width="1.6"/><path d="M12 8v4M12 16h.01" stroke="#4ade80" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.4);line-height:1.5;">En sourdine, vous recevez les messages sans son ni bannière de notification.</p>
+        </div>
       </div>
 
     </div>
