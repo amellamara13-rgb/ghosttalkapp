@@ -5621,31 +5621,41 @@
     if (convMenuEphemeral) {
       convMenuEphemeral.addEventListener('click', function (e) {
         e.stopPropagation();
-        // Remplir la liste éphémères inline
+        var contact = getContactById(activeId);
+        var pendingEphemeral = contact ? contact.ephemeralDelay : null;
         var list = document.getElementById('ephemeral-delay-list-inline');
-        if (list && activeId) {
-          var contact = getContactById(activeId);
+        function renderEphemeralList() {
+          if (!list) return;
           list.innerHTML = '';
           EPHEMERAL_DELAY_OPTIONS.forEach(function (opt) {
             var btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'ephemeral-delay-item';
             btn.style.cssText = 'width:calc(100% - 40px);margin:0 20px 0;display:block;';
-            if (contact && contact.ephemeralDelay === opt.value) btn.classList.add('is-active');
+            if (pendingEphemeral === opt.value) btn.classList.add('is-active');
             btn.textContent = opt.label;
             btn.addEventListener('click', function () {
-              if (!activeId) return;
-              setConversationEphemeralDelay(activeId, opt.value).catch(function () {});
-              var ephStatus = document.getElementById('conv-options-ephemeral-status');
-              if (ephStatus) ephStatus.textContent = formatEphemeralDelayLabel(opt.value);
-              convShowScreen('main');
+              pendingEphemeral = opt.value;
+              renderEphemeralList();
             });
             list.appendChild(btn);
           });
         }
+        renderEphemeralList();
+        var validateBtn = document.getElementById('ephemeral-validate-btn');
+        if (validateBtn) {
+          validateBtn.onclick = function() {
+            if (!activeId) { convShowScreen('main'); return; }
+            setConversationEphemeralDelay(activeId, pendingEphemeral).catch(function () {});
+            var ephStatus = document.getElementById('conv-options-ephemeral-status');
+            if (ephStatus) ephStatus.textContent = formatEphemeralDelayLabel(pendingEphemeral);
+            convShowScreen('main');
+          };
+        }
         convShowScreen('ephemeral');
       });
     }
+
     var convMenuPseudo = document.getElementById('conv-menu-pseudo');
     if (convMenuPseudo) {
       convMenuPseudo.addEventListener('click', function (e) {
@@ -5695,40 +5705,38 @@
       convMenuTheme.addEventListener('click', function (e) {
         e.stopPropagation();
         var contact = getContactById(activeId);
-        var currentColor = (contact && contact.bubbleColor) ? contact.bubbleColor : '#3a76f0';
+        var pendingColor = (contact && contact.bubbleColor) ? contact.bubbleColor : '#3a76f0';
         var swatchColors = ['#3a76f0','#2ecc71','#a78bfa','#f472b6','#f97316','#ef4444','#14b8a6','#eab308'];
+        var b1 = document.getElementById('theme-bubble-preview-1');
+        var b2 = document.getElementById('theme-bubble-preview-2');
+        if (b1) b1.style.background = pendingColor;
+        if (b2) b2.style.background = pendingColor;
         var swatchContainer = document.getElementById('theme-swatches');
         if (swatchContainer) {
           swatchContainer.innerHTML = '';
           swatchColors.forEach(function(color) {
             var s = document.createElement('button');
             s.type = 'button';
-            s.style.cssText = 'width:32px;height:32px;border-radius:50%;background:' + color + ';border:none;cursor:pointer;flex-shrink:0;transition:outline 0.1s;';
-            if (color === currentColor) s.style.outline = '2.5px solid #fff'; s.style.outlineOffset = '2px';
-            s.setAttribute('data-color', color);
+            s.style.cssText = 'width:32px;height:32px;border-radius:50%;background:' + color + ';border:none;cursor:pointer;flex-shrink:0;';
+            if (color === pendingColor) { s.style.outline = '2.5px solid #fff'; s.style.outlineOffset = '2px'; }
             s.addEventListener('click', function() {
+              pendingColor = color;
               document.querySelectorAll('#theme-swatches button').forEach(function(b){ b.style.outline = 'none'; });
-              s.style.outline = '2.5px solid #fff';
-              s.style.outlineOffset = '2px';
-              var b1 = document.getElementById('theme-bubble-preview-1');
-              var b2 = document.getElementById('theme-bubble-preview-2');
+              s.style.outline = '2.5px solid #fff'; s.style.outlineOffset = '2px';
               if (b1) b1.style.background = color;
               if (b2) b2.style.background = color;
-              if (contact) {
-                contact.bubbleColor = color;
-                saveState(state);
-                var styleId = 'bubble-color-style-' + activeId;
-                var existing = document.getElementById(styleId);
-                if (existing) existing.remove();
-              }
             });
             swatchContainer.appendChild(s);
           });
         }
-        var b1 = document.getElementById('theme-bubble-preview-1');
-        var b2 = document.getElementById('theme-bubble-preview-2');
-        if (b1) b1.style.background = currentColor;
-        if (b2) b2.style.background = currentColor;
+        var validateBtn = document.getElementById('theme-validate-btn');
+        if (validateBtn) {
+          validateBtn.onclick = function() {
+            var contact2 = getContactById(activeId);
+            if (contact2) { contact2.bubbleColor = pendingColor; saveState(state); }
+            convShowScreen('main');
+          };
+        }
         convShowScreen('theme');
       });
     }
@@ -5738,36 +5746,41 @@
       convMenuNotifs.addEventListener('click', function (e) {
         e.stopPropagation();
         var contact = getContactById(activeId);
-        var currentNotif = (contact && contact.notifMode) ? contact.notifMode : 'on';
-        var options = [
+        var pendingNotif = (contact && contact.notifMode) ? contact.notifMode : 'on';
+        var notifsOptionsList = [
           { value: 'on', label: 'Activés', sub: 'Sons et notifications normaux' },
           { value: 'mute', label: 'Sourdine', sub: 'Notifications silencieuses' },
           { value: 'off', label: 'Désactivés', sub: 'Aucune notification' }
         ];
         var container = document.getElementById('notifs-options');
-        if (container) {
+        function renderNotifsList() {
+          if (!container) return;
           container.innerHTML = '';
-          options.forEach(function(opt, i) {
+          notifsOptionsList.forEach(function(opt, i) {
             var row = document.createElement('button');
             row.type = 'button';
             row.style.cssText = 'width:100%;display:flex;align-items:center;justify-content:space-between;padding:13px 20px;border:none;background:transparent;cursor:pointer;border-top:' + (i === 0 ? 'none' : '0.5px solid rgba(255,255,255,0.07)') + ';';
-            var isActive = opt.value === currentNotif;
             row.innerHTML =
               '<div style="text-align:left;">' +
                 '<p style="margin:0;font-size:15px;color:#fff;">' + opt.label + '</p>' +
                 '<p style="margin:0;font-size:12px;color:rgba(255,255,255,0.4);">' + opt.sub + '</p>' +
               '</div>' +
-              '<div id="notif-dot-' + opt.value + '" style="width:8px;height:8px;border-radius:50%;background:' + (isActive ? '#3a76f0' : 'rgba(255,255,255,0.15)') + ';flex-shrink:0;"></div>';
+              '<div style="width:8px;height:8px;border-radius:50%;background:' + (opt.value === pendingNotif ? '#3a76f0' : 'rgba(255,255,255,0.15)') + ';flex-shrink:0;"></div>';
             row.addEventListener('click', function() {
-              if (contact) { contact.notifMode = opt.value; saveState(state); }
-              currentNotif = opt.value;
-              options.forEach(function(o) {
-                var dot = document.getElementById('notif-dot-' + o.value);
-                if (dot) dot.style.background = o.value === opt.value ? '#3a76f0' : 'rgba(255,255,255,0.15)';
-              });
+              pendingNotif = opt.value;
+              renderNotifsList();
             });
             container.appendChild(row);
           });
+        }
+        renderNotifsList();
+        var validateBtn = document.getElementById('notifs-validate-btn');
+        if (validateBtn) {
+          validateBtn.onclick = function() {
+            var contact2 = getContactById(activeId);
+            if (contact2) { contact2.notifMode = pendingNotif; saveState(state); }
+            convShowScreen('main');
+          };
         }
         convShowScreen('notifs');
       });
@@ -5987,44 +6000,49 @@
       <!-- ═══ SOUS-ÉCRAN : MESSAGES ÉPHÉMÈRES ═══ -->
       <!-- ═══ SOUS-ÉCRAN : MESSAGES ÉPHÉMÈRES ═══ -->
       <div id="conv-screen-ephemeral" style="display:none;">
-        <div style="display:flex;align-items:center;padding:18px 20px 14px;gap:14px;border-bottom:0.5px solid rgba(255,255,255,0.1);">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;border-bottom:0.5px solid rgba(255,255,255,0.1);">
           <button type="button" class="conv-back-btn" data-target="main" aria-label="Retour" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.1);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M8 1L2 7.5 8 14" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
           <p style="margin:0;font-size:16px;font-weight:600;color:#fff;">Messages éphémères</p>
+          <button type="button" id="ephemeral-validate-btn" aria-label="Valider" style="width:36px;height:36px;border-radius:50%;background:#3a76f0;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="14" height="11" viewBox="0 0 14 11" fill="none"><path d="M1 5.5L5 9.5L13 1" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
         </div>
         <div id="ephemeral-delay-list-inline" style="padding:6px 0 10px;"></div>
       </div>
 
       <!-- ═══ SOUS-ÉCRAN : PSEUDO ═══ -->
       <div id="conv-screen-pseudo" style="display:none;">
-        <div style="display:flex;align-items:center;padding:18px 20px 14px;gap:14px;border-bottom:0.5px solid rgba(255,255,255,0.1);">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;border-bottom:0.5px solid rgba(255,255,255,0.1);">
           <button type="button" class="conv-back-btn" data-target="main" aria-label="Retour" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.1);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M8 1L2 7.5 8 14" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
           <p style="margin:0;font-size:16px;font-weight:600;color:#fff;">Pseudo</p>
+          <button type="button" id="pseudo-save-btn" aria-label="Valider" style="width:36px;height:36px;border-radius:50%;background:#3a76f0;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="14" height="11" viewBox="0 0 14 11" fill="none"><path d="M1 5.5L5 9.5L13 1" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
         </div>
-        <div style="display:flex;flex-direction:column;align-items:center;padding:20px 20px 6px;">
+        <div style="display:flex;flex-direction:column;align-items:center;padding:20px 20px 18px;">
           <div id="pseudo-screen-avatar" style="width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#fff;margin-bottom:18px;"></div>
           <div style="width:100%;display:flex;flex-direction:column;gap:10px;">
             <input type="text" id="pseudo-input-prenom" placeholder="Prénom" autocomplete="off" style="width:100%;box-sizing:border-box;padding:12px 14px;border-radius:12px;border:0.5px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.07);color:#fff;font-size:15px;font-family:inherit;outline:none;" />
             <input type="text" id="pseudo-input-nom" placeholder="Nom" autocomplete="off" style="width:100%;box-sizing:border-box;padding:12px 14px;border-radius:12px;border:0.5px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.07);color:#fff;font-size:15px;font-family:inherit;outline:none;" />
           </div>
         </div>
-        <div style="padding:14px 20px 18px;">
-          <button type="button" id="pseudo-save-btn" style="width:100%;padding:13px;border-radius:14px;background:#3a76f0;border:none;color:#fff;font-size:15px;font-weight:600;cursor:pointer;">Valider</button>
-        </div>
       </div>
 
       <!-- ═══ SOUS-ÉCRAN : THÈME & COULEUR ═══ -->
       <div id="conv-screen-theme" style="display:none;">
-        <div style="display:flex;align-items:center;padding:18px 20px 14px;gap:14px;border-bottom:0.5px solid rgba(255,255,255,0.1);">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;border-bottom:0.5px solid rgba(255,255,255,0.1);">
           <button type="button" class="conv-back-btn" data-target="main" aria-label="Retour" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.1);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M8 1L2 7.5 8 14" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
           <p style="margin:0;font-size:16px;font-weight:600;color:#fff;">Thème &amp; couleur</p>
+          <button type="button" id="theme-validate-btn" aria-label="Valider" style="width:36px;height:36px;border-radius:50%;background:#3a76f0;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="14" height="11" viewBox="0 0 14 11" fill="none"><path d="M1 5.5L5 9.5L13 1" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
         </div>
-        <!-- Aperçu conversation -->
         <div style="padding:14px 16px 10px;background:#111114;">
           <div style="display:flex;flex-direction:column;gap:8px;">
             <div style="display:flex;justify-content:flex-start;">
@@ -6041,7 +6059,6 @@
             </div>
           </div>
         </div>
-        <!-- Swatches couleur -->
         <div style="padding:14px 20px 18px;">
           <p style="margin:0 0 10px;font-size:11px;font-weight:600;color:rgba(255,255,255,0.35);letter-spacing:0.08em;text-transform:uppercase;">Couleur des bulles</p>
           <div id="theme-swatches" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;"></div>
@@ -6050,11 +6067,14 @@
 
       <!-- ═══ SOUS-ÉCRAN : SONS & NOTIFICATIONS ═══ -->
       <div id="conv-screen-notifs" style="display:none;">
-        <div style="display:flex;align-items:center;padding:18px 20px 14px;gap:14px;border-bottom:0.5px solid rgba(255,255,255,0.1);">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;border-bottom:0.5px solid rgba(255,255,255,0.1);">
           <button type="button" class="conv-back-btn" data-target="main" aria-label="Retour" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.1);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M8 1L2 7.5 8 14" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
           <p style="margin:0;font-size:16px;font-weight:600;color:#fff;">Sons &amp; notifications</p>
+          <button type="button" id="notifs-validate-btn" aria-label="Valider" style="width:36px;height:36px;border-radius:50%;background:#3a76f0;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="14" height="11" viewBox="0 0 14 11" fill="none"><path d="M1 5.5L5 9.5L13 1" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
         </div>
         <div id="notifs-options" style="padding:6px 0 10px;"></div>
       </div>
