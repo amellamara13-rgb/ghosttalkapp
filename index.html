@@ -5728,55 +5728,89 @@
         var lsKey = 'gt_theme_' + activeId;
         var stored = {};
         try { stored = JSON.parse(localStorage.getItem(lsKey) || '{}'); } catch(e2){}
-        var pendingColor = stored.bubbleColor || '#3a76f0';
-        var pendingBg = stored.bgColor || '#111114';
-        var bubbleColors = ['#3a76f0','#2ecc71','#a78bfa','#f472b6','#f97316','#ef4444','#14b8a6','#eab308'];
-        var bgColors = ['#111114','#0a0a0f','#0f1a2e','#0f1f0f','#1a0f2e','#1f0a0a','#0a1a1a','#1a1500','#1a1a1a','#2c2c2c','#f5f5f0','#e8f0fe'];
+        var defaultBubble = '#3a76f0';
+        var defaultBg = '#111114';
+        var pendingColor = stored.bubbleColor || defaultBubble;
+        var pendingBg = stored.bgColor || defaultBg;
+
+        var bubbleOpts = [
+          '#3a76f0','#2ecc71','#a78bfa','#f472b6','#f97316','#ef4444','#14b8a6','#eab308','#00d4ff','#ff4757','#ff6eb4','#7bed9f',
+          'linear-gradient(135deg,#3a76f0,#a78bfa)',
+          'linear-gradient(135deg,#f472b6,#f97316)',
+          'linear-gradient(135deg,#14b8a6,#3a76f0)',
+          'linear-gradient(135deg,#eab308,#ef4444)',
+          'linear-gradient(135deg,#a78bfa,#f472b6)',
+          'linear-gradient(135deg,#00d4ff,#2ecc71)'
+        ];
+        var bgOpts = [
+          '#111114','#1a1a1a','#000000',
+          '#1a0033','#003322','#00003a','#330011','#002233','#1a2200','#330033','#001a1a','#221100',
+          '#f5f5f0','#fef3f0','#f0f4fe',
+          'linear-gradient(160deg,#1a0033,#00003a)',
+          'linear-gradient(160deg,#003322,#1a2200)',
+          'linear-gradient(160deg,#330011,#221100)',
+          'linear-gradient(160deg,#330033,#00003a)',
+          'linear-gradient(160deg,#002233,#001a1a)',
+          'linear-gradient(160deg,#000,#1a0033)',
+          'linear-gradient(160deg,#00003a,#003322)',
+          'linear-gradient(160deg,#221100,#330033)'
+        ];
+
+        function isLight(v) { return v==='#f5f5f0'||v==='#fef3f0'||v==='#f0f4fe'; }
+
         function applyPreview(bc, bg) {
-          var b1 = document.getElementById('theme-bubble-preview-1');
-          var b2 = document.getElementById('theme-bubble-preview-2');
-          var bgEl = document.getElementById('theme-preview-bg');
-          if (b1) b1.style.background = bc;
-          if (b2) b2.style.background = bc;
-          if (bgEl) bgEl.style.background = bg;
-          var t1 = document.getElementById('theme-bubble-them-1');
-          var t2 = document.getElementById('theme-bubble-them-2');
-          var isLight = bg === '#f5f5f0' || bg === '#e8f0fe';
-          var themColor = isLight ? 'rgba(0,0,0,0.12)' : '#2c2c30';
-          var textColor = isLight ? '#111' : '#fff';
-          if (t1) { t1.style.background = themColor; t1.style.color = textColor; }
-          if (t2) { t2.style.background = themColor; t2.style.color = textColor; }
+          var b1=document.getElementById('theme-bubble-preview-1');
+          var b2=document.getElementById('theme-bubble-preview-2');
+          var bgEl=document.getElementById('theme-preview-bg');
+          var t1=document.getElementById('theme-bubble-them-1');
+          var t2=document.getElementById('theme-bubble-them-2');
+          if (b1) b1.style.background=bc;
+          if (b2) b2.style.background=bc;
+          if (bgEl) bgEl.style.background=bg;
+          var light=isLight(bg);
+          var tc=light?'#111':'#fff';
+          var tb=light?'rgba(0,0,0,0.1)':'#2c2c30';
+          if(t1){t1.style.background=tb;t1.style.color=tc;}
+          if(t2){t2.style.background=tb;t2.style.color=tc;}
         }
-        applyPreview(pendingColor, pendingBg);
-        function buildSwatches(containerId, colors, current, onSelect) {
-          var container = document.getElementById(containerId);
-          if (!container) return;
-          container.innerHTML = '';
-          colors.forEach(function(color) {
-            var s = document.createElement('button');
-            s.type = 'button';
-            var border = (color === '#f5f5f0' || color === '#e8f0fe') ? 'border:0.5px solid rgba(255,255,255,0.2);' : 'border:none;';
-            s.style.cssText = 'width:28px;height:28px;border-radius:50%;background:' + color + ';cursor:pointer;flex-shrink:0;' + border;
-            if (color === current) { s.style.outline = '2.5px solid #fff'; s.style.outlineOffset = '2px'; }
-            s.addEventListener('click', function() {
-              document.querySelectorAll('#' + containerId + ' button').forEach(function(b){ b.style.outline='none'; });
-              s.style.outline = '2.5px solid #fff'; s.style.outlineOffset = '2px';
-              onSelect(color);
+
+        function buildSwatches(containerId, opts, current, onSelect) {
+          var container=document.getElementById(containerId);
+          if(!container) return;
+          container.innerHTML='';
+          opts.forEach(function(v) {
+            var s=document.createElement('button');
+            s.type='button';
+            var light=isLight(v);
+            s.style.cssText='width:34px;height:34px;border-radius:50%;background:'+v+';cursor:pointer;flex-shrink:0;border:'+(light?'0.5px solid rgba(255,255,255,0.25)':'none')+';-webkit-tap-highlight-color:transparent;transition:transform 0.12s;';
+            if(v===current){s.style.outline='2.5px solid #fff';s.style.outlineOffset='2px';}
+            s.addEventListener('click',function(){
+              document.querySelectorAll('#'+containerId+' button').forEach(function(b){b.style.outline='none';});
+              s.style.outline='2.5px solid #fff';s.style.outlineOffset='2px';
+              onSelect(v);
             });
             container.appendChild(s);
           });
         }
-        buildSwatches('theme-swatches', bubbleColors, pendingColor, function(c) {
-          pendingColor = c; applyPreview(pendingColor, pendingBg);
-        });
-        buildSwatches('theme-bg-swatches', bgColors, pendingBg, function(c) {
-          pendingBg = c; applyPreview(pendingColor, pendingBg);
-        });
-        var validateBtn = document.getElementById('theme-validate-btn');
-        if (validateBtn) {
-          validateBtn.onclick = function() {
-            try { localStorage.setItem(lsKey, JSON.stringify({ bubbleColor: pendingColor, bgColor: pendingBg })); } catch(e2){}
-            if (contact) { contact.bubbleColor = pendingColor; contact.bgColor = pendingBg; saveState(state); }
+
+        function buildAll() {
+          buildSwatches('theme-swatches', bubbleOpts, pendingColor, function(c){ pendingColor=c; applyPreview(pendingColor,pendingBg); });
+          buildSwatches('theme-bg-swatches', bgOpts, pendingBg, function(c){ pendingBg=c; applyPreview(pendingColor,pendingBg); });
+        }
+
+        applyPreview(pendingColor, pendingBg);
+        buildAll();
+
+        var resetBubbleBtn=document.getElementById('theme-reset-bubble');
+        if(resetBubbleBtn){ resetBubbleBtn.onclick=function(){ pendingColor=defaultBubble; applyPreview(pendingColor,pendingBg); buildAll(); }; }
+        var resetBgBtn=document.getElementById('theme-reset-bg');
+        if(resetBgBtn){ resetBgBtn.onclick=function(){ pendingBg=defaultBg; applyPreview(pendingColor,pendingBg); buildAll(); }; }
+
+        var validateBtn=document.getElementById('theme-validate-btn');
+        if(validateBtn){
+          validateBtn.onclick=function(){
+            try{ localStorage.setItem(lsKey,JSON.stringify({bubbleColor:pendingColor,bgColor:pendingBg})); }catch(e2){}
+            if(contact){ contact.bubbleColor=pendingColor; contact.bgColor=pendingBg; saveState(state); }
             convShowScreen('main');
           };
         }
@@ -6197,17 +6231,20 @@
 
       <!-- ═══ SOUS-ÉCRAN : THÈME & COULEUR ═══ -->
       <div id="conv-screen-theme" style="display:none;">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;border-bottom:0.5px solid rgba(255,255,255,0.1);">
-          <button type="button" class="conv-back-btn" data-target="main" aria-label="Retour" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.1);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M8 1L2 7.5 8 14" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+
+        <!-- Header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 20px 16px;">
+          <button type="button" class="conv-back-btn" data-target="main" aria-label="Retour" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.08);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M8 1L2 7.5 8 14" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
-          <p style="margin:0;font-size:16px;font-weight:600;color:#fff;">Thème &amp; couleur</p>
+          <p style="margin:0;font-size:15px;font-weight:500;color:rgba(255,255,255,0.9);">Thème &amp; couleur</p>
           <button type="button" id="theme-validate-btn" aria-label="Valider" style="width:36px;height:36px;border-radius:50%;background:#3a76f0;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <svg width="14" height="11" viewBox="0 0 14 11" fill="none"><path d="M1 5.5L5 9.5L13 1" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
         </div>
-        <!-- Aperçu conversation -->
-        <div id="theme-preview-bg" style="padding:14px 16px 10px;background:#111114;transition:background 0.2s;">
+
+        <!-- Aperçu -->
+        <div id="theme-preview-bg" style="margin:0 14px;border-radius:18px;padding:14px 14px 10px;background:#111114;transition:background 0.2s;">
           <div style="display:flex;flex-direction:column;gap:8px;">
             <div style="display:flex;justify-content:flex-start;">
               <div id="theme-bubble-them-1" style="background:#2c2c30;color:#fff;border-radius:18px 18px 18px 4px;padding:8px 13px;font-size:13px;max-width:200px;">Salut, ça va ?</div>
@@ -6223,20 +6260,40 @@
             </div>
           </div>
         </div>
-        <!-- Swatches couleur bulles -->
-        <div style="padding:12px 20px 6px;">
-          <p style="margin:0 0 10px;font-size:11px;font-weight:600;color:rgba(255,255,255,0.35);letter-spacing:0.08em;text-transform:uppercase;">Couleur des bulles</p>
-          <div id="theme-swatches" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;"></div>
+
+        <!-- Bulles -->
+        <div style="padding:18px 18px 0;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <p style="margin:0;font-size:10px;font-weight:600;color:rgba(255,255,255,0.3);letter-spacing:0.1em;text-transform:uppercase;">Couleur des bulles</p>
+            <button type="button" id="theme-reset-bubble" style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.06);border:0.5px solid rgba(255,255,255,0.1);border-radius:20px;padding:5px 11px;cursor:pointer;color:rgba(255,255,255,0.45);font-size:11px;font-family:inherit;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M3 12a9 9 0 109-9 9 9 0 00-7.5 4" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round"/><path d="M3 5v6h6" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Réinitialiser
+            </button>
+          </div>
+          <div id="theme-swatches" style="display:flex;gap:9px;flex-wrap:wrap;"></div>
         </div>
-        <!-- Swatches couleur fond -->
-        <div style="padding:8px 20px 16px;">
-          <p style="margin:0 0 10px;font-size:11px;font-weight:600;color:rgba(255,255,255,0.35);letter-spacing:0.08em;text-transform:uppercase;">Couleur du fond</p>
-          <div id="theme-bg-swatches" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;"></div>
+
+        <!-- Séparateur -->
+        <div style="height:0.5px;background:rgba(255,255,255,0.06);margin:18px 18px 0;"></div>
+
+        <!-- Fond -->
+        <div style="padding:16px 18px 0;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <p style="margin:0;font-size:10px;font-weight:600;color:rgba(255,255,255,0.3);letter-spacing:0.1em;text-transform:uppercase;">Couleur du fond</p>
+            <button type="button" id="theme-reset-bg" style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.06);border:0.5px solid rgba(255,255,255,0.1);border-radius:20px;padding:5px 11px;cursor:pointer;color:rgba(255,255,255,0.45);font-size:11px;font-family:inherit;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M3 12a9 9 0 109-9 9 9 0 00-7.5 4" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round"/><path d="M3 5v6h6" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Réinitialiser
+            </button>
+          </div>
+          <div id="theme-bg-swatches" style="display:flex;gap:9px;flex-wrap:wrap;"></div>
         </div>
-        <div style="padding:0 20px 14px;display:flex;align-items:flex-start;gap:8px;">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;margin-top:1px;"><circle cx="12" cy="12" r="9" stroke="#f472b6" stroke-width="1.6"/><path d="M12 8v4M12 16h.01" stroke="#f472b6" stroke-width="1.8" stroke-linecap="round"/></svg>
-          <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.4);line-height:1.5;">Ces couleurs sont visibles uniquement sur votre appareil.</p>
+
+        <!-- Note -->
+        <div style="padding:16px 18px 22px;display:flex;align-items:flex-start;gap:8px;">
+          <div style="width:4px;height:4px;border-radius:50%;background:#3a76f0;margin-top:7px;flex-shrink:0;"></div>
+          <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.3);line-height:1.6;">Visible uniquement sur votre appareil.</p>
         </div>
+
       </div>
 
       <!-- ═══ SOUS-ÉCRAN : SONS & NOTIFICATIONS ═══ -->
