@@ -5809,7 +5809,34 @@
         convShowScreen('notifs');
       });
     }
-    // Boutons retour dans les sous-écrans
+    // Bande actions — sourdine toggle
+    var convActionMute = document.getElementById('conv-action-mute');
+    if (convActionMute) {
+      var isMuted = false;
+      convActionMute.addEventListener('click', function(e) {
+        e.stopPropagation();
+        isMuted = !isMuted;
+        convActionMute.style.background = isMuted ? '#5c3a8a' : '#3d2f6e';
+        var icon = document.getElementById('conv-mute-icon');
+        var label = document.getElementById('conv-mute-label');
+        if (icon) {
+          icon.innerHTML = isMuted
+            ? '<path d="M6 10a6 6 0 0112 0v4l2 2H4l2-2v-4z" stroke="#a78bfa" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 18a2 2 0 004 0" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round"/><line x1="4" y1="4" x2="20" y2="20" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round"/>'
+            : '<path d="M6 10a6 6 0 0112 0v4l2 2H4l2-2v-4z" stroke="#a78bfa" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 18a2 2 0 004 0" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round"/>';
+        }
+        if (label) label.style.color = isMuted ? '#a78bfa' : 'rgba(255,255,255,0.5)';
+        if (isMuted) {
+          try { localStorage.setItem('gt_notif_' + activeId, 'mute'); } catch(e2){}
+        } else {
+          try { localStorage.setItem('gt_notif_' + activeId, 'on'); } catch(e2){}
+        }
+      });
+    }
+    // Vidéo & Audio — placeholders
+    var convActionVideo = document.getElementById('conv-action-video');
+    if (convActionVideo) { convActionVideo.addEventListener('click', function(e) { e.stopPropagation(); }); }
+    var convActionAudio = document.getElementById('conv-action-audio');
+    if (convActionAudio) { convActionAudio.addEventListener('click', function(e) { e.stopPropagation(); }); }
     document.addEventListener('click', function(e) {
       var backBtn = e.target.closest('.conv-back-btn');
       if (!backBtn) return;
@@ -5946,6 +5973,56 @@
           <p id="conv-options-title" style="margin:0;font-size:17px;font-weight:600;color:#fff;"></p>
           <p id="conv-options-pseudo" style="margin:2px 0 0;font-size:13px;color:rgba(255,255,255,0.4);"></p>
         </div>
+        <div style="height:0.5px;background:rgba(255,255,255,0.1);"></div>
+
+        <!-- Bande actions -->
+        <div style="display:flex;justify-content:space-around;align-items:center;padding:14px 16px 16px;">
+
+          <!-- Vidéo -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:7px;">
+            <button type="button" id="conv-action-video" style="width:52px;height:52px;border-radius:20px 20px 20px 6px;background:#1a3a5c;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="13" height="10" rx="2" stroke="#60a5fa" stroke-width="1.6"/><path d="M15 10l5-3v10l-5-3V10z" stroke="#60a5fa" stroke-width="1.6" stroke-linejoin="round"/></svg>
+            </button>
+            <span style="font-size:11px;color:rgba(255,255,255,0.5);">Vidéo</span>
+          </div>
+
+          <!-- Audio -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:7px;">
+            <button type="button" id="conv-action-audio" style="width:52px;height:52px;border-radius:20px 20px 20px 6px;background:#1a3a2a;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.08 4.18 2 2 0 015.08 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L9.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" stroke="#4ade80" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <span style="font-size:11px;color:rgba(255,255,255,0.5);">Audio</span>
+          </div>
+
+          <!-- Sourdine -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:7px;">
+            <button type="button" id="conv-action-mute" style="width:52px;height:52px;border-radius:20px 20px 20px 6px;background:#3d2f6e;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+              <svg id="conv-mute-icon" width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M6 10a6 6 0 0112 0v4l2 2H4l2-2v-4z" stroke="#a78bfa" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 18a2 2 0 004 0" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round"/></svg>
+            </button>
+            <span id="conv-mute-label" style="font-size:11px;color:rgba(255,255,255,0.5);">Sourdine</span>
+          </div>
+
+          <!-- QR Code — non cliquable -->
+          <div style="display:flex;flex-direction:column;align-items:center;gap:7px;opacity:0.35;pointer-events:none;">
+            <div style="width:52px;height:52px;border-radius:20px 20px 6px 20px;background:#2a2a2e;display:flex;align-items:center;justify-content:center;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <rect x="3" y="3" width="7" height="7" rx="1" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>
+                <rect x="5" y="5" width="3" height="3" fill="rgba(255,255,255,0.6)"/>
+                <rect x="14" y="3" width="7" height="7" rx="1" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>
+                <rect x="16" y="5" width="3" height="3" fill="rgba(255,255,255,0.6)"/>
+                <rect x="3" y="14" width="7" height="7" rx="1" stroke="rgba(255,255,255,0.6)" stroke-width="1.5"/>
+                <rect x="5" y="16" width="3" height="3" fill="rgba(255,255,255,0.6)"/>
+                <rect x="14" y="14" width="3" height="3" fill="rgba(255,255,255,0.6)"/>
+                <rect x="19" y="14" width="2" height="2" fill="rgba(255,255,255,0.6)"/>
+                <rect x="14" y="19" width="2" height="2" fill="rgba(255,255,255,0.6)"/>
+                <rect x="17" y="17" width="2" height="2" fill="rgba(255,255,255,0.6)"/>
+              </svg>
+            </div>
+            <span style="font-size:11px;color:rgba(255,255,255,0.3);">QR Code</span>
+          </div>
+
+        </div>
+
         <div style="height:0.5px;background:rgba(255,255,255,0.1);"></div>
         <div style="padding:14px 20px 6px;">
           <p style="margin:0;font-size:11px;font-weight:600;color:rgba(255,255,255,0.35);letter-spacing:0.08em;text-transform:uppercase;">Options</p>
