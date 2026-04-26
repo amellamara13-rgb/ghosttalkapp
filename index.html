@@ -5633,12 +5633,77 @@
       syncAppMobileLayout();
     });
 
+    var _currentScreen = 'main';
+
     function convShowScreen(screenName) {
+      var isDesktop = window.innerWidth >= 768;
       var screens = ['main', 'ephemeral', 'pseudo', 'theme', 'notifs'];
-      screens.forEach(function(s) {
-        var el = document.getElementById('conv-screen-' + s);
-        if (el) el.style.display = s === screenName ? '' : 'none';
-      });
+      var panel = document.querySelector('.conv-options-panel');
+
+      if (isDesktop || !panel) {
+        // Desktop : pas d'animation, juste show/hide
+        screens.forEach(function(s) {
+          var el = document.getElementById('conv-screen-' + s);
+          if (el) el.style.display = s === screenName ? '' : 'none';
+        });
+        _currentScreen = screenName;
+        return;
+      }
+
+      var outEl = document.getElementById('conv-screen-' + _currentScreen);
+      var inEl = document.getElementById('conv-screen-' + screenName);
+      if (!inEl || _currentScreen === screenName) return;
+
+      var goingForward = screenName !== 'main';
+
+      // Préparer l'entrant
+      inEl.style.display = '';
+      inEl.style.position = 'absolute';
+      inEl.style.top = '0';
+      inEl.style.left = '0';
+      inEl.style.width = '100%';
+      inEl.style.transform = goingForward ? 'translateX(100%)' : 'translateX(-30%)';
+      inEl.style.transition = 'none';
+
+      // Positionner le sortant
+      if (outEl) {
+        outEl.style.position = 'absolute';
+        outEl.style.top = '0';
+        outEl.style.left = '0';
+        outEl.style.width = '100%';
+        outEl.style.transition = 'none';
+      }
+
+      // Forcer reflow
+      inEl.getBoundingClientRect();
+
+      // Animer
+      var dur = '0.32s cubic-bezier(0.22, 1, 0.36, 1)';
+      inEl.style.transition = 'transform ' + dur;
+      inEl.style.transform = 'translateX(0)';
+      if (outEl) {
+        outEl.style.transition = 'transform ' + dur;
+        outEl.style.transform = goingForward ? 'translateX(-30%)' : 'translateX(100%)';
+      }
+
+      setTimeout(function() {
+        screens.forEach(function(s) {
+          var el = document.getElementById('conv-screen-' + s);
+          if (!el) return;
+          if (s === screenName) {
+            el.style.position = '';
+            el.style.transform = '';
+            el.style.transition = '';
+            el.style.display = '';
+          } else {
+            el.style.display = 'none';
+            el.style.position = '';
+            el.style.transform = '';
+            el.style.transition = '';
+          }
+        });
+        _currentScreen = screenName;
+      }, 340);
     }
 
     function openConvOptionsModal() {
@@ -6094,7 +6159,7 @@
     </div>
   </div>
   <div id="conv-options-overlay" class="modal-overlay" aria-hidden="true" hidden>
-    <div class="modal-panel conv-options-panel" role="dialog" aria-modal="true">
+    <div class="modal-panel conv-options-panel" role="dialog" aria-modal="true" style="position:relative;overflow-x:hidden;">
 
       <!-- ═══ ÉCRAN PRINCIPAL ═══ -->
       <div id="conv-screen-main">
