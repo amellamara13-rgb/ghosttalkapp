@@ -1021,6 +1021,40 @@
       transform: translateX(0);
     }
     #conv-options-overlay .conv-options-panel::-webkit-scrollbar { display: none; }
+
+    /* Desktop : modal centré classique */
+    @media (min-width: 768px) {
+      #conv-options-overlay {
+        background: rgba(0,0,0,0.55);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        padding: 20px;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.28s ease, visibility 0.28s ease;
+      }
+      #conv-options-overlay.is-open {
+        opacity: 1;
+        visibility: visible;
+      }
+      #conv-options-overlay .conv-options-panel {
+        width: 100%;
+        max-width: 380px;
+        height: auto;
+        max-height: min(88vh, 780px);
+        border-radius: 18px;
+        border: 0.5px solid rgba(255,255,255,0.1);
+        background: #1c1c1e;
+        transform: translateY(12px) scale(0.98);
+        opacity: 0;
+        transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.28s ease;
+      }
+      #conv-options-overlay.is-open .conv-options-panel {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+      }
+    }
     .modal-panel--privacy .modal-head {
       border-top: none;
     }
@@ -5631,14 +5665,21 @@
     function closeConvOptionsModal() {
       var overlay = document.getElementById('conv-options-overlay');
       if (!overlay) return;
-      var panel = overlay.querySelector('.conv-options-panel');
-      if (panel) panel.style.transform = 'translateX(100%)';
-      setTimeout(function(){
+      var isDesktop = window.innerWidth >= 768;
+      if (!isDesktop) {
+        var panel = overlay.querySelector('.conv-options-panel');
+        if (panel) panel.style.transform = 'translateX(100%)';
+        setTimeout(function(){
+          overlay.classList.remove('is-open');
+          overlay.setAttribute('aria-hidden', 'true');
+          overlay.setAttribute('hidden', '');
+          if (panel) panel.style.transform = '';
+        }, 360);
+      } else {
         overlay.classList.remove('is-open');
         overlay.setAttribute('aria-hidden', 'true');
-        overlay.setAttribute('hidden', '');
-        if (panel) panel.style.transform = '';
-      }, 360);
+        setTimeout(function(){ overlay.setAttribute('hidden', ''); }, 300);
+      }
     }
 
     var chatHeadAvatar = document.getElementById('chat-head-avatar');
