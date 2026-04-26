@@ -738,6 +738,8 @@
       -ms-overflow-style: none;
     }
     #input::-webkit-scrollbar { display: none; }
+    .modal-panel::-webkit-scrollbar { display: none; }
+    .conv-options-panel::-webkit-scrollbar { display: none; }
     .composer textarea::placeholder { color: var(--muted); }
     .composer textarea:focus {
       outline: none;
@@ -975,7 +977,6 @@
       max-width: 420px;
       max-height: min(88vh, 720px);
       overflow-y: auto;
-      overflow-x: hidden;
       background: var(--surface);
       border: 1px solid var(--line);
       border-radius: 16px;
@@ -983,18 +984,7 @@
       transform: translateY(12px) scale(0.98);
       opacity: 0;
       transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.28s ease;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
     }
-    .modal-panel::-webkit-scrollbar { display: none; }
-    .conv-options-panel {
-      max-height: min(88vh, 780px);
-      overflow-y: auto;
-      overflow-x: hidden;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
-    }
-    .conv-options-panel::-webkit-scrollbar { display: none; }
     .modal-panel--privacy .modal-head {
       border-top: none;
     }
@@ -6023,7 +6013,7 @@
     </div>
   </div>
   <div id="conv-options-overlay" class="modal-overlay" aria-hidden="true" hidden>
-    <div class="modal-panel conv-options-panel" role="dialog" aria-modal="true" style="max-width:360px;background:#1c1c1e;border:0.5px solid rgba(255,255,255,0.1);border-radius:18px;overflow:hidden;position:relative;">
+    <div class="modal-panel conv-options-panel" role="dialog" aria-modal="true" style="max-width:360px;background:#1c1c1e;border:0.5px solid rgba(255,255,255,0.1);border-radius:18px;overflow-y:auto;overflow-x:hidden;position:relative;max-height:min(88vh,760px);scrollbar-width:none;-ms-overflow-style:none;">
 
       <!-- ═══ ÉCRAN PRINCIPAL ═══ -->
       <div id="conv-screen-main">
