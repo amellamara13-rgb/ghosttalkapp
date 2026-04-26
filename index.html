@@ -3937,7 +3937,7 @@
 
   var EPHEMERAL_DELAY_OPTIONS = [
     { value: null, label: 'Désactivé' },
-    { value: 'on_read', label: '👁 Dès la lecture' },
+    { value: 1, label: '1 seconde' },
     { value: 60, label: '1 minute' },
     { value: 300, label: '5 minutes' },
     { value: 3600, label: '1 heure' },
@@ -5650,20 +5650,125 @@
     if (convMenuPseudo) {
       convMenuPseudo.addEventListener('click', function (e) {
         e.stopPropagation();
+        var contact = getContactById(activeId);
+        var av = contact ? avatarForName(contact.name) : { initial: '?', color: '#3a76f0' };
+        var avatarEl = document.getElementById('pseudo-screen-avatar');
+        if (avatarEl) { avatarEl.textContent = av.initial; avatarEl.style.background = av.color; }
+        var parts = contact ? contact.name.split(' ') : ['', ''];
+        var prenom = document.getElementById('pseudo-input-prenom');
+        var nom = document.getElementById('pseudo-input-nom');
+        if (prenom) prenom.value = parts[0] || '';
+        if (nom) nom.value = parts.slice(1).join(' ') || '';
         convShowScreen('pseudo');
       });
     }
+
+    var pseudoSaveBtn = document.getElementById('pseudo-save-btn');
+    if (pseudoSaveBtn) {
+      pseudoSaveBtn.addEventListener('click', function () {
+        var prenom = (document.getElementById('pseudo-input-prenom').value || '').trim();
+        var nom = (document.getElementById('pseudo-input-nom').value || '').trim();
+        var newName = [prenom, nom].filter(Boolean).join(' ');
+        if (!newName || !activeId) { convShowScreen('main'); return; }
+        var contact = getContactById(activeId);
+        if (contact) {
+          contact.name = newName;
+          saveState(state);
+          renderConvList();
+          updateChatTitleDisplay(contact);
+          var titleEl = document.getElementById('conv-options-title');
+          if (titleEl) titleEl.textContent = newName;
+          var pseudoEl = document.getElementById('conv-options-pseudo');
+          if (pseudoEl) pseudoEl.textContent = '@' + newName.toLowerCase().replace(/\s+/g, '_');
+          var pseudoVal = document.getElementById('conv-options-pseudo-val');
+          if (pseudoVal) pseudoVal.textContent = newName;
+          var av = avatarForName(newName);
+          var avatarCircle = document.getElementById('conv-options-avatar-circle');
+          if (avatarCircle) { avatarCircle.textContent = av.initial; avatarCircle.style.background = av.color; }
+        }
+        convShowScreen('main');
+      });
+    }
+
     var convMenuTheme = document.getElementById('conv-menu-theme');
     if (convMenuTheme) {
       convMenuTheme.addEventListener('click', function (e) {
         e.stopPropagation();
+        var contact = getContactById(activeId);
+        var currentColor = (contact && contact.bubbleColor) ? contact.bubbleColor : '#3a76f0';
+        var swatchColors = ['#3a76f0','#2ecc71','#a78bfa','#f472b6','#f97316','#ef4444','#14b8a6','#eab308'];
+        var swatchContainer = document.getElementById('theme-swatches');
+        if (swatchContainer) {
+          swatchContainer.innerHTML = '';
+          swatchColors.forEach(function(color) {
+            var s = document.createElement('button');
+            s.type = 'button';
+            s.style.cssText = 'width:32px;height:32px;border-radius:50%;background:' + color + ';border:none;cursor:pointer;flex-shrink:0;transition:outline 0.1s;';
+            if (color === currentColor) s.style.outline = '2.5px solid #fff'; s.style.outlineOffset = '2px';
+            s.setAttribute('data-color', color);
+            s.addEventListener('click', function() {
+              document.querySelectorAll('#theme-swatches button').forEach(function(b){ b.style.outline = 'none'; });
+              s.style.outline = '2.5px solid #fff';
+              s.style.outlineOffset = '2px';
+              var b1 = document.getElementById('theme-bubble-preview-1');
+              var b2 = document.getElementById('theme-bubble-preview-2');
+              if (b1) b1.style.background = color;
+              if (b2) b2.style.background = color;
+              if (contact) {
+                contact.bubbleColor = color;
+                saveState(state);
+                var styleId = 'bubble-color-style-' + activeId;
+                var existing = document.getElementById(styleId);
+                if (existing) existing.remove();
+              }
+            });
+            swatchContainer.appendChild(s);
+          });
+        }
+        var b1 = document.getElementById('theme-bubble-preview-1');
+        var b2 = document.getElementById('theme-bubble-preview-2');
+        if (b1) b1.style.background = currentColor;
+        if (b2) b2.style.background = currentColor;
         convShowScreen('theme');
       });
     }
+
     var convMenuNotifs = document.getElementById('conv-menu-notifs');
     if (convMenuNotifs) {
       convMenuNotifs.addEventListener('click', function (e) {
         e.stopPropagation();
+        var contact = getContactById(activeId);
+        var currentNotif = (contact && contact.notifMode) ? contact.notifMode : 'on';
+        var options = [
+          { value: 'on', label: 'Activés', sub: 'Sons et notifications normaux' },
+          { value: 'mute', label: 'Sourdine', sub: 'Notifications silencieuses' },
+          { value: 'off', label: 'Désactivés', sub: 'Aucune notification' }
+        ];
+        var container = document.getElementById('notifs-options');
+        if (container) {
+          container.innerHTML = '';
+          options.forEach(function(opt, i) {
+            var row = document.createElement('button');
+            row.type = 'button';
+            row.style.cssText = 'width:100%;display:flex;align-items:center;justify-content:space-between;padding:13px 20px;border:none;background:transparent;cursor:pointer;border-top:' + (i === 0 ? 'none' : '0.5px solid rgba(255,255,255,0.07)') + ';';
+            var isActive = opt.value === currentNotif;
+            row.innerHTML =
+              '<div style="text-align:left;">' +
+                '<p style="margin:0;font-size:15px;color:#fff;">' + opt.label + '</p>' +
+                '<p style="margin:0;font-size:12px;color:rgba(255,255,255,0.4);">' + opt.sub + '</p>' +
+              '</div>' +
+              '<div id="notif-dot-' + opt.value + '" style="width:8px;height:8px;border-radius:50%;background:' + (isActive ? '#3a76f0' : 'rgba(255,255,255,0.15)') + ';flex-shrink:0;"></div>';
+            row.addEventListener('click', function() {
+              if (contact) { contact.notifMode = opt.value; saveState(state); }
+              currentNotif = opt.value;
+              options.forEach(function(o) {
+                var dot = document.getElementById('notif-dot-' + o.value);
+                if (dot) dot.style.background = o.value === opt.value ? '#3a76f0' : 'rgba(255,255,255,0.15)';
+              });
+            });
+            container.appendChild(row);
+          });
+        }
         convShowScreen('notifs');
       });
     }
@@ -5880,6 +5985,7 @@
       </div>
 
       <!-- ═══ SOUS-ÉCRAN : MESSAGES ÉPHÉMÈRES ═══ -->
+      <!-- ═══ SOUS-ÉCRAN : MESSAGES ÉPHÉMÈRES ═══ -->
       <div id="conv-screen-ephemeral" style="display:none;">
         <div style="display:flex;align-items:center;padding:18px 20px 14px;gap:14px;border-bottom:0.5px solid rgba(255,255,255,0.1);">
           <button type="button" class="conv-back-btn" data-target="main" aria-label="Retour" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.1);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
@@ -5887,7 +5993,7 @@
           </button>
           <p style="margin:0;font-size:16px;font-weight:600;color:#fff;">Messages éphémères</p>
         </div>
-        <div id="ephemeral-delay-list-inline" style="padding:8px 0 8px;"></div>
+        <div id="ephemeral-delay-list-inline" style="padding:6px 0 10px;"></div>
       </div>
 
       <!-- ═══ SOUS-ÉCRAN : PSEUDO ═══ -->
@@ -5898,8 +6004,15 @@
           </button>
           <p style="margin:0;font-size:16px;font-weight:600;color:#fff;">Pseudo</p>
         </div>
-        <div style="padding:32px 20px;display:flex;align-items:center;justify-content:center;">
-          <p style="margin:0;font-size:14px;color:rgba(255,255,255,0.3);text-align:center;">À configurer prochainement</p>
+        <div style="display:flex;flex-direction:column;align-items:center;padding:20px 20px 6px;">
+          <div id="pseudo-screen-avatar" style="width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#fff;margin-bottom:18px;"></div>
+          <div style="width:100%;display:flex;flex-direction:column;gap:10px;">
+            <input type="text" id="pseudo-input-prenom" placeholder="Prénom" autocomplete="off" style="width:100%;box-sizing:border-box;padding:12px 14px;border-radius:12px;border:0.5px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.07);color:#fff;font-size:15px;font-family:inherit;outline:none;" />
+            <input type="text" id="pseudo-input-nom" placeholder="Nom" autocomplete="off" style="width:100%;box-sizing:border-box;padding:12px 14px;border-radius:12px;border:0.5px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.07);color:#fff;font-size:15px;font-family:inherit;outline:none;" />
+          </div>
+        </div>
+        <div style="padding:14px 20px 18px;">
+          <button type="button" id="pseudo-save-btn" style="width:100%;padding:13px;border-radius:14px;background:#3a76f0;border:none;color:#fff;font-size:15px;font-weight:600;cursor:pointer;">Valider</button>
         </div>
       </div>
 
@@ -5911,8 +6024,27 @@
           </button>
           <p style="margin:0;font-size:16px;font-weight:600;color:#fff;">Thème &amp; couleur</p>
         </div>
-        <div style="padding:32px 20px;display:flex;align-items:center;justify-content:center;">
-          <p style="margin:0;font-size:14px;color:rgba(255,255,255,0.3);text-align:center;">À configurer prochainement</p>
+        <!-- Aperçu conversation -->
+        <div style="padding:14px 16px 10px;background:#111114;">
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;justify-content:flex-start;">
+              <div style="background:#2c2c30;color:#fff;border-radius:18px 18px 18px 4px;padding:8px 13px;font-size:13px;max-width:200px;">Salut, ça va ?</div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;">
+              <div id="theme-bubble-preview-1" style="color:#fff;border-radius:18px 18px 4px 18px;padding:8px 13px;font-size:13px;max-width:200px;background:#3a76f0;">Oui et toi !</div>
+            </div>
+            <div style="display:flex;justify-content:flex-start;">
+              <div style="background:#2c2c30;color:#fff;border-radius:18px 18px 18px 4px;padding:8px 13px;font-size:13px;max-width:200px;">On se voit ce soir ?</div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;">
+              <div id="theme-bubble-preview-2" style="color:#fff;border-radius:18px 18px 4px 18px;padding:8px 13px;font-size:13px;max-width:200px;background:#3a76f0;">Avec plaisir !</div>
+            </div>
+          </div>
+        </div>
+        <!-- Swatches couleur -->
+        <div style="padding:14px 20px 18px;">
+          <p style="margin:0 0 10px;font-size:11px;font-weight:600;color:rgba(255,255,255,0.35);letter-spacing:0.08em;text-transform:uppercase;">Couleur des bulles</p>
+          <div id="theme-swatches" style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;"></div>
         </div>
       </div>
 
@@ -5924,9 +6056,7 @@
           </button>
           <p style="margin:0;font-size:16px;font-weight:600;color:#fff;">Sons &amp; notifications</p>
         </div>
-        <div style="padding:32px 20px;display:flex;align-items:center;justify-content:center;">
-          <p style="margin:0;font-size:14px;color:rgba(255,255,255,0.3);text-align:center;">À configurer prochainement</p>
-        </div>
+        <div id="notifs-options" style="padding:6px 0 10px;"></div>
       </div>
 
     </div>
