@@ -740,6 +740,28 @@
     #input::-webkit-scrollbar { display: none; }
     .modal-panel::-webkit-scrollbar { display: none; }
     .conv-options-panel::-webkit-scrollbar { display: none; }
+
+    @keyframes slideInRight {
+      from { transform: translateX(100%); }
+      to   { transform: translateX(0); }
+    }
+
+    /* Slide conversation mobile */
+    @media (max-width: 767px) {
+      #app.mobile-show-chat main {
+        animation: slideInRight 0.32s cubic-bezier(0.22,1,0.36,1) both;
+      }
+      #app.mobile-slide-back main {
+        animation: slideOutRight 0.32s cubic-bezier(0.22,1,0.36,1) both;
+      }
+      #app.mobile-slide-back aside {
+        display: flex !important;
+      }
+    }
+    @keyframes slideOutRight {
+      from { transform: translateX(0); }
+      to   { transform: translateX(100%); }
+    }
     .composer textarea::placeholder { color: var(--muted); }
     .composer textarea:focus {
       outline: none;
@@ -4217,10 +4239,14 @@
   function showMobileList() {
     var app = document.getElementById('app');
     if (!app || !isMobileNav()) return;
-    app.classList.remove('mobile-show-chat');
-    app.classList.add('mobile-show-list');
-    var topStrip = document.querySelector('.top-strip');
-    if (topStrip) topStrip.style.display = '';
+    app.classList.add('mobile-slide-back');
+    setTimeout(function() {
+      app.classList.remove('mobile-show-chat');
+      app.classList.remove('mobile-slide-back');
+      app.classList.add('mobile-show-list');
+      var topStrip = document.querySelector('.top-strip');
+      if (topStrip) topStrip.style.display = '';
+    }, 320);
   }
 
   function syncAppMobileLayout() {
@@ -5633,77 +5659,22 @@
       syncAppMobileLayout();
     });
 
-    var _currentScreen = 'main';
-
     function convShowScreen(screenName) {
-      var isDesktop = window.innerWidth >= 768;
       var screens = ['main', 'ephemeral', 'pseudo', 'theme', 'notifs'];
-      var panel = document.querySelector('.conv-options-panel');
-
-      if (isDesktop || !panel) {
-        // Desktop : pas d'animation, juste show/hide
-        screens.forEach(function(s) {
-          var el = document.getElementById('conv-screen-' + s);
-          if (el) el.style.display = s === screenName ? '' : 'none';
-        });
-        _currentScreen = screenName;
-        return;
-      }
-
-      var outEl = document.getElementById('conv-screen-' + _currentScreen);
-      var inEl = document.getElementById('conv-screen-' + screenName);
-      if (!inEl || _currentScreen === screenName) return;
-
-      var goingForward = screenName !== 'main';
-
-      // Préparer l'entrant
-      inEl.style.display = '';
-      inEl.style.position = 'absolute';
-      inEl.style.top = '0';
-      inEl.style.left = '0';
-      inEl.style.width = '100%';
-      inEl.style.transform = goingForward ? 'translateX(100%)' : 'translateX(-30%)';
-      inEl.style.transition = 'none';
-
-      // Positionner le sortant
-      if (outEl) {
-        outEl.style.position = 'absolute';
-        outEl.style.top = '0';
-        outEl.style.left = '0';
-        outEl.style.width = '100%';
-        outEl.style.transition = 'none';
-      }
-
-      // Forcer reflow
-      inEl.getBoundingClientRect();
-
-      // Animer
-      var dur = '0.32s cubic-bezier(0.22, 1, 0.36, 1)';
-      inEl.style.transition = 'transform ' + dur;
-      inEl.style.transform = 'translateX(0)';
-      if (outEl) {
-        outEl.style.transition = 'transform ' + dur;
-        outEl.style.transform = goingForward ? 'translateX(-30%)' : 'translateX(100%)';
-      }
-
-      setTimeout(function() {
-        screens.forEach(function(s) {
-          var el = document.getElementById('conv-screen-' + s);
-          if (!el) return;
-          if (s === screenName) {
-            el.style.position = '';
-            el.style.transform = '';
-            el.style.transition = '';
-            el.style.display = '';
-          } else {
-            el.style.display = 'none';
-            el.style.position = '';
-            el.style.transform = '';
-            el.style.transition = '';
+      var isDesktop = window.innerWidth >= 768;
+      screens.forEach(function(s) {
+        var el = document.getElementById('conv-screen-' + s);
+        if (!el) return;
+        if (s === screenName) {
+          el.style.display = '';
+          if (!isDesktop) {
+            el.style.animation = 'slideInRight 0.32s cubic-bezier(0.22,1,0.36,1) both';
           }
-        });
-        _currentScreen = screenName;
-      }, 340);
+        } else {
+          el.style.display = 'none';
+          el.style.animation = '';
+        }
+      });
     }
 
     function openConvOptionsModal() {
