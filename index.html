@@ -224,16 +224,8 @@
     .msg-date-separator__text {
       flex-shrink: 0;
     }
-    .bubble-read {
+    .bubble-status-dot {
       display: inline-block;
-      font-size: 12px;
-      line-height: 1;
-      letter-spacing: -3px;
-      color: rgba(255, 255, 255, 0.55);
-    }
-    .row.me .bubble .bubble-read.is-read {
-      color: #7eb8ff;
-      letter-spacing: -2px;
     }
     #app {
       display: flex;
@@ -671,21 +663,34 @@
     .row:not(.me) .bubble {
       background: var(--bubble-them);
       color: var(--fg);
-      border-radius: 18px 18px 18px 4px;
+      border-radius: 22px 22px 22px 6px;
     }
     .row.me .bubble {
       position: relative;
-      padding-bottom: 14px;
-      padding-right: 28px;
       background: var(--bubble-me);
       color: #fff;
-      border-radius: 18px 18px 4px 18px;
+      border-radius: 22px 22px 6px 22px;
     }
     .row.me .bubble .bubble-read {
       position: absolute;
-      right: 8px;
-      bottom: 6px;
-      line-height: 1;
+      top: -8px;
+      right: -8px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2.5px solid var(--bg);
+      background: rgba(255,255,255,0.35);
+      font-size: 0;
+      line-height: 0;
+      letter-spacing: 0;
+      display: inline-block;
+    }
+    .row.me .bubble .bubble-read.is-read {
+      background: #60a5fa;
+      border-color: var(--bg);
+    }
+    .row.me .bubble .bubble-read.is-delivered {
+      background: rgba(255,255,255,0.9);
     }
     .composer {
       border-top: none;
@@ -2471,6 +2476,12 @@
             </div>
           </div>
           <div class="chat-head-right">
+            <button type="button" id="btn-audio-call" aria-label="Appel audio" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.08);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.08 4.18 2 2 0 015.08 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L9.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" stroke="#60a5fa" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <button type="button" id="btn-video-call" aria-label="Appel vidéo" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.08);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="13" height="10" rx="2" stroke="#60a5fa" stroke-width="1.6"/><path d="M15 10l5-3v10l-5-3V10z" stroke="#60a5fa" stroke-width="1.6" stroke-linejoin="round"/></svg>
+            </button>
           </div>
         </header>
         <div id="chat-empty" class="empty-main">
@@ -2491,7 +2502,15 @@
           <div class="composer">
             <div class="composer-inner">
               <div class="composer-row">
-                <textarea id="input" rows="1" placeholder="Message"></textarea>
+                <button type="button" id="btn-attach" aria-label="Plus" style="width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.08);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="rgba(255,255,255,0.6)" stroke-width="2" stroke-linecap="round"/></svg>
+                </button>
+                <div style="flex:1;position:relative;display:flex;align-items:center;">
+                  <textarea id="input" rows="1" placeholder="Message" style="padding-right:44px;"></textarea>
+                  <button type="button" id="btn-mic" aria-label="Micro" style="position:absolute;right:8px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,0.08);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="9" y="2" width="6" height="12" rx="3" stroke="rgba(255,255,255,0.5)" stroke-width="1.6"/><path d="M5 10a7 7 0 0014 0M12 19v3" stroke="rgba(255,255,255,0.5)" stroke-width="1.6" stroke-linecap="round"/></svg>
+                  </button>
+                </div>
                 <div class="composer-actions">
                   <button type="button" class="icon-send" id="send" title="Envoyer" aria-label="Envoyer">➤</button>
                 </div>
@@ -4521,7 +4540,7 @@
         var readEl = document.createElement('span');
         readEl.className = 'bubble-read' + (m.readAt ? ' is-read' : '');
         readEl.setAttribute('aria-label', m.readAt ? 'Lu' : 'Envoyé');
-        readEl.textContent = m.readAt ? '✓✓' : '✓';
+        readEl.textContent = '';
         b.appendChild(readEl);
       }
       wrap.appendChild(b);
