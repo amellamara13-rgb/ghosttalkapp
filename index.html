@@ -5667,11 +5667,28 @@
         var av = contact ? avatarForName(contact.name) : { initial: '?', color: '#3a76f0' };
         var avatarEl = document.getElementById('pseudo-screen-avatar');
         if (avatarEl) { avatarEl.textContent = av.initial; avatarEl.style.background = av.color; }
-        var parts = contact ? contact.name.split(' ') : ['', ''];
+        // Nom local affiché en grand
+        var localDisplay = document.getElementById('pseudo-local-display');
+        if (localDisplay) localDisplay.textContent = contact ? contact.name : '';
+        // @pseudo original du contact (son vrai username Firebase)
+        var origDisplay = document.getElementById('pseudo-original-display');
+        if (origDisplay) origDisplay.textContent = contact ? '@' + (contact.username || contact.name).toLowerCase().replace(/\s+/g,'_') : '';
+        // Préremplir les champs
+        var parts = contact ? contact.name.split(' ') : ['',''];
         var prenom = document.getElementById('pseudo-input-prenom');
         var nom = document.getElementById('pseudo-input-nom');
         if (prenom) prenom.value = parts[0] || '';
         if (nom) nom.value = parts.slice(1).join(' ') || '';
+        // Mise à jour live du nom affiché en haut pendant la frappe
+        if (prenom && nom && localDisplay) {
+          var updateLocal = function() {
+            var p = prenom.value.trim();
+            var n = nom.value.trim();
+            localDisplay.textContent = [p,n].filter(Boolean).join(' ') || (contact ? contact.name : '');
+          };
+          prenom.oninput = updateLocal;
+          nom.oninput = updateLocal;
+        }
         convShowScreen('pseudo');
       });
     }
@@ -6120,26 +6137,62 @@
 
       <!-- ═══ SOUS-ÉCRAN : PSEUDO ═══ -->
       <div id="conv-screen-pseudo" style="display:none;">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;border-bottom:0.5px solid rgba(255,255,255,0.1);">
-          <button type="button" class="conv-back-btn" data-target="main" aria-label="Retour" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.1);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M8 1L2 7.5 8 14" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+
+        <!-- Header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 20px 0;">
+          <button type="button" class="conv-back-btn" data-target="main" aria-label="Retour" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.08);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M8 1L2 7.5 8 14" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
-          <p style="margin:0;font-size:16px;font-weight:600;color:#fff;">Pseudo</p>
+          <p style="margin:0;font-size:15px;font-weight:500;color:rgba(255,255,255,0.9);">Pseudo</p>
           <button type="button" id="pseudo-save-btn" aria-label="Valider" style="width:36px;height:36px;border-radius:50%;background:#3a76f0;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <svg width="14" height="11" viewBox="0 0 14 11" fill="none"><path d="M1 5.5L5 9.5L13 1" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
         </div>
-        <div style="display:flex;flex-direction:column;align-items:center;padding:20px 20px 8px;">
-          <div id="pseudo-screen-avatar" style="width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#fff;margin-bottom:18px;"></div>
-          <div style="width:100%;display:flex;flex-direction:column;gap:10px;">
-            <input type="text" id="pseudo-input-prenom" placeholder="Prénom" autocomplete="off" style="width:100%;box-sizing:border-box;padding:12px 14px;border-radius:12px;border:0.5px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.07);color:#fff;font-size:15px;font-family:inherit;outline:none;" />
-            <input type="text" id="pseudo-input-nom" placeholder="Nom" autocomplete="off" style="width:100%;box-sizing:border-box;padding:12px 14px;border-radius:12px;border:0.5px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.07);color:#fff;font-size:15px;font-family:inherit;outline:none;" />
+
+        <!-- Avatar + noms -->
+        <div style="display:flex;flex-direction:column;align-items:center;padding:24px 24px 20px;gap:0;">
+          <div id="pseudo-screen-avatar" style="width:88px;height:88px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:700;color:#fff;margin-bottom:14px;"></div>
+          <!-- Nom choisi par l'utilisateur (local) -->
+          <p id="pseudo-local-display" style="margin:0;font-size:22px;font-weight:600;color:#fff;letter-spacing:-0.3px;"></p>
+          <!-- Pseudo original du contact — toujours visible -->
+          <p id="pseudo-original-display" style="margin:5px 0 0;font-size:14px;color:rgba(255,255,255,0.35);font-weight:400;"></p>
+        </div>
+
+        <!-- Zone édition -->
+        <div style="margin:0 16px;background:rgba(255,255,255,0.04);border-radius:20px;border:0.5px solid rgba(255,255,255,0.06);">
+
+          <!-- Champ Prénom -->
+          <div style="padding:14px 18px;display:flex;align-items:center;justify-content:space-between;">
+            <div style="flex:1;">
+              <p style="margin:0 0 3px;font-size:11px;color:rgba(255,255,255,0.3);font-weight:500;letter-spacing:0.06em;text-transform:uppercase;">Prénom</p>
+              <input type="text" id="pseudo-input-prenom" placeholder="Prénom" autocomplete="off" style="width:100%;background:transparent;border:none;outline:none;font-size:16px;color:#fff;font-family:inherit;padding:0;" />
+            </div>
+            <div style="width:28px;height:28px;border-radius:50%;background:rgba(58,118,240,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:10px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="#3a76f0" stroke-width="2" stroke-linecap="round"/></svg>
+            </div>
           </div>
+
+          <div style="height:0.5px;background:rgba(255,255,255,0.05);margin:0 18px;"></div>
+
+          <!-- Champ Nom -->
+          <div style="padding:14px 18px;display:flex;align-items:center;justify-content:space-between;">
+            <div style="flex:1;">
+              <p style="margin:0 0 3px;font-size:11px;color:rgba(255,255,255,0.3);font-weight:500;letter-spacing:0.06em;text-transform:uppercase;">Nom</p>
+              <input type="text" id="pseudo-input-nom" placeholder="Facultatif" autocomplete="off" style="width:100%;background:transparent;border:none;outline:none;font-size:16px;color:#fff;font-family:inherit;padding:0;" />
+            </div>
+            <div style="width:28px;height:28px;border-radius:50%;background:rgba(58,118,240,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-left:10px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" stroke="#3a76f0" stroke-width="2" stroke-linecap="round"/></svg>
+            </div>
+          </div>
+
         </div>
-        <div style="padding:10px 20px 18px;display:flex;align-items:flex-start;gap:8px;">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;margin-top:1px;"><circle cx="12" cy="12" r="9" stroke="#60a5fa" stroke-width="1.6"/><path d="M12 8v4M12 16h.01" stroke="#60a5fa" stroke-width="1.8" stroke-linecap="round"/></svg>
-          <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.4);line-height:1.5;">Ce nom est visible uniquement sur votre appareil. Votre contact conserve son nom d'origine.</p>
+
+        <!-- Note minimaliste -->
+        <div style="padding:14px 20px 24px;display:flex;align-items:flex-start;gap:8px;">
+          <div style="width:4px;height:4px;border-radius:50%;background:#3a76f0;margin-top:7px;flex-shrink:0;"></div>
+          <p id="pseudo-note-text" style="margin:0;font-size:12px;color:rgba(255,255,255,0.3);line-height:1.6;">Visible uniquement sur votre appareil.</p>
         </div>
+
       </div>
 
       <!-- ═══ SOUS-ÉCRAN : THÈME & COULEUR ═══ -->
