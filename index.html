@@ -3190,7 +3190,7 @@
       var other = from;
       if (!other) return;
       // Mettre à jour le badge de la liste toujours
-      renderConvList();
+      // (déjà fait par le onSnapshot principal)
       // Notification système uniquement si l'app est en arrière-plan ou sur une autre conversation
       var contact = getContactById ? null : null;
       try {
