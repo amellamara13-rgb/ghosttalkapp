@@ -6113,70 +6113,72 @@
       });
     }
 
+    function openMuteScreen() {
+      var contact = getContactById(activeId);
+      var lsKeyN = 'gt_notif_' + activeId;
+      var lsKeyMuteUntil = 'gt_mute_until_' + activeId;
+      var pendingNotif;
+      try { pendingNotif = localStorage.getItem(lsKeyN) || 'on'; } catch(e2){ pendingNotif = 'on'; }
+      var muteOptions = [
+        { value: '1h',      label: '1 heure',    ms: 3600000 },
+        { value: '8h',      label: '8 heures',   ms: 28800000 },
+        { value: '24h',     label: '24 heures',  ms: 86400000 },
+        { value: '1week',   label: '1 semaine',  ms: 604800000 },
+        { value: 'always',  label: 'Toujours',   ms: null }
+      ];
+      var selectedMute = null;
+      var container = document.getElementById('notifs-options');
+      var titleEl = document.getElementById('notifs-screen-title');
+      if (titleEl) titleEl.textContent = 'Mettre en sourdine pour...';
+      function renderMuteList() {
+        if (!container) return;
+        container.innerHTML = '';
+        muteOptions.forEach(function(opt, i) {
+          var row = document.createElement('button');
+          row.type = 'button';
+          var isActive = selectedMute === opt.value;
+          row.style.cssText = 'width:100%;display:flex;align-items:center;justify-content:space-between;padding:17px 20px;border:none;background:transparent;cursor:pointer;-webkit-tap-highlight-color:transparent;color:#fff;border-top:' + (i === 0 ? 'none' : '0.5px solid rgba(255,255,255,0.06)') + ';';
+          row.innerHTML =
+            '<span style="font-size:16px;font-weight:' + (isActive ? '500' : '400') + ';">' + opt.label + '</span>' +
+            '<div style="width:20px;height:20px;border-radius:50%;background:' + (isActive ? '#3a76f0' : 'transparent') + ';border:' + (isActive ? 'none' : '1.5px solid rgba(255,255,255,0.2)') + ';display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
+              (isActive ? '<svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '') +
+            '</div>';
+          row.addEventListener('click', function() { selectedMute = opt.value; renderMuteList(); });
+          container.appendChild(row);
+        });
+      }
+      renderMuteList();
+      var validateBtn = document.getElementById('notifs-validate-btn');
+      if (validateBtn) {
+        validateBtn.onclick = function() {
+          if (selectedMute) {
+            try { localStorage.setItem(lsKeyN, 'mute'); } catch(e2){}
+            var opt = muteOptions.find(function(o){ return o.value === selectedMute; });
+            var until = opt && opt.ms ? Date.now() + opt.ms : null;
+            try { localStorage.setItem(lsKeyMuteUntil, until ? String(until) : 'always'); } catch(e2){}
+            if (contact) { contact.notifMode = 'mute'; contact.muteUntil = until; saveState(state); }
+            // Mettre à jour l'icône sourdine dans la bande
+            var icon = document.getElementById('conv-mute-icon');
+            if (icon) icon.innerHTML = '<path d="M6 10a6 6 0 0112 0v4l2 2H4l2-2v-4z" stroke="#a78bfa" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 18a2 2 0 004 0" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round"/><line x1="4" y1="4" x2="20" y2="20" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round"/>';
+          }
+          convShowScreen('main');
+        };
+      }
+      convShowScreen('notifs');
+    }
     var convMenuNotifs = document.getElementById('conv-menu-notifs');
     if (convMenuNotifs) {
       convMenuNotifs.addEventListener('click', function (e) {
         e.stopPropagation();
-        var contact = getContactById(activeId);
-        var lsKeyN = 'gt_notif_' + activeId;
-        var pendingNotif;
-        try { pendingNotif = localStorage.getItem(lsKeyN) || 'on'; } catch(e2){ pendingNotif = 'on'; }
-        var notifsOptionsList = [
-          { value: 'on', label: 'Activés', sub: 'Sons et notifications normaux' },
-          { value: 'mute', label: 'Sourdine', sub: 'Notifications silencieuses, sans son' }
-        ];
-        var container = document.getElementById('notifs-options');
-        function renderNotifsList() {
-          if (!container) return;
-          container.innerHTML = '';
-          notifsOptionsList.forEach(function(opt, i) {
-            var row = document.createElement('button');
-            row.type = 'button';
-            var isActive = opt.value === pendingNotif;
-            row.style.cssText = 'width:100%;display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border:none;background:transparent;cursor:pointer;-webkit-tap-highlight-color:transparent;border-top:' + (i === 0 ? 'none' : '0.5px solid rgba(255,255,255,0.06)') + ';';
-            row.innerHTML =
-              '<div style="text-align:left;">' +
-                '<p style="margin:0;font-size:15px;color:#fff;font-weight:' + (isActive ? '500' : '400') + ';">' + opt.label + '</p>' +
-                '<p style="margin:0;font-size:12px;color:rgba(255,255,255,0.35);margin-top:2px;">' + opt.sub + '</p>' +
-              '</div>' +
-              '<div style="width:8px;height:8px;border-radius:50%;background:' + (isActive ? '#3a76f0' : 'rgba(255,255,255,0.15)') + ';flex-shrink:0;"></div>';
-            row.addEventListener('click', function() { pendingNotif = opt.value; renderNotifsList(); });
-            container.appendChild(row);
-          });
-        }
-        renderNotifsList();
-        var validateBtn = document.getElementById('notifs-validate-btn');
-        if (validateBtn) {
-          validateBtn.onclick = function() {
-            try { localStorage.setItem(lsKeyN, pendingNotif); } catch(e2){}
-            if (contact) { contact.notifMode = pendingNotif; saveState(state); }
-            convShowScreen('main');
-          };
-        }
-        convShowScreen('notifs');
+        openMuteScreen();
       });
     }
     // Bande actions — sourdine toggle
     var convActionMute = document.getElementById('conv-action-mute');
     if (convActionMute) {
-      var isMuted = false;
       convActionMute.addEventListener('click', function(e) {
         e.stopPropagation();
-        isMuted = !isMuted;
-        convActionMute.style.background = isMuted ? '#5c3a8a' : '#3d2f6e';
-        var icon = document.getElementById('conv-mute-icon');
-        var label = document.getElementById('conv-mute-label');
-        if (icon) {
-          icon.innerHTML = isMuted
-            ? '<path d="M6 10a6 6 0 0112 0v4l2 2H4l2-2v-4z" stroke="#a78bfa" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 18a2 2 0 004 0" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round"/><line x1="4" y1="4" x2="20" y2="20" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round"/>'
-            : '<path d="M6 10a6 6 0 0112 0v4l2 2H4l2-2v-4z" stroke="#a78bfa" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 18a2 2 0 004 0" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round"/>';
-        }
-        if (label) label.style.color = isMuted ? '#a78bfa' : 'rgba(255,255,255,0.5)';
-        if (isMuted) {
-          try { localStorage.setItem('gt_notif_' + activeId, 'mute'); } catch(e2){}
-        } else {
-          try { localStorage.setItem('gt_notif_' + activeId, 'on'); } catch(e2){}
-        }
+        openMuteScreen();
       });
     }
     // Vidéo & Audio — placeholders
@@ -6597,16 +6599,12 @@
           <button type="button" class="conv-back-btn" data-target="main" aria-label="Retour" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.1);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M8 1L2 7.5 8 14" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
-          <p style="margin:0;font-size:15px;font-weight:500;color:rgba(255,255,255,0.9);">Notifications</p>
+          <p id="notifs-screen-title" style="margin:0;font-size:15px;font-weight:500;color:rgba(255,255,255,0.9);">Mettre en sourdine pour...</p>
           <button type="button" id="notifs-validate-btn" aria-label="Valider" style="width:36px;height:36px;border-radius:50%;background:#3a76f0;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
             <svg width="14" height="11" viewBox="0 0 14 11" fill="none"><path d="M1 5.5L5 9.5L13 1" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
         </div>
-        <!-- Note -->
-        <div style="padding:0 18px 14px;display:flex;align-items:flex-start;gap:8px;">
-          <div style="width:4px;height:4px;border-radius:50%;background:#4ade80;margin-top:7px;flex-shrink:0;"></div>
-          <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.3);line-height:1.6;">En sourdine, vous recevez les messages sans son ni bannière de notification.</p>
-        </div>
+
         <!-- Grande bulle options -->
         <div style="margin:0 16px 20px;background:rgba(255,255,255,0.04);border-radius:20px;border:0.5px solid rgba(255,255,255,0.06);overflow:hidden;">
           <div id="notifs-options"></div>
