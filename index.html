@@ -672,9 +672,8 @@
       background: var(--bubble-me);
       color: #fff;
       border-radius: 22px 22px 6px 22px;
-      display: inline-flex;
-      align-items: flex-end;
-      gap: 6px;
+      padding-top: 16px;
+      padding-right: 20px;
     }
     .row.me .bubble .bubble-read {
       display: none;
@@ -682,30 +681,32 @@
     .row.me .bubble-wrap {
       position: relative;
     }
-    /* Badge statut — variante Mix A, inline après texte, bas-droit */
+    /* Badge statut — variante D, coin haut-droit intérieur bulle */
+    .row.me .bubble {
+      position: relative;
+    }
     .row.me .bubble-read-dot {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      align-self: flex-end;
-      margin-bottom: 2px;
+      position: absolute;
+      top: 5px;
+      right: 6px;
       width: 7px;
       height: 7px;
       border-radius: 50%;
       box-sizing: border-box;
       pointer-events: none;
-      /* En attente : gris */
+      border: none;
       background: rgba(255,255,255,0.3);
     }
     .row.me .bubble-read-dot.is-delivered {
       background: rgba(255,255,255,0.85);
     }
-    /* Lu : double cercle SVG — géré via JS */
     .row.me .bubble-read-dot.is-read {
-      background: transparent;
-      width: 13px;
-      height: 13px;
+      width: 11px;
+      height: 11px;
+      top: 4px;
+      right: 5px;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.25);
     }
     .composer {
       border-top: none;
@@ -3314,12 +3315,6 @@
       if (dot.className !== newClass) {
         dot.className = newClass;
         dot.setAttribute('aria-label', newLabel);
-        // Injecter SVG double cercle si lu
-        if (msg.readAt) {
-          dot.innerHTML = '<svg width="13" height="13" viewBox="0 0 13 13" fill="none" style="display:block"><circle cx="6.5" cy="6.5" r="5.5" stroke="rgba(255,255,255,0.35)" stroke-width="1.2"/><circle cx="6.5" cy="6.5" r="3" fill="#fff"/></svg>';
-        } else {
-          dot.innerHTML = '';
-        }
       }
       return true;
     }
@@ -4022,43 +4017,42 @@
   function markConversationMessagesRead(contactId) {
     initFirebase();
     if (!firestoreDb || !contactId) return Promise.resolve();
-    var contact = getContactById(contactId);
-    if (!contact) return Promise.resolve();
     var me = currentUsername();
-    var fromContact = normalizeContactName(contact.name);
-    if (!me || !fromContact) return Promise.resolve();
-    // Marquer localement immédiatement pour l'UI
+    if (!me) return Promise.resolve();
+
+    // Marquer localement immédiatement
     markIncomingMessagesReadLocal(contactId);
     renderMessages();
     renderConvList();
-    // Puis mettre à jour Firebase
-    return firestoreDb
-      .collection('messages')
-      .where('from', '==', fromContact)
-      .where('to', '==', me)
-      .get()
-      .then(function (snapshot) {
-        var refs = [];
-        snapshot.forEach(function (doc) {
-          var d = doc.data() || {};
-          if (d.readAt) return;
-          refs.push(doc.ref);
-        });
-        function commitNextBatch() {
-          if (refs.length === 0) return Promise.resolve();
-          var batch = firestoreDb.batch();
-          var n = 0;
-          while (n < 500 && refs.length) {
-            batch.update(refs.pop(), { readAt: firebase.firestore.FieldValue.serverTimestamp() });
-            n++;
-          }
-          return batch.commit().then(commitNextBatch);
-        }
-        return commitNextBatch();
-      })
-      .catch(function (err) {
-        console.error(err);
+
+    // Récupérer les IDs des messages reçus non lus depuis state (déjà en mémoire)
+    ensureData();
+    var unreadIds = [];
+    state.directMessages.forEach(function(m) {
+      if (m.contactId === contactId && m.me === false && m.id) {
+        unreadIds.push(m.id);
+      }
+    });
+
+    if (unreadIds.length === 0) return Promise.resolve();
+
+    // Mettre à jour Firebase par batch directement via les IDs
+    function commitNextBatch(ids) {
+      if (ids.length === 0) return Promise.resolve();
+      var batch = firestoreDb.batch();
+      var slice = ids.splice(0, 500);
+      slice.forEach(function(id) {
+        var ref = firestoreDb.collection('messages').doc(id);
+        batch.update(ref, { readAt: firebase.firestore.FieldValue.serverTimestamp() });
       });
+      return batch.commit().then(function() {
+        return commitNextBatch(ids);
+      });
+    }
+
+    return commitNextBatch(unreadIds).catch(function(err) {
+      console.error('markConversationMessagesRead error:', err);
+    });
   }
 
   function countUnreadIncomingForContact(contactId) {
@@ -4699,13 +4693,8 @@
       }
       if (m.me) {
         var readEl = document.createElement('span');
-        var readClass = m.readAt ? ' is-read' : (m.deliveredAt ? ' is-delivered' : '');
-        readEl.className = 'bubble-read-dot' + readClass;
+        readEl.className = 'bubble-read-dot' + (m.readAt ? ' is-read' : (m.deliveredAt ? ' is-delivered' : ''));
         readEl.setAttribute('aria-label', m.readAt ? 'Lu' : (m.deliveredAt ? 'Livré' : 'Envoyé'));
-        if (m.readAt) {
-          // Double cercle SVG pour "lu"
-          readEl.innerHTML = '<svg width="13" height="13" viewBox="0 0 13 13" fill="none" style="display:block"><circle cx="6.5" cy="6.5" r="5.5" stroke="rgba(255,255,255,0.35)" stroke-width="1.2"/><circle cx="6.5" cy="6.5" r="3" fill="#fff"/></svg>';
-        }
         b.appendChild(readEl);
       }
       wrap.appendChild(b);
