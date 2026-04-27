@@ -6113,72 +6113,123 @@
       });
     }
 
-    function openMuteScreen() {
+    // Popover sourdine — ancré sous le bouton
+    var _muteOptions = [
+      { value: '1h',     label: '1 heure',   ms: 3600000 },
+      { value: '8h',     label: '8 heures',  ms: 28800000 },
+      { value: '24h',    label: '24 heures', ms: 86400000 },
+      { value: '1week',  label: '1 semaine', ms: 604800000 },
+      { value: 'always', label: 'Toujours',  ms: null }
+    ];
+    var _selectedMute = null;
+
+    function closeMutePopover() {
+      var pop = document.getElementById('mute-popover');
+      var ov = document.getElementById('mute-overlay');
+      if (pop) pop.style.display = 'none';
+      if (ov) ov.style.display = 'none';
+      _selectedMute = null;
+    }
+
+    function applyMute() {
+      if (!_selectedMute) return;
       var contact = getContactById(activeId);
       var lsKeyN = 'gt_notif_' + activeId;
       var lsKeyMuteUntil = 'gt_mute_until_' + activeId;
-      var pendingNotif;
-      try { pendingNotif = localStorage.getItem(lsKeyN) || 'on'; } catch(e2){ pendingNotif = 'on'; }
-      var muteOptions = [
-        { value: '1h',      label: '1 heure',    ms: 3600000 },
-        { value: '8h',      label: '8 heures',   ms: 28800000 },
-        { value: '24h',     label: '24 heures',  ms: 86400000 },
-        { value: '1week',   label: '1 semaine',  ms: 604800000 },
-        { value: 'always',  label: 'Toujours',   ms: null }
-      ];
-      var selectedMute = null;
-      var container = document.getElementById('notifs-options');
-      var titleEl = document.getElementById('notifs-screen-title');
-      if (titleEl) titleEl.textContent = 'Mettre en sourdine pour...';
-      function renderMuteList() {
-        if (!container) return;
-        container.innerHTML = '';
-        muteOptions.forEach(function(opt, i) {
-          var row = document.createElement('button');
-          row.type = 'button';
-          var isActive = selectedMute === opt.value;
-          row.style.cssText = 'width:100%;display:flex;align-items:center;justify-content:space-between;padding:17px 20px;border:none;background:transparent;cursor:pointer;-webkit-tap-highlight-color:transparent;color:#fff;border-top:' + (i === 0 ? 'none' : '0.5px solid rgba(255,255,255,0.06)') + ';';
-          row.innerHTML =
-            '<span style="font-size:16px;font-weight:' + (isActive ? '500' : '400') + ';">' + opt.label + '</span>' +
-            '<div style="width:20px;height:20px;border-radius:50%;background:' + (isActive ? '#3a76f0' : 'transparent') + ';border:' + (isActive ? 'none' : '1.5px solid rgba(255,255,255,0.2)') + ';display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
-              (isActive ? '<svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '') +
-            '</div>';
-          row.addEventListener('click', function() { selectedMute = opt.value; renderMuteList(); });
-          container.appendChild(row);
-        });
-      }
-      renderMuteList();
-      var validateBtn = document.getElementById('notifs-validate-btn');
-      if (validateBtn) {
-        validateBtn.onclick = function() {
-          if (selectedMute) {
-            try { localStorage.setItem(lsKeyN, 'mute'); } catch(e2){}
-            var opt = muteOptions.find(function(o){ return o.value === selectedMute; });
-            var until = opt && opt.ms ? Date.now() + opt.ms : null;
-            try { localStorage.setItem(lsKeyMuteUntil, until ? String(until) : 'always'); } catch(e2){}
-            if (contact) { contact.notifMode = 'mute'; contact.muteUntil = until; saveState(state); }
-            // Mettre à jour l'icône sourdine dans la bande
-            var icon = document.getElementById('conv-mute-icon');
-            if (icon) icon.innerHTML = '<path d="M6 10a6 6 0 0112 0v4l2 2H4l2-2v-4z" stroke="#a78bfa" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 18a2 2 0 004 0" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round"/><line x1="4" y1="4" x2="20" y2="20" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round"/>';
-          }
-          convShowScreen('main');
-        };
-      }
-      convShowScreen('notifs');
+      var opt = _muteOptions.find(function(o){ return o.value === _selectedMute; });
+      var until = opt && opt.ms ? Date.now() + opt.ms : null;
+      try { localStorage.setItem(lsKeyN, 'mute'); } catch(e2){}
+      try { localStorage.setItem(lsKeyMuteUntil, until ? String(until) : 'always'); } catch(e2){}
+      if (contact) { contact.notifMode = 'mute'; contact.muteUntil = until; saveState(state); }
+      var muteBtn = document.getElementById('conv-action-mute');
+      if (muteBtn) muteBtn.style.background = '#5c3a8a';
+      var icon = document.getElementById('conv-mute-icon');
+      if (icon) icon.innerHTML = '<path d="M6 10a6 6 0 0112 0v4l2 2H4l2-2v-4z" stroke="#a78bfa" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 18a2 2 0 004 0" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round"/><line x1="4" y1="4" x2="20" y2="20" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round"/>';
+      closeMutePopover();
     }
+
+    function renderMutePopoverItems() {
+      var container = document.getElementById('mute-popover-items');
+      if (!container) return;
+      container.innerHTML = '';
+      _muteOptions.forEach(function(opt) {
+        var row = document.createElement('button');
+        row.type = 'button';
+        var isActive = _selectedMute === opt.value;
+        row.style.cssText = 'width:100%;display:flex;align-items:center;justify-content:space-between;padding:13px 14px;border:none;background:' + (isActive ? 'rgba(58,118,240,0.1)' : 'transparent') + ';cursor:pointer;-webkit-tap-highlight-color:transparent;border-top:0.5px solid rgba(255,255,255,0.06);';
+        row.innerHTML =
+          '<span style="font-size:15px;color:#fff;font-weight:' + (isActive ? '500' : '400') + ';">' + opt.label + '</span>' +
+          '<div style="width:18px;height:18px;border-radius:50%;background:' + (isActive ? '#3a76f0' : 'transparent') + ';border:' + (isActive ? 'none' : '1.5px solid rgba(255,255,255,0.2)') + ';display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
+            (isActive ? '<svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3 5.5L8 1" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '') +
+          '</div>';
+        row.addEventListener('click', function(e) {
+          e.stopPropagation();
+          _selectedMute = opt.value;
+          renderMutePopoverItems();
+          setTimeout(applyMute, 400);
+        });
+        container.appendChild(row);
+      });
+    }
+
+    function openMutePopover() {
+      _selectedMute = null;
+      renderMutePopoverItems();
+      var pop = document.getElementById('mute-popover');
+      var ov = document.getElementById('mute-overlay');
+      if (pop) pop.style.display = 'block';
+      if (ov) {
+        ov.style.display = 'block';
+        ov.onclick = function() { closeMutePopover(); };
+      }
+    }
+
     var convMenuNotifs = document.getElementById('conv-menu-notifs');
     if (convMenuNotifs) {
       convMenuNotifs.addEventListener('click', function (e) {
         e.stopPropagation();
-        openMuteScreen();
+        var contact = getContactById(activeId);
+        var lsKeyN = 'gt_notif_' + activeId;
+        var pendingNotif;
+        try { pendingNotif = localStorage.getItem(lsKeyN) || 'on'; } catch(e2){ pendingNotif = 'on'; }
+        var notifsOptionsList = [
+          { value: 'on',   label: 'Activés',  sub: 'Sons et notifications normaux' },
+          { value: 'mute', label: 'Sourdine', sub: 'Notifications silencieuses, sans son' }
+        ];
+        var container = document.getElementById('notifs-options');
+        function renderNotifsList() {
+          if (!container) return;
+          container.innerHTML = '';
+          notifsOptionsList.forEach(function(opt, i) {
+            var row = document.createElement('button');
+            row.type = 'button';
+            var isActive = opt.value === pendingNotif;
+            row.style.cssText = 'width:100%;display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border:none;background:transparent;cursor:pointer;-webkit-tap-highlight-color:transparent;border-top:' + (i === 0 ? 'none' : '0.5px solid rgba(255,255,255,0.06)') + ';';
+            row.innerHTML =
+              '<div style="text-align:left;"><p style="margin:0;font-size:15px;color:#fff;font-weight:' + (isActive ? '500' : '400') + ';">' + opt.label + '</p><p style="margin:0;font-size:12px;color:rgba(255,255,255,0.35);margin-top:2px;">' + opt.sub + '</p></div>' +
+              '<div style="width:8px;height:8px;border-radius:50%;background:' + (isActive ? '#3a76f0' : 'rgba(255,255,255,0.15)') + ';flex-shrink:0;"></div>';
+            row.addEventListener('click', function() { pendingNotif = opt.value; renderNotifsList(); });
+            container.appendChild(row);
+          });
+        }
+        renderNotifsList();
+        var validateBtn = document.getElementById('notifs-validate-btn');
+        if (validateBtn) {
+          validateBtn.onclick = function() {
+            try { localStorage.setItem(lsKeyN, pendingNotif); } catch(e2){}
+            if (contact) { contact.notifMode = pendingNotif; saveState(state); }
+            convShowScreen('main');
+          };
+        }
+        convShowScreen('notifs');
       });
     }
-    // Bande actions — sourdine toggle
+
     var convActionMute = document.getElementById('conv-action-mute');
     if (convActionMute) {
       convActionMute.addEventListener('click', function(e) {
         e.stopPropagation();
-        openMuteScreen();
+        openMutePopover();
       });
     }
     // Vidéo & Audio — placeholders
@@ -6340,12 +6391,21 @@
             <span style="font-size:11px;color:rgba(255,255,255,0.4);">Audio</span>
           </div>
 
-          <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;">
             <button type="button" id="conv-action-mute" style="width:56px;height:42px;border-radius:16px 16px 16px 5px;background:#3d2f6e;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;">
               <svg id="conv-mute-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M6 10a6 6 0 0112 0v4l2 2H4l2-2v-4z" stroke="#a78bfa" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 18a2 2 0 004 0" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round"/></svg>
             </button>
             <span id="conv-mute-label" style="font-size:11px;color:rgba(255,255,255,0.4);">Sourdine</span>
+            <!-- Popover sourdine -->
+            <div id="mute-popover" style="display:none;position:absolute;top:calc(100% + 10px);left:50%;transform:translateX(-50%);background:#1c1c1f;border-radius:14px;width:195px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.7);z-index:200;border:0.5px solid rgba(255,255,255,0.08);">
+              <div style="padding:9px 14px 7px;">
+                <p style="margin:0;font-size:11px;color:rgba(255,255,255,0.3);">Mettre en sourdine pour...</p>
+              </div>
+              <div id="mute-popover-items"></div>
+            </div>
           </div>
+          <!-- Overlay pour fermer le popover -->
+          <div id="mute-overlay" style="display:none;position:fixed;inset:0;z-index:199;"></div>
 
           <div style="display:flex;flex-direction:column;align-items:center;gap:6px;opacity:0.3;pointer-events:none;">
             <div style="width:56px;height:42px;border-radius:16px 16px 5px 16px;background:#2a2a2e;display:flex;align-items:center;justify-content:center;">
