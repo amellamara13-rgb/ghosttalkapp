@@ -3386,7 +3386,11 @@
             for (var j = 0; j < state.directMessages.length; j++) {
               if (state.directMessages[j].id === msg.id) { idx2 = j; break; }
             }
-            if (idx2 >= 0) { state.directMessages[idx2] = msg; }
+            if (idx2 >= 0) {
+              state.directMessages[idx2].readAt = msg.readAt;
+              state.directMessages[idx2].deliveredAt = msg.deliveredAt;
+              state.directMessages[idx2] = msg;
+            }
             else { state.directMessages.push(msg); needsFullRender = true; }
             modifiedBadgeOnly.push(msg);
             changed = true;
@@ -3399,45 +3403,34 @@
 
         var wasFirst = isFirstSnapshot; isFirstSnapshot = false;
         if (!changed && !wasFirst) return;
-        if (!changed) { if (activeId) renderMessages(); renderConvList(); return; }
+        if (!changed) {
+          renderConvList();
+          if (activeId) renderMessages();
+          return;
+        }
 
         state.directMessages.sort(function(a, b) { return (a.at || 0) - (b.at || 0); });
         saveState(state);
 
         // Patch chirurgical : badges lu/livré sans reconstruire le DOM
-        var patchedBadgeContactIds = {};
         modifiedBadgeOnly.forEach(function(msg) {
           patchMessageBadgeInDOM(msg);
-          patchedBadgeContactIds[msg.contactId] = true;
         });
 
-        // Mise à jour liste conversations (badges non-lus + preview)
-        var affectedContactIds = {};
-        snapshot.docChanges().forEach(function(change) {
-          var data = change.doc.data() || {};
-          var from = normalizeContactName(data.from || '');
-          var to = normalizeContactName(data.to || '');
-          var other = from === me ? to : from;
-          if (other) {
-            var c = state.contacts ? state.contacts.find(function(x){ return normalizeContactName(x.name) === other; }) : null;
-            if (c) affectedContactIds[c.id] = true;
-          }
-        });
-
-        var allPatched = true;
-        Object.keys(affectedContactIds).forEach(function(cid) {
-          if (!patchConvListItem(cid)) allPatched = false;
-        });
-        if (!allPatched) renderConvList();
+        // Toujours rafraîchir la liste conversations pour les compteurs non-lus
+        renderConvList();
 
         // Rendu messages : complet si nouveau message, patch badge sinon
         if (activeId) {
-          if (needsFullRender) {
+          if (wasFirst || needsFullRender) {
             renderMessages();
           } else {
+            var patchFailed = false;
             modifiedBadgeOnly.forEach(function(msg) {
-              if (msg.contactId === activeId) patchMessageBadgeInDOM(msg);
+              if (msg.contactId !== activeId) return;
+              if (!patchMessageBadgeInDOM(msg)) patchFailed = true;
             });
+            if (patchFailed) renderMessages();
           }
         }
 
