@@ -6245,8 +6245,48 @@
     if (convMenuNotifs) {
       convMenuNotifs.addEventListener('click', function (e) {
         e.stopPropagation();
-        convShowScreen('main');
-        setTimeout(function() { openMutePopover(); }, 50);
+        var lsKeyN = 'gt_notif_' + activeId;
+        var pendingNotif;
+        try { pendingNotif = localStorage.getItem(lsKeyN) || 'on'; } catch(e2){ pendingNotif = 'on'; }
+        var notifsOptionsList = [
+          { value: 'on',   label: 'Activés',  sub: 'Sons et notifications normaux' },
+          { value: 'mute', label: 'Sourdine', sub: 'Notifications silencieuses, sans son' }
+        ];
+        var container = document.getElementById('notifs-options');
+        function renderNotifsList() {
+          if (!container) return;
+          container.innerHTML = '';
+          notifsOptionsList.forEach(function(opt, i) {
+            var row = document.createElement('button');
+            row.type = 'button';
+            var isActive = opt.value === pendingNotif;
+            row.style.cssText = 'width:100%;display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border:none;background:transparent;cursor:pointer;-webkit-tap-highlight-color:transparent;border-top:' + (i === 0 ? 'none' : '0.5px solid rgba(255,255,255,0.06)') + ';';
+            row.innerHTML =
+              '<div style="text-align:left;"><p style="margin:0;font-size:15px;color:#fff;font-weight:' + (isActive ? '500' : '400') + ';">' + opt.label + '</p><p style="margin:0;font-size:12px;color:rgba(255,255,255,0.35);margin-top:2px;">' + opt.sub + '</p></div>' +
+              '<div style="width:8px;height:8px;border-radius:50%;background:' + (isActive ? '#3a76f0' : 'rgba(255,255,255,0.15)') + ';flex-shrink:0;"></div>';
+            row.addEventListener('click', function() {
+              if (opt.value === 'mute') {
+                convShowScreen('main');
+                setTimeout(function() { openMutePopover(); }, 80);
+              } else {
+                pendingNotif = opt.value;
+                renderNotifsList();
+              }
+            });
+            container.appendChild(row);
+          });
+        }
+        renderNotifsList();
+        var validateBtn = document.getElementById('notifs-validate-btn');
+        if (validateBtn) {
+          validateBtn.onclick = function() {
+            var contact = getContactById(activeId);
+            try { localStorage.setItem(lsKeyN, pendingNotif); } catch(e2){}
+            if (contact) { contact.notifMode = pendingNotif; saveState(state); }
+            convShowScreen('main');
+          };
+        }
+        convShowScreen('notifs');
       });
     }
 
