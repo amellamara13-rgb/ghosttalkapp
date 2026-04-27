@@ -670,6 +670,8 @@
       background: var(--bubble-me);
       color: #fff;
       border-radius: 22px 22px 6px 22px;
+      padding-top: 16px;
+      padding-right: 20px;
     }
     .row.me .bubble .bubble-read {
       display: none;
@@ -677,13 +679,16 @@
     .row.me .bubble-wrap {
       position: relative;
     }
-    /* Badge statut — point flottant sans contour, coin haut-droit */
+    /* Badge statut — variante D, coin haut-droit intérieur bulle */
+    .row.me .bubble {
+      position: relative;
+    }
     .row.me .bubble-read-dot {
       position: absolute;
-      top: -4px;
-      right: -4px;
-      width: 8px;
-      height: 8px;
+      top: 5px;
+      right: 6px;
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
       box-sizing: border-box;
       pointer-events: none;
@@ -694,8 +699,12 @@
       background: rgba(255,255,255,0.85);
     }
     .row.me .bubble-read-dot.is-read {
+      width: 11px;
+      height: 11px;
+      top: 4px;
+      right: 5px;
       background: #fff;
-      box-shadow: 0 0 0 2.5px rgba(255,255,255,0.25);
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.25);
     }
     .composer {
       border-top: none;
@@ -4673,7 +4682,7 @@
         var readEl = document.createElement('span');
         readEl.className = 'bubble-read-dot' + (m.readAt ? ' is-read' : (m.deliveredAt ? ' is-delivered' : ''));
         readEl.setAttribute('aria-label', m.readAt ? 'Lu' : (m.deliveredAt ? 'Livré' : 'Envoyé'));
-        wrap.appendChild(readEl);
+        b.appendChild(readEl);
       }
       wrap.appendChild(b);
       if (m.preserved === true && m.preservedBy) {
