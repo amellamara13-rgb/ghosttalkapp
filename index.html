@@ -6199,6 +6199,8 @@
       var container = document.getElementById('mute-popover-items');
       if (!pop || !container) return;
       container.innerHTML = '';
+      var hdrEl = document.getElementById('mute-popover-header');
+      if (hdrEl) hdrEl.style.display = 'none';
       if (isMuted) {
         var label = (!muteUntil || muteUntil === 'always') ? null : formatMuteUntilLabel(muteUntil);
         var infoRow = document.createElement('div');
@@ -6228,6 +6230,8 @@
         container.appendChild(unmuteBtn);
       } else {
         _selectedMute = null;
+        var hdr = document.getElementById('mute-popover-header');
+        if (hdr) hdr.style.display = 'block';
         renderMutePopoverItems();
       }
       if (pop) pop.style.display = 'block';
@@ -6241,40 +6245,8 @@
     if (convMenuNotifs) {
       convMenuNotifs.addEventListener('click', function (e) {
         e.stopPropagation();
-        var contact = getContactById(activeId);
-        var lsKeyN = 'gt_notif_' + activeId;
-        var pendingNotif;
-        try { pendingNotif = localStorage.getItem(lsKeyN) || 'on'; } catch(e2){ pendingNotif = 'on'; }
-        var notifsOptionsList = [
-          { value: 'on',   label: 'Activés',  sub: 'Sons et notifications normaux' },
-          { value: 'mute', label: 'Sourdine', sub: 'Notifications silencieuses, sans son' }
-        ];
-        var container = document.getElementById('notifs-options');
-        function renderNotifsList() {
-          if (!container) return;
-          container.innerHTML = '';
-          notifsOptionsList.forEach(function(opt, i) {
-            var row = document.createElement('button');
-            row.type = 'button';
-            var isActive = opt.value === pendingNotif;
-            row.style.cssText = 'width:100%;display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border:none;background:transparent;cursor:pointer;-webkit-tap-highlight-color:transparent;border-top:' + (i === 0 ? 'none' : '0.5px solid rgba(255,255,255,0.06)') + ';';
-            row.innerHTML =
-              '<div style="text-align:left;"><p style="margin:0;font-size:15px;color:#fff;font-weight:' + (isActive ? '500' : '400') + ';">' + opt.label + '</p><p style="margin:0;font-size:12px;color:rgba(255,255,255,0.35);margin-top:2px;">' + opt.sub + '</p></div>' +
-              '<div style="width:8px;height:8px;border-radius:50%;background:' + (isActive ? '#3a76f0' : 'rgba(255,255,255,0.15)') + ';flex-shrink:0;"></div>';
-            row.addEventListener('click', function() { pendingNotif = opt.value; renderNotifsList(); });
-            container.appendChild(row);
-          });
-        }
-        renderNotifsList();
-        var validateBtn = document.getElementById('notifs-validate-btn');
-        if (validateBtn) {
-          validateBtn.onclick = function() {
-            try { localStorage.setItem(lsKeyN, pendingNotif); } catch(e2){}
-            if (contact) { contact.notifMode = pendingNotif; saveState(state); }
-            convShowScreen('main');
-          };
-        }
-        convShowScreen('notifs');
+        convShowScreen('main');
+        setTimeout(function() { openMutePopover(); }, 50);
       });
     }
 
@@ -6453,6 +6425,9 @@
             <div id="mute-popover" style="display:none;position:absolute;top:calc(100% + 10px);left:50%;transform:translateX(-50%);background:#1c1c1f;border-radius:14px;width:240px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.7);z-index:200;border:0.5px solid rgba(255,255,255,0.08);">
               <div style="padding:9px 14px 7px;">
 
+              </div>
+              <div id="mute-popover-header" style="padding:9px 14px 7px;border-bottom:0.5px solid rgba(255,255,255,0.06);display:none;">
+                <p style="margin:0;font-size:11px;color:rgba(255,255,255,0.3);">Mettre en sourdine pour...</p>
               </div>
               <div id="mute-popover-items"></div>
             </div>
