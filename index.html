@@ -6266,8 +6266,38 @@
               '<div style="width:8px;height:8px;border-radius:50%;background:' + (isActive ? '#3a76f0' : 'rgba(255,255,255,0.15)') + ';flex-shrink:0;"></div>';
             row.addEventListener('click', function() {
               if (opt.value === 'mute') {
-                convShowScreen('main');
-                setTimeout(function() { openMutePopover(); }, 80);
+                // Ouvrir le popover durée dans le sous-menu
+                var muteItems = document.getElementById('notifs-mute-items');
+                var muteOverlay = document.getElementById('notifs-mute-overlay');
+                var mutePop = document.getElementById('notifs-mute-popover');
+                if (!muteItems || !mutePop) return;
+                muteItems.innerHTML = '';
+                _muteOptions.forEach(function(mopt, mi) {
+                  var mrow = document.createElement('button');
+                  mrow.type = 'button';
+                  mrow.style.cssText = 'width:100%;display:flex;align-items:center;justify-content:space-between;padding:13px 14px;border:none;background:transparent;cursor:pointer;-webkit-tap-highlight-color:transparent;border-top:' + (mi === 0 ? 'none' : '0.5px solid rgba(255,255,255,0.06)') + ';';
+                  mrow.innerHTML = '<span style="font-size:15px;color:#fff;">' + mopt.label + '</span><div style="width:18px;height:18px;border-radius:50%;border:1.5px solid rgba(255,255,255,0.2);"></div>';
+                  mrow.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    // Appliquer la sourdine
+                    var lsKeyMuteUntil = 'gt_mute_until_' + activeId;
+                    var until = mopt.ms ? Date.now() + mopt.ms : null;
+                    try { localStorage.setItem(lsKeyN, 'mute'); } catch(e2){}
+                    try { localStorage.setItem(lsKeyMuteUntil, until ? String(until) : 'always'); } catch(e2){}
+                    var contact = getContactById(activeId);
+                    if (contact) { contact.notifMode = 'mute'; contact.muteUntil = until; saveState(state); }
+                    var muteBtn = document.getElementById('conv-action-mute');
+                    if (muteBtn) muteBtn.style.background = '#5c3a8a';
+                    var icon = document.getElementById('conv-mute-icon');
+                    if (icon) icon.innerHTML = '<path d="M6 10a6 6 0 0112 0v4l2 2H4l2-2v-4z" stroke="#a78bfa" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 18a2 2 0 004 0" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round"/><line x1="4" y1="4" x2="20" y2="20" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round"/>';
+                    if (mutePop) mutePop.style.display = 'none';
+                    if (muteOverlay) muteOverlay.style.display = 'none';
+                    convShowScreen('main');
+                  });
+                  muteItems.appendChild(mrow);
+                });
+                if (muteOverlay) muteOverlay.style.display = 'block';
+                if (mutePop) mutePop.style.display = 'block';
               } else {
                 pendingNotif = opt.value;
                 renderNotifsList();
@@ -6734,8 +6764,18 @@
         </div>
 
         <!-- Grande bulle options -->
-        <div style="margin:0 16px 20px;background:rgba(255,255,255,0.04);border-radius:20px;border:0.5px solid rgba(255,255,255,0.06);overflow:hidden;">
-          <div id="notifs-options"></div>
+        <div style="position:relative;">
+          <div style="margin:0 16px 20px;background:rgba(255,255,255,0.04);border-radius:20px;border:0.5px solid rgba(255,255,255,0.06);overflow:hidden;">
+            <div id="notifs-options"></div>
+          </div>
+          <!-- Overlay + popover durée sourdine -->
+          <div id="notifs-mute-overlay" style="display:none;position:absolute;inset:0;z-index:5;" onclick="document.getElementById('notifs-mute-overlay').style.display='none';"></div>
+          <div id="notifs-mute-popover" style="display:none;position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:210px;background:#1c1c1f;border-radius:14px;overflow:hidden;border:0.5px solid rgba(255,255,255,0.08);box-shadow:0 8px 24px rgba(0,0,0,0.7);z-index:10;">
+            <div style="padding:9px 14px 7px;border-bottom:0.5px solid rgba(255,255,255,0.06);">
+              <p style="margin:0;font-size:11px;color:rgba(255,255,255,0.3);">Mettre en sourdine pour...</p>
+            </div>
+            <div id="notifs-mute-items"></div>
+          </div>
         </div>
       </div>
 
