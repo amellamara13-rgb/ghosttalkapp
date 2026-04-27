@@ -1605,17 +1605,20 @@
       display: none !important;
     }
     .new-contact-suggestions {
-      position: fixed;
-      z-index: 99999;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      z-index: 9999;
       list-style: none;
       padding: 4px;
-      margin: 0;
-      max-height: 220px;
+      margin: 4px 0 0;
+      max-height: 200px;
       overflow-y: auto;
       background: var(--surface);
       border: 1px solid var(--line);
       border-radius: var(--radius-sm);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
     }
     .modal-body .new-contact-wrap {
       position: relative;
@@ -3117,23 +3120,6 @@
         list.appendChild(li);
       });
       list.hidden = false;
-      requestAnimationFrame(function() {
-        var inp = document.getElementById('new-contact-input');
-        if (!inp) return;
-        var rect = inp.getBoundingClientRect();
-        var spaceBelow = window.innerHeight - rect.bottom;
-        var spaceAbove = rect.top;
-        var listH = Math.min(220, list.scrollHeight || 220);
-        if (spaceBelow >= listH + 8 || spaceBelow >= spaceAbove) {
-          list.style.top = (rect.bottom + 4) + 'px';
-          list.style.bottom = 'auto';
-        } else {
-          list.style.bottom = (window.innerHeight - rect.top + 4) + 'px';
-          list.style.top = 'auto';
-        }
-        list.style.left = rect.left + 'px';
-        list.style.width = rect.width + 'px';
-      });
     });
   }
 
