@@ -3255,87 +3255,91 @@
     var me = currentUsername();
     if (!me) return;
     if (unsubscribeRealtime) unsubscribeRealtime();
+
+    function parseMsg(doc) {
+      var data = doc.data() || {};
+      var from = normalizeContactName(data.from || '');
+      var to = normalizeContactName(data.to || '');
+      var other = from === me ? to : from;
+      if (!other) return null;
+      var contact = createOrGetContact(other);
+      if (!contact) return null;
+      var at = data.at && typeof data.at.toMillis === 'function' ? data.at.toMillis() : (data.atMs || Date.now());
+      var readAtMs = data.readAt && typeof data.readAt.toMillis === 'function' ? data.readAt.toMillis() : null;
+      var deliveredAtMs = data.deliveredAt && typeof data.deliveredAt.toMillis === 'function' ? data.deliveredAt.toMillis() : null;
+      var replyToObj = null, replyToLegacy = null;
+      if (typeof data.replyTo === 'string') { replyToLegacy = data.replyTo; }
+      else if (data.replyTo && typeof data.replyTo === 'object') {
+        replyToObj = { messageId: data.replyTo.messageId || null, text: data.replyTo.text || '', author: data.replyTo.author || '' };
+      }
+      var reactionsByUser = {};
+      if (data.reactionsByUser && typeof data.reactionsByUser === 'object') {
+        Object.keys(data.reactionsByUser).forEach(function(k) {
+          if (typeof data.reactionsByUser[k] === 'string' && data.reactionsByUser[k].length) reactionsByUser[k] = data.reactionsByUser[k];
+        });
+      }
+      return {
+        id: doc.id, contactId: contact.id, me: from === me,
+        cipher: typeof data.cipher === 'string' ? data.cipher : encryptUtf8(String(data.text || ''), ''),
+        at: at, expiresAt: (typeof data.expiresAt === 'number' && isFinite(data.expiresAt)) ? data.expiresAt : null,
+        ephemeralMode: data.ephemeralMode === 'on_read' ? 'on_read' : null,
+        preserved: data.preserved === true,
+        preservedBy: typeof data.preservedBy === 'string' ? data.preservedBy : null,
+        replyTo: replyToObj, replyToLegacy: replyToLegacy,
+        readAt: readAtMs, deliveredAt: deliveredAtMs, reactionsByUser: reactionsByUser
+      };
+    }
+
     unsubscribeRealtime = firestoreDb
       .collection('messages')
       .where('participants', 'array-contains', me)
-      .onSnapshot({ includeMetadataChanges: false }, function (snapshot) {
+      .onSnapshot(function (snapshot) {
         ensureData();
-        try {
-          notifyNewIncomingMessagesIfNeeded(snapshot, me);
-        } catch (e) {}
-        var remoteMessages = [];
-        snapshot.forEach(function (doc) {
-          var data = doc.data() || {};
-          var from = normalizeContactName(data.from || '');
-          var to = normalizeContactName(data.to || '');
-          var other = from === me ? to : from;
-          if (!other) return;
-          var contact = createOrGetContact(other);
-          if (!contact) return;
-          var at = data.at && typeof data.at.toMillis === 'function' ? data.at.toMillis() : (data.atMs || Date.now());
-          var readAtMs = null;
-          if (data.readAt && typeof data.readAt.toMillis === 'function') {
-            readAtMs = data.readAt.toMillis();
-          }
-          var deliveredAtMs = null;
-          if (data.deliveredAt && typeof data.deliveredAt.toMillis === 'function') {
-            deliveredAtMs = data.deliveredAt.toMillis();
-          }
-          var replyToObj = null;
-          var replyToLegacy = null;
-          if (typeof data.replyTo === 'string') {
-            replyToLegacy = data.replyTo;
-          } else if (data.replyTo && typeof data.replyTo === 'object') {
-            replyToObj = {
-              messageId: typeof data.replyTo.messageId === 'string' ? data.replyTo.messageId : null,
-              text: typeof data.replyTo.text === 'string' ? data.replyTo.text : '',
-              author: typeof data.replyTo.author === 'string' ? data.replyTo.author : ''
-            };
-          }
-          var reactionsByUser = {};
-          if (data.reactionsByUser && typeof data.reactionsByUser === 'object') {
-            Object.keys(data.reactionsByUser).forEach(function (k) {
-              var em = data.reactionsByUser[k];
-              if (typeof em === 'string' && em.length) reactionsByUser[k] = em;
-            });
-          }
-          remoteMessages.push({
-            id: doc.id,
-            contactId: contact.id,
-            me: from === me,
-            cipher: typeof data.cipher === 'string' ? data.cipher : encryptUtf8(String(data.text || ''), ''),
-            at: at,
-            expiresAt: (typeof data.expiresAt === 'number' && isFinite(data.expiresAt)) ? data.expiresAt : null,
-            ephemeralMode: data.ephemeralMode === 'on_read' ? 'on_read' : null,
-            preserved: data.preserved === true,
-            preservedBy: typeof data.preservedBy === 'string' ? data.preservedBy : null,
-            replyTo: replyToObj,
-            replyToLegacy: replyToLegacy,
-            readAt: readAtMs,
-            deliveredAt: deliveredAtMs,
-            reactionsByUser: reactionsByUser
-          });
-        });
-        // Marquer automatiquement les messages reçus comme livrés
-        remoteMessages.forEach(function(m) {
-          if (!m.me && !m.deliveredAt && firestoreDb) {
-            firestoreDb.collection('messages').doc(m.id).update({
-              deliveredAt: firebase.firestore.FieldValue.serverTimestamp()
-            }).catch(function(){});
+        try { notifyNewIncomingMessagesIfNeeded(snapshot, me); } catch(e) {}
+
+        var toDeliver = [];
+        var changed = false;
+
+        snapshot.docChanges().forEach(function(change) {
+          var msg = parseMsg(change.doc);
+          if (!msg) return;
+          if (change.type === 'added' || change.type === 'modified') {
+            var idx = -1;
+            for (var i = 0; i < state.directMessages.length; i++) {
+              if (state.directMessages[i].id === msg.id) { idx = i; break; }
+            }
+            if (idx >= 0) { state.directMessages[idx] = msg; }
+            else { state.directMessages.push(msg); }
+            changed = true;
+            if (!msg.me && !msg.deliveredAt) toDeliver.push(msg.id);
+          } else if (change.type === 'removed') {
+            state.directMessages = state.directMessages.filter(function(m) { return m.id !== msg.id; });
+            changed = true;
           }
         });
-        state.directMessages = remoteMessages.sort(function (a, b) { return (a.at || 0) - (b.at || 0); });
+
+        if (!changed) return;
+
+        state.directMessages.sort(function(a, b) { return (a.at || 0) - (b.at || 0); });
         saveState(state);
         renderConvList();
         if (activeId) renderMessages();
-        purgeExpiredMessages().then(function () {
-          return purgeOnReadSenderMessages();
-        }).catch(function () {});
-      }, function () {
-        // Fallback silencieux: l'app continue en local si Firestore échoue.
+
+        if (toDeliver.length && firestoreDb) {
+          var batch = firestoreDb.batch();
+          toDeliver.forEach(function(id) {
+            batch.update(firestoreDb.collection('messages').doc(id), {
+              deliveredAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+          });
+          batch.commit().catch(function(){});
+        }
+
+        purgeExpiredMessages().then(function() { return purgeOnReadSenderMessages(); }).catch(function(){});
+      }, function(err) {
+        console.warn('Snapshot error:', err);
       });
   }
-
   function getThreadMessages(contactId) {
     ensureData();
     return state.directMessages.filter(function (m) {
