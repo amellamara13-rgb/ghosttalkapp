@@ -6246,11 +6246,25 @@
       convMenuNotifs.addEventListener('click', function (e) {
         e.stopPropagation();
         var lsKeyN = 'gt_notif_' + activeId;
+        var lsKeyMuteUntilInit = 'gt_mute_until_' + activeId;
         var pendingNotif;
+        var currentUntilInit;
         try { pendingNotif = localStorage.getItem(lsKeyN) || 'on'; } catch(e2){ pendingNotif = 'on'; }
+        try { currentUntilInit = localStorage.getItem(lsKeyMuteUntilInit) || null; } catch(e2){ currentUntilInit = null; }
+        // Calculer le sous-texte Sourdine selon état actuel
+        var meuteSub = 'Notifications silencieuses, sans son';
+        if (pendingNotif === 'mute' && currentUntilInit) {
+          var padI = function(n){ return n < 10 ? '0'+n : String(n); };
+          if (currentUntilInit === 'always') {
+            meuteSub = 'Toujours en sourdine';
+          } else {
+            var untilDate = new Date(parseInt(currentUntilInit, 10));
+            meuteSub = "jusquà " + padI(untilDate.getHours()) + ':' + padI(untilDate.getMinutes());
+          }
+        }
         var notifsOptionsList = [
           { value: 'on',   label: 'Activés',  sub: 'Sons et notifications normaux' },
-          { value: 'mute', label: 'Sourdine', sub: 'Notifications silencieuses, sans son' }
+          { value: 'mute', label: 'Sourdine', sub: meuteSub }
         ];
         var container = document.getElementById('notifs-options');
         function renderNotifsList() {
@@ -6333,15 +6347,17 @@
                   });
                 }
                 if (muteOverlay) muteOverlay.style.display = 'block';
-                // Positionner le popover sous la bulle options
-                var wrap = document.getElementById('notifs-options-wrap');
-                if (mutePop && wrap) {
-                  var rect = wrap.getBoundingClientRect();
-                  mutePop.style.top = (rect.bottom + 8) + 'px';
-                  mutePop.style.left = rect.left + 'px';
-                  mutePop.style.width = rect.width + 'px';
-                }
-                if (mutePop) mutePop.style.display = 'block';
+                // Positionner après rendu (l'écran notifs doit être visible)
+                requestAnimationFrame(function() {
+                  var wrap = document.getElementById('notifs-options-wrap');
+                  if (mutePop && wrap) {
+                    var rect = wrap.getBoundingClientRect();
+                    mutePop.style.top = (rect.bottom + 8) + 'px';
+                    mutePop.style.left = rect.left + 'px';
+                    mutePop.style.width = rect.width + 'px';
+                    mutePop.style.display = 'block';
+                  }
+                });
               } else {
                 pendingNotif = opt.value;
                 renderNotifsList();
