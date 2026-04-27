@@ -1614,19 +1614,20 @@
     }
     .new-contact-suggestions {
       position: absolute;
-      top: 100%;
+      top: calc(100% + 8px);
       left: 0;
       right: 0;
       z-index: 9999;
       list-style: none;
-      padding: 4px;
-      margin: 4px 0 0;
-      max-height: 200px;
+      padding: 0;
+      margin: 0;
+      max-height: 260px;
       overflow-y: auto;
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: var(--radius-sm);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      background: #1c1c1f;
+      border: 0.5px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.9);
+      overflow: hidden;
     }
     .modal-body .new-contact-wrap {
       position: relative;
@@ -1652,20 +1653,42 @@
     .new-contact-suggestions[hidden] {
       display: none !important;
     }
+    .new-contact-suggestions li {
+      border-top: 0.5px solid rgba(255,255,255,0.06);
+    }
+    .new-contact-suggestions li:first-child {
+      border-top: none;
+    }
     .new-contact-suggestions li button {
       width: 100%;
       text-align: left;
-      padding: 10px 12px;
+      padding: 13px 16px;
       border: none;
-      border-radius: 8px;
       background: transparent;
-      color: var(--fg);
-      font-size: 14px;
+      color: #fff;
+      font-size: 15px;
       font-family: inherit;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      -webkit-tap-highlight-color: transparent;
     }
     .new-contact-suggestions li button:hover {
-      background: var(--surface-2);
+      background: rgba(255,255,255,0.05);
+    }
+    .new-contact-suggestions li button .sug-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #3a76f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      flex-shrink: 0;
     }
     .hint-egg {
       font-size: 11px;
@@ -3114,7 +3137,15 @@
         var btn = document.createElement('button');
         btn.type = 'button';
         btn.setAttribute('role', 'option');
-        btn.textContent = name;
+        // Avatar initiale
+        var av = document.createElement('div');
+        av.className = 'sug-avatar';
+        av.textContent = name.charAt(0).toUpperCase();
+        var nameSpan = document.createElement('span');
+        nameSpan.textContent = name;
+        nameSpan.style.cssText = 'font-size:15px;color:#fff;';
+        btn.appendChild(av);
+        btn.appendChild(nameSpan);
         btn.addEventListener('mousedown', function (e) {
           e.preventDefault();
         });
