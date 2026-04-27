@@ -1605,11 +1605,14 @@
       display: none !important;
     }
     .new-contact-suggestions {
-      position: fixed;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
       z-index: 9999;
       list-style: none;
       padding: 4px;
-      margin: 0;
+      margin: 4px 0 0;
       max-height: 200px;
       overflow-y: auto;
       background: var(--surface);
@@ -3117,15 +3120,6 @@
         list.appendChild(li);
       });
       list.hidden = false;
-      requestAnimationFrame(function() {
-        var inp = document.getElementById('new-contact-input');
-        if (inp) {
-          var rect = inp.getBoundingClientRect();
-          list.style.top = (rect.bottom + 4) + 'px';
-          list.style.left = rect.left + 'px';
-          list.style.width = rect.width + 'px';
-        }
-      });
     });
   }
 
@@ -6120,7 +6114,7 @@
         </div>
 
         <div id="add-contact-pseudo-section" hidden>
-          <div class="new-contact-wrap" style="margin-bottom:8px;">
+          <div class="new-contact-wrap" style="margin-bottom:8px;position:relative;">
             <span class="new-contact-icon" aria-hidden="true">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(58,118,240,0.6)" stroke-width="2" stroke-linecap="round">
                 <circle cx="11" cy="11" r="8"></circle>
@@ -6137,9 +6131,9 @@
               aria-autocomplete="list"
               aria-controls="new-contact-suggestions"
             />
+            <ul id="new-contact-suggestions" class="new-contact-suggestions" hidden role="listbox" aria-label="Suggestions de pseudos"></ul>
           </div>
           <p id="new-contact-error" class="new-contact-error" hidden role="alert"></p>
-          <ul id="new-contact-suggestions" class="new-contact-suggestions" hidden role="listbox" aria-label="Suggestions de pseudos"></ul>
         </div>
 
         <div id="add-contact-qr-section" hidden>
