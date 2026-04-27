@@ -3290,6 +3290,57 @@
       };
     }
 
+    // Patch DOM ciblé : met à jour uniquement le badge lu/livré d'un message existant
+    function patchMessageBadgeInDOM(msg) {
+      var wrap = document.querySelector('.bubble-wrap[data-msg-id="' + msg.id + '"]');
+      if (!wrap) return false;
+      var dot = wrap.querySelector('.bubble-read-dot');
+      if (!dot) return false;
+      var newClass = 'bubble-read-dot' + (msg.readAt ? ' is-read' : (msg.deliveredAt ? ' is-delivered' : ''));
+      var newLabel = msg.readAt ? 'Lu' : (msg.deliveredAt ? 'Livré' : 'Envoyé');
+      if (dot.className !== newClass) {
+        dot.className = newClass;
+        dot.setAttribute('aria-label', newLabel);
+      }
+      return true;
+    }
+
+    // Patch liste conversations : met à jour le preview et badge non-lus sans reconstruire
+    function patchConvListItem(contactId) {
+      var el = document.querySelector('.conv-host[data-id="' + contactId + '"]');
+      if (!el) return false;
+      var unreadCount = countUnreadIncomingForContact(contactId);
+      var hasUnread = unreadCount > 0 && contactId !== activeId;
+      // Badge non-lus
+      var bar = el.querySelector('.conv-notif-bar');
+      var cnt = el.querySelector('.conv-notif-count');
+      var badgeEl = el.querySelector('.unread-badge');
+      if (bar) bar.style.display = hasUnread ? '' : 'none';
+      if (cnt) cnt.textContent = hasUnread ? String(unreadCount) : '';
+      if (badgeEl) badgeEl.textContent = hasUnread ? String(unreadCount) : '';
+      // Preview (dernier message)
+      var msgs = state.directMessages.filter(function(m) { return m.contactId === contactId; });
+      msgs.sort(function(a,b){ return (a.at||0)-(b.at||0); });
+      var last = msgs[msgs.length - 1];
+      if (last) {
+        var previewEl = el.querySelector('.preview');
+        if (previewEl) {
+          var previewText = '';
+          try { previewText = decryptUtf8(last.cipher, passphrase); } catch(e) { previewText = '…'; }
+          previewEl.textContent = (last.me ? 'Vous : ' : '') + previewText;
+          previewEl.className = 'preview' + (hasUnread ? ' is-unread' : '');
+        }
+        var titleEl = el.querySelector('.title');
+        if (titleEl) titleEl.className = 'title' + (hasUnread ? ' is-unread' : '');
+        var timeEl = el.querySelector('.time');
+        if (timeEl) {
+          var d = new Date(last.at || Date.now());
+          timeEl.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes());
+        }
+      }
+      return true;
+    }
+
     unsubscribeRealtime = firestoreDb
       .collection('messages')
       .where('participants', 'array-contains', me)
@@ -3298,23 +3349,42 @@
         try { notifyNewIncomingMessagesIfNeeded(snapshot, me); } catch(e) {}
 
         var toDeliver = [];
+        var newMessages = [];      // messages vraiment nouveaux → renderMessages complet
+        var modifiedBadgeOnly = []; // messages modifiés (badge lu/livré uniquement)
         var changed = false;
+        var needsFullRender = false;
 
         snapshot.docChanges().forEach(function(change) {
           var msg = parseMsg(change.doc);
           if (!msg) return;
-          if (change.type === 'added' || change.type === 'modified') {
+          if (change.type === 'added') {
             var idx = -1;
             for (var i = 0; i < state.directMessages.length; i++) {
               if (state.directMessages[i].id === msg.id) { idx = i; break; }
             }
-            if (idx >= 0) { state.directMessages[idx] = msg; }
-            else { state.directMessages.push(msg); }
+            if (idx >= 0) {
+              state.directMessages[idx] = msg;
+              modifiedBadgeOnly.push(msg);
+            } else {
+              state.directMessages.push(msg);
+              newMessages.push(msg);
+              needsFullRender = true;
+            }
             changed = true;
             if (!msg.me && !msg.deliveredAt) toDeliver.push(msg.id);
+          } else if (change.type === 'modified') {
+            var idx2 = -1;
+            for (var j = 0; j < state.directMessages.length; j++) {
+              if (state.directMessages[j].id === msg.id) { idx2 = j; break; }
+            }
+            if (idx2 >= 0) { state.directMessages[idx2] = msg; }
+            else { state.directMessages.push(msg); needsFullRender = true; }
+            modifiedBadgeOnly.push(msg);
+            changed = true;
           } else if (change.type === 'removed') {
             state.directMessages = state.directMessages.filter(function(m) { return m.id !== msg.id; });
             changed = true;
+            needsFullRender = true;
           }
         });
 
@@ -3322,8 +3392,44 @@
 
         state.directMessages.sort(function(a, b) { return (a.at || 0) - (b.at || 0); });
         saveState(state);
-        renderConvList();
-        if (activeId) renderMessages();
+
+        // Patch chirurgical : badges lu/livré sans reconstruire le DOM
+        var patchedBadgeContactIds = {};
+        modifiedBadgeOnly.forEach(function(msg) {
+          patchMessageBadgeInDOM(msg);
+          patchedBadgeContactIds[msg.contactId] = true;
+        });
+
+        // Mise à jour liste conversations (badges non-lus + preview)
+        var affectedContactIds = {};
+        snapshot.docChanges().forEach(function(change) {
+          var data = change.doc.data() || {};
+          var from = normalizeContactName(data.from || '');
+          var to = normalizeContactName(data.to || '');
+          var other = from === me ? to : from;
+          if (other) {
+            var c = state.contacts ? state.contacts.find(function(x){ return normalizeContactName(x.name) === other; }) : null;
+            if (c) affectedContactIds[c.id] = true;
+          }
+        });
+
+        var allPatched = true;
+        Object.keys(affectedContactIds).forEach(function(cid) {
+          if (!patchConvListItem(cid)) allPatched = false;
+        });
+        if (!allPatched) renderConvList();
+
+        // Rendu messages : complet si nouveau message, patch badge sinon
+        if (activeId) {
+          if (needsFullRender) {
+            renderMessages();
+          } else {
+            // Re-patch les badges dans la conv active si besoin
+            modifiedBadgeOnly.forEach(function(msg) {
+              if (msg.contactId === activeId) patchMessageBadgeInDOM(msg);
+            });
+          }
+        }
 
         if (toDeliver.length && firestoreDb) {
           var batch = firestoreDb.batch();
