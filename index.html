@@ -27,11 +27,12 @@
     html, body {
       margin: 0;
       height: 100%;
+      height: 100dvh;
       font-family: var(--font);
       background: var(--bg);
       color: var(--fg);
       -webkit-font-smoothing: antialiased;
-      overflow-x: hidden;
+      overflow: hidden;
     }
     body.privacy-block-screenshot {
       -webkit-user-select: none;
@@ -58,8 +59,10 @@
       display: flex;
       flex-direction: column;
       height: 100%;
+      height: 100dvh;
       max-width: 920px;
       margin: 0 auto;
+      overflow: hidden;
     }
     .incognito-btn {
       width: 40px;
@@ -2201,6 +2204,12 @@
       color: var(--muted);
     }
     @media (max-width: 640px) {
+      html, body {
+        position: fixed;
+        width: 100%;
+        top: 0;
+        left: 0;
+      }
       #app {
         position: relative;
         border-left: none;
@@ -6609,5 +6618,26 @@
     </div>
   </div>
 
+<script>
+  // Fix hauteur viewport mobile — barre d'adresse dynamique
+  (function() {
+    function setVh() {
+      var vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', vh + 'px');
+      // Forcer la hauteur sur shell et body directement
+      var shell = document.querySelector('.shell');
+      if (shell) shell.style.height = window.innerHeight + 'px';
+      document.body.style.height = window.innerHeight + 'px';
+    }
+    setVh();
+    window.addEventListener('resize', setVh);
+    // Sur iOS, le resize ne se déclenche pas toujours — on écoute aussi visualViewport
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', setVh);
+    }
+    // Aussi au scroll pour iOS Safari barre d'adresse
+    window.addEventListener('scroll', setVh, { passive: true });
+  })();
+</script>
 </body>
 </html>
