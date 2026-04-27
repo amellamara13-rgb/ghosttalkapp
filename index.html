@@ -3156,13 +3156,43 @@
         list.appendChild(li);
       });
       // Positionner sous le champ input (position:fixed = coordonnées viewport)
-      requestAnimationFrame(function() {
+      function positionSuggestions() {
+        if (list.hidden) return;
         var inputRect = input.getBoundingClientRect();
-        list.style.top = (inputRect.bottom + 6) + 'px';
+        var isMobile = window.innerWidth <= 640;
         list.style.left = inputRect.left + 'px';
         list.style.width = inputRect.width + 'px';
+        if (isMobile) {
+          // Sur iOS : le clavier pousse le modal vers le haut
+          // On utilise visualViewport pour avoir la vraie zone visible
+          var vvHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+          var spaceBelow = vvHeight - inputRect.bottom;
+          var spaceAbove = inputRect.top;
+          if (spaceBelow >= 120 || spaceBelow >= spaceAbove) {
+            // Assez de place en dessous
+            list.style.top = (inputRect.bottom + 4) + 'px';
+            list.style.bottom = 'auto';
+            list.style.maxHeight = Math.min(spaceBelow - 10, 200) + 'px';
+          } else {
+            // Placer au-dessus du champ
+            list.style.bottom = (window.innerHeight - inputRect.top + 4) + 'px';
+            list.style.top = 'auto';
+            list.style.maxHeight = Math.min(spaceAbove - 10, 200) + 'px';
+          }
+        } else {
+          list.style.top = (inputRect.bottom + 6) + 'px';
+          list.style.bottom = 'auto';
+          list.style.maxHeight = '260px';
+        }
+      }
+      requestAnimationFrame(function() {
         list.hidden = false;
+        positionSuggestions();
       });
+      // Recalculer si le viewport change (clavier iOS)
+      if (window.visualViewport) {
+        window.visualViewport.onresize = positionSuggestions;
+      }
     });
   }
 
