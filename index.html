@@ -677,31 +677,25 @@
     .row.me .bubble-wrap {
       position: relative;
     }
-    /* Badge statut — anneau creux, chevauchement coin haut-droit */
+    /* Badge statut — point flottant sans contour, coin haut-droit */
     .row.me .bubble-read-dot {
       position: absolute;
       top: -4px;
       right: -4px;
-      width: 10px;
-      height: 10px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
       box-sizing: border-box;
       pointer-events: none;
-      background: transparent;
-      border: 2px solid rgba(255,255,255,0.35);
-      box-shadow: 0 0 0 1.5px var(--bg);
+      border: none;
+      background: rgba(255,255,255,0.3);
     }
-    /* Livré : anneau blanc creux */
     .row.me .bubble-read-dot.is-delivered {
-      background: transparent;
-      border: 2px solid rgba(255,255,255,0.9);
-      box-shadow: 0 0 0 1.5px var(--bg);
+      background: rgba(255,255,255,0.85);
     }
-    /* Lu : double anneau blanc premium */
     .row.me .bubble-read-dot.is-read {
       background: #fff;
-      border: 2px solid #fff;
-      box-shadow: 0 0 0 1.5px var(--bg), 0 0 0 3px rgba(255,255,255,0.35);
+      box-shadow: 0 0 0 2.5px rgba(255,255,255,0.25);
     }
     .composer {
       border-top: none;
