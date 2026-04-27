@@ -3158,6 +3158,11 @@
         li.appendChild(btn);
         list.appendChild(li);
       });
+      // Positionner sous le champ input
+      var inputRect = input.getBoundingClientRect();
+      list.style.top = (inputRect.bottom + 6) + 'px';
+      list.style.left = inputRect.left + 'px';
+      list.style.width = inputRect.width + 'px';
       list.hidden = false;
     });
   }
@@ -6530,7 +6535,7 @@
               aria-autocomplete="list"
               aria-controls="new-contact-suggestions"
             />
-            <ul id="new-contact-suggestions" class="new-contact-suggestions" hidden role="listbox" aria-label="Suggestions de pseudos"></ul>
+
           </div>
           <p id="new-contact-error" class="new-contact-error" hidden role="alert"></p>
         </div>
@@ -6922,5 +6927,7 @@
     window.addEventListener('resize', applyHeight);
   })();
 </script>
+  <!-- Suggestions nouveau contact — hors modal pour éviter overflow -->
+  <ul id="new-contact-suggestions" class="new-contact-suggestions" hidden role="listbox" aria-label="Suggestions de pseudos" style="position:fixed;z-index:1200;list-style:none;padding:0;margin:0;background:#1c1c1f;border:0.5px solid rgba(255,255,255,0.08);border-radius:14px;box-shadow:0 12px 32px rgba(0,0,0,0.9);overflow:hidden;min-width:200px;"></ul>
 </body>
 </html>
