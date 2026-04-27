@@ -6333,6 +6333,14 @@
                   });
                 }
                 if (muteOverlay) muteOverlay.style.display = 'block';
+                // Positionner le popover sous la bulle options
+                var wrap = document.getElementById('notifs-options-wrap');
+                if (mutePop && wrap) {
+                  var rect = wrap.getBoundingClientRect();
+                  mutePop.style.top = (rect.bottom + 8) + 'px';
+                  mutePop.style.left = rect.left + 'px';
+                  mutePop.style.width = rect.width + 'px';
+                }
                 if (mutePop) mutePop.style.display = 'block';
               } else {
                 pendingNotif = opt.value;
@@ -6800,18 +6808,18 @@
         </div>
 
         <!-- Grande bulle options -->
-        <div style="position:relative;">
-          <div style="margin:0 16px 20px;background:rgba(255,255,255,0.04);border-radius:20px;border:0.5px solid rgba(255,255,255,0.06);overflow:hidden;">
+        <div id="notifs-options-wrap" style="margin:0 16px 20px;">
+          <div style="background:rgba(255,255,255,0.04);border-radius:20px;border:0.5px solid rgba(255,255,255,0.06);overflow:hidden;">
             <div id="notifs-options"></div>
           </div>
-          <!-- Overlay + popover durée sourdine -->
-          <div id="notifs-mute-overlay" style="display:none;position:absolute;inset:0;z-index:5;" onclick="document.getElementById('notifs-mute-overlay').style.display='none';document.getElementById('notifs-mute-popover').style.display='none';"></div>
-          <div id="notifs-mute-popover" style="display:none;position:absolute;top:calc(100% + 8px);left:0;right:0;background:#1c1c1f;border-radius:14px;overflow:hidden;border:0.5px solid rgba(255,255,255,0.08);box-shadow:0 8px 24px rgba(0,0,0,0.7);z-index:10;">
-            <div style="padding:9px 14px 7px;border-bottom:0.5px solid rgba(255,255,255,0.06);">
-              <p style="margin:0;font-size:11px;color:rgba(255,255,255,0.3);">Mettre en sourdine pour...</p>
-            </div>
-            <div id="notifs-mute-items"></div>
+        </div>
+        <!-- Overlay plein écran + popover fixed flottant -->
+        <div id="notifs-mute-overlay" style="display:none;position:fixed;inset:0;z-index:299;" onclick="document.getElementById('notifs-mute-overlay').style.display='none';document.getElementById('notifs-mute-popover').style.display='none';"></div>
+        <div id="notifs-mute-popover" style="display:none;position:fixed;background:#1c1c1f;border-radius:14px;overflow:hidden;border:0.5px solid rgba(255,255,255,0.08);box-shadow:0 12px 32px rgba(0,0,0,0.9);z-index:300;min-width:220px;max-width:280px;">
+          <div style="padding:9px 14px 7px;border-bottom:0.5px solid rgba(255,255,255,0.06);">
+            <p style="margin:0;font-size:11px;color:rgba(255,255,255,0.3);">Mettre en sourdine pour...</p>
           </div>
+          <div id="notifs-mute-items"></div>
         </div>
       </div>
 
