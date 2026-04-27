@@ -6206,7 +6206,7 @@
           : 'Toujours en sourdine';
         var infoRow = document.createElement('div');
         infoRow.style.cssText = 'padding:12px 14px 10px;border-bottom:0.5px solid rgba(255,255,255,0.06);';
-        infoRow.innerHTML = '<p style="margin:0;font-size:11px;color:rgba(255,255,255,0.35);white-space:nowrap;">' + infoText + '</p>';
+        infoRow.innerHTML = '<p style="margin:0;font-size:12px;color:rgba(255,255,255,0.5);line-height:1.4;">' + infoText + '</p>';
         container.appendChild(infoRow);
         var unmuteBtn = document.createElement('button');
         unmuteBtn.type = 'button';
@@ -6449,9 +6449,9 @@
             </button>
             <span id="conv-mute-label" style="font-size:11px;color:rgba(255,255,255,0.4);">Sourdine</span>
             <!-- Popover sourdine -->
-            <div id="mute-popover" style="display:none;position:absolute;top:calc(100% + 10px);left:50%;transform:translateX(-50%);background:#1c1c1f;border-radius:14px;width:195px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.7);z-index:200;border:0.5px solid rgba(255,255,255,0.08);">
+            <div id="mute-popover" style="display:none;position:absolute;top:calc(100% + 10px);left:50%;transform:translateX(-50%);background:#1c1c1f;border-radius:14px;width:240px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.7);z-index:200;border:0.5px solid rgba(255,255,255,0.08);">
               <div style="padding:9px 14px 7px;">
-                <p style="margin:0;font-size:11px;color:rgba(255,255,255,0.3);">Mettre en sourdine pour...</p>
+
               </div>
               <div id="mute-popover-items"></div>
             </div>
