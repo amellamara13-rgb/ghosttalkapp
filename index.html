@@ -6172,11 +6172,63 @@
       });
     }
 
+    function formatMuteUntilLabel(until) {
+      if (!until || until === 'always') return null;
+      var ms = parseInt(until, 10);
+      if (isNaN(ms)) return null;
+      var d = new Date(ms);
+      var days = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+      var months = ['jan.', 'fev.', 'mar.', 'avr.', 'mai', 'jun.', 'jul.', 'aou.', 'sep.', 'oct.', 'nov.', 'dec.'];
+      var now = new Date();
+      var pad = function(n){ return n < 10 ? '0'+n : String(n); };
+      if (d.toDateString() === now.toDateString()) {
+        return "Auj. a " + pad(d.getHours()) + ":" + pad(d.getMinutes());
+      }
+      return days[d.getDay()] + ' ' + d.getDate() + ' ' + months[d.getMonth()] + ' a ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+    }
+
     function openMutePopover() {
-      _selectedMute = null;
-      renderMutePopoverItems();
+      var lsKeyN = 'gt_notif_' + activeId;
+      var lsKeyMuteUntil = 'gt_mute_until_' + activeId;
+      var notifMode, muteUntil;
+      try { notifMode = localStorage.getItem(lsKeyN) || 'on'; } catch(e2){ notifMode = 'on'; }
+      try { muteUntil = localStorage.getItem(lsKeyMuteUntil) || null; } catch(e2){ muteUntil = null; }
+      var isMuted = notifMode === 'mute';
       var pop = document.getElementById('mute-popover');
       var ov = document.getElementById('mute-overlay');
+      var container = document.getElementById('mute-popover-items');
+      if (!pop || !container) return;
+      container.innerHTML = '';
+      if (isMuted) {
+        var label = (!muteUntil || muteUntil === 'always') ? null : formatMuteUntilLabel(muteUntil);
+        var infoText = label
+          ? "En sourdine jusqu'au <span style=\"color:#a78bfa;font-weight:500;\">" + label + "</span>"
+          : 'Toujours en sourdine';
+        var infoRow = document.createElement('div');
+        infoRow.style.cssText = 'padding:12px 14px 10px;border-bottom:0.5px solid rgba(255,255,255,0.06);';
+        infoRow.innerHTML = '<p style="margin:0;font-size:11px;color:rgba(255,255,255,0.35);white-space:nowrap;">' + infoText + '</p>';
+        container.appendChild(infoRow);
+        var unmuteBtn = document.createElement('button');
+        unmuteBtn.type = 'button';
+        unmuteBtn.style.cssText = 'width:100%;padding:12px 14px;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;gap:10px;-webkit-tap-highlight-color:transparent;';
+        unmuteBtn.innerHTML = '<div style="width:26px;height:26px;border-radius:8px;background:rgba(58,118,240,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M6 10a6 6 0 0112 0v4l2 2H4l2-2v-4z" stroke="#3a76f0" stroke-width="1.8" stroke-linejoin="round"/><path d="M10 18a2 2 0 004 0" stroke="#3a76f0" stroke-width="1.8" stroke-linecap="round"/></svg></div><span style="font-size:15px;color:#3a76f0;font-weight:500;">Reactiver le son</span>';
+        unmuteBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          try { localStorage.setItem(lsKeyN, 'on'); } catch(e2){}
+          try { localStorage.removeItem(lsKeyMuteUntil); } catch(e2){}
+          var contact = getContactById(activeId);
+          if (contact) { contact.notifMode = 'on'; contact.muteUntil = null; saveState(state); }
+          var muteBtn = document.getElementById('conv-action-mute');
+          if (muteBtn) muteBtn.style.background = '#3d2f6e';
+          var icon = document.getElementById('conv-mute-icon');
+          if (icon) icon.innerHTML = '<path d="M6 10a6 6 0 0112 0v4l2 2H4l2-2v-4z" stroke="#a78bfa" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 18a2 2 0 004 0" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round"/>';
+          closeMutePopover();
+        });
+        container.appendChild(unmuteBtn);
+      } else {
+        _selectedMute = null;
+        renderMutePopoverItems();
+      }
       if (pop) pop.style.display = 'block';
       if (ov) {
         ov.style.display = 'block';
