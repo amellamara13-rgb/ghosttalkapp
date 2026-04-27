@@ -3121,6 +3121,9 @@
       return;
     }
     var pref = raw.toLowerCase();
+    // Reset avant fetch pour éviter état corrompu
+    list.hidden = true;
+    list.innerHTML = '';
     fetchContactSuggestions(pref).then(function (names) {
       if (input.value.trim().length < 2) return;
       if (names.length === 0) {
@@ -3134,7 +3137,6 @@
         var btn = document.createElement('button');
         btn.type = 'button';
         btn.setAttribute('role', 'option');
-        // Avatar initiale
         var av = document.createElement('div');
         av.className = 'sug-avatar';
         av.textContent = name.charAt(0).toUpperCase();
@@ -3143,9 +3145,7 @@
         nameSpan.style.cssText = 'font-size:15px;color:#fff;';
         btn.appendChild(av);
         btn.appendChild(nameSpan);
-        btn.addEventListener('mousedown', function (e) {
-          e.preventDefault();
-        });
+        btn.addEventListener('mousedown', function (e) { e.preventDefault(); });
         btn.addEventListener('click', function () {
           input.value = name;
           hideContactSuggestions();
@@ -3155,29 +3155,26 @@
         li.appendChild(btn);
         list.appendChild(li);
       });
-      // Positionner sous le champ input (position:fixed = coordonnées viewport)
+
       function positionSuggestions() {
-        if (list.hidden) return;
         var inputRect = input.getBoundingClientRect();
         var isMobile = window.innerWidth <= 640;
         list.style.left = inputRect.left + 'px';
         list.style.width = inputRect.width + 'px';
         if (isMobile) {
-          // Sur iOS : le clavier pousse le modal vers le haut
-          // On utilise visualViewport pour avoir la vraie zone visible
-          var vvHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-          var spaceBelow = vvHeight - inputRect.bottom;
-          var spaceAbove = inputRect.top;
-          if (spaceBelow >= 120 || spaceBelow >= spaceAbove) {
-            // Assez de place en dessous
+          var vvp = window.visualViewport;
+          var vvHeight = vvp ? vvp.height : window.innerHeight;
+          var vvOffsetTop = vvp ? vvp.offsetTop : 0;
+          var spaceBelow = vvHeight - (inputRect.bottom - vvOffsetTop);
+          var spaceAbove = inputRect.top - vvOffsetTop;
+          if (spaceBelow >= 100 || spaceBelow >= spaceAbove) {
             list.style.top = (inputRect.bottom + 4) + 'px';
             list.style.bottom = 'auto';
-            list.style.maxHeight = Math.min(spaceBelow - 10, 200) + 'px';
+            list.style.maxHeight = Math.max(Math.min(spaceBelow - 8, 200), 80) + 'px';
           } else {
-            // Placer au-dessus du champ
-            list.style.bottom = (window.innerHeight - inputRect.top + 4) + 'px';
             list.style.top = 'auto';
-            list.style.maxHeight = Math.min(spaceAbove - 10, 200) + 'px';
+            list.style.bottom = (window.innerHeight - inputRect.top + 4) + 'px';
+            list.style.maxHeight = Math.max(Math.min(spaceAbove - 8, 200), 80) + 'px';
           }
         } else {
           list.style.top = (inputRect.bottom + 6) + 'px';
@@ -3185,13 +3182,14 @@
           list.style.maxHeight = '260px';
         }
       }
-      requestAnimationFrame(function() {
-        list.hidden = false;
-        positionSuggestions();
-      });
-      // Recalculer si le viewport change (clavier iOS)
+
+      list.hidden = false;
+      requestAnimationFrame(positionSuggestions);
+
       if (window.visualViewport) {
-        window.visualViewport.onresize = positionSuggestions;
+        window.visualViewport.onresize = function() {
+          if (!list.hidden) positionSuggestions();
+        };
       }
     });
   }
