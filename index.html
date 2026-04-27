@@ -3403,9 +3403,11 @@
 
         var wasFirst = isFirstSnapshot; isFirstSnapshot = false;
 
-        // Au 1er snapshot Firebase, forcer rendu complet :
-        // les messages sont dans state (localStorage) mais pas encore dans le DOM
+        // Forcer rendu complet au 1er snapshot OU si des messages de la conv active arrivent
         if (wasFirst) needsFullRender = true;
+        if (activeId && newMessages.some(function(m){ return m.contactId === activeId; })) {
+          needsFullRender = true;
+        }
 
         if (!changed && !wasFirst) return;
 
@@ -4465,59 +4467,23 @@
     renderMessages();
     renderConvList();
 
-    // Si aucun message en mémoire pour ce contact, fetch direct Firestore
-    // (le snapshot global peut arriver après selectConv, causant un affichage vide)
-    if (!demoMode && firestoreDb) {
-      var me = currentUsername();
-      var threadNow = getThreadMessages(id);
-      if (me && threadNow.length === 0) {
-        var convId = id;
-        firestoreDb.collection('messages')
-          .where('participants', 'array-contains', me)
-          .orderBy('at', 'asc')
-          .get()
-          .then(function(snap) {
-            if (activeId !== convId) return; // l'utilisateur a changé de conv
-            ensureData();
-            var changed = false;
-            snap.forEach(function(doc) {
-              var data = doc.data() || {};
-              var from = normalizeContactName(data.from || '');
-              var to = normalizeContactName(data.to || '');
-              var other = from === me ? to : from;
-              if (!other) return;
-              var contact2 = createOrGetContact(other);
-              if (!contact2 || contact2.id !== convId) return;
-              var exists = false;
-              for (var i = 0; i < state.directMessages.length; i++) {
-                if (state.directMessages[i].id === doc.id) { exists = true; break; }
-              }
-              if (!exists) {
-                var at = data.at && typeof data.at.toMillis === 'function' ? data.at.toMillis() : (data.atMs || Date.now());
-                var readAtMs = data.readAt && typeof data.readAt.toMillis === 'function' ? data.readAt.toMillis() : null;
-                var deliveredAtMs = data.deliveredAt && typeof data.deliveredAt.toMillis === 'function' ? data.deliveredAt.toMillis() : null;
-                state.directMessages.push({
-                  id: doc.id, contactId: contact2.id, me: from === me,
-                  cipher: typeof data.cipher === 'string' ? data.cipher : encryptUtf8(String(data.text || ''), ''),
-                  at: at, expiresAt: (typeof data.expiresAt === 'number' && isFinite(data.expiresAt)) ? data.expiresAt : null,
-                  ephemeralMode: data.ephemeralMode === 'on_read' ? 'on_read' : null,
-                  preserved: data.preserved === true,
-                  preservedBy: typeof data.preservedBy === 'string' ? data.preservedBy : null,
-                  replyTo: null, replyToLegacy: null,
-                  readAt: readAtMs, deliveredAt: deliveredAtMs, reactionsByUser: {}
-                });
-                changed = true;
-              }
-            });
-            if (changed && activeId === convId) {
-              state.directMessages.sort(function(a, b) { return (a.at || 0) - (b.at || 0); });
-              saveState(state);
-              renderMessages();
-              renderConvList();
-            }
-          }).catch(function(e) { console.warn('fetch conv messages error', e); });
+    // Re-render après un court délai pour attraper le snapshot Firebase si pas encore arrivé
+    var _selectId = id;
+    setTimeout(function() {
+      if (activeId !== _selectId) return;
+      var thread = getThreadMessages(_selectId);
+      if (thread.length === 0 && !demoMode && firestoreDb) {
+        // Snapshot pas encore arrivé — on réessaie 500ms plus tard
+        setTimeout(function() {
+          if (activeId !== _selectId) return;
+          renderMessages();
+          renderConvList();
+        }, 500);
+      } else {
+        renderMessages();
+        renderConvList();
       }
-    }
+    }, 100);
     if (window.innerWidth > 640) {
       document.getElementById('input').focus();
     }
@@ -6222,12 +6188,11 @@
       if (e.target === e.currentTarget) closeEphemeralModal();
     });
 
-    renderConvList();
     selectConv(null);
     syncAppMobileLayout();
-    subscribeRealtimeMessages();
     syncPrivacyForm();
     bindIdleLockListeners();
+    subscribeRealtimeMessages();
   }
 
   document.getElementById('btn-lock-welcome').addEventListener('click', tryUnlockFromWelcome);
