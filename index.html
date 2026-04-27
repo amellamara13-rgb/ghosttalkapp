@@ -1613,11 +1613,8 @@
       display: none !important;
     }
     .new-contact-suggestions {
-      position: absolute;
-      top: calc(100% + 8px);
-      left: 0;
-      right: 0;
-      z-index: 9999;
+      position: fixed;
+      z-index: 1200;
       list-style: none;
       padding: 0;
       margin: 0;
@@ -3158,12 +3155,14 @@
         li.appendChild(btn);
         list.appendChild(li);
       });
-      // Positionner sous le champ input
-      var inputRect = input.getBoundingClientRect();
-      list.style.top = (inputRect.bottom + 6) + 'px';
-      list.style.left = inputRect.left + 'px';
-      list.style.width = inputRect.width + 'px';
-      list.hidden = false;
+      // Positionner sous le champ input (position:fixed = coordonnées viewport)
+      requestAnimationFrame(function() {
+        var inputRect = input.getBoundingClientRect();
+        list.style.top = (inputRect.bottom + 6) + 'px';
+        list.style.left = inputRect.left + 'px';
+        list.style.width = inputRect.width + 'px';
+        list.hidden = false;
+      });
     });
   }
 
