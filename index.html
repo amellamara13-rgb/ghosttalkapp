@@ -672,8 +672,9 @@
       background: var(--bubble-me);
       color: #fff;
       border-radius: 22px 22px 6px 22px;
-      padding-top: 16px;
-      padding-right: 20px;
+      display: inline-flex;
+      align-items: flex-end;
+      gap: 5px;
     }
     .row.me .bubble .bubble-read {
       display: none;
@@ -681,32 +682,25 @@
     .row.me .bubble-wrap {
       position: relative;
     }
-    /* Badge statut — variante D, coin haut-droit intérieur bulle */
-    .row.me .bubble {
-      position: relative;
-    }
+    /* Badge statut — variante Mix A, inline après texte */
     .row.me .bubble-read-dot {
-      position: absolute;
-      top: 5px;
-      right: 6px;
+      display: inline-flex;
+      flex-shrink: 0;
+      align-self: flex-end;
+      margin-bottom: 2px;
       width: 7px;
       height: 7px;
       border-radius: 50%;
-      box-sizing: border-box;
       pointer-events: none;
-      border: none;
       background: rgba(255,255,255,0.3);
     }
     .row.me .bubble-read-dot.is-delivered {
       background: rgba(255,255,255,0.85);
     }
     .row.me .bubble-read-dot.is-read {
-      width: 11px;
-      height: 11px;
-      top: 4px;
-      right: 5px;
-      background: #fff;
-      box-shadow: 0 0 0 3px rgba(255,255,255,0.25);
+      width: 13px;
+      height: 13px;
+      background: transparent;
     }
     .composer {
       border-top: none;
@@ -3315,6 +3309,11 @@
       if (dot.className !== newClass) {
         dot.className = newClass;
         dot.setAttribute('aria-label', newLabel);
+        if (msg.readAt) {
+          dot.innerHTML = '<svg width="13" height="13" viewBox="0 0 13 13" fill="none" style="display:block"><circle cx="6.5" cy="6.5" r="5.5" stroke="rgba(255,255,255,0.35)" stroke-width="1.2"/><circle cx="6.5" cy="6.5" r="3" fill="#fff"/></svg>';
+        } else {
+          dot.innerHTML = '';
+        }
       }
       return true;
     }
@@ -4695,6 +4694,9 @@
         var readEl = document.createElement('span');
         readEl.className = 'bubble-read-dot' + (m.readAt ? ' is-read' : (m.deliveredAt ? ' is-delivered' : ''));
         readEl.setAttribute('aria-label', m.readAt ? 'Lu' : (m.deliveredAt ? 'Livré' : 'Envoyé'));
+        if (m.readAt) {
+          readEl.innerHTML = '<svg width="13" height="13" viewBox="0 0 13 13" fill="none" style="display:block"><circle cx="6.5" cy="6.5" r="5.5" stroke="rgba(255,255,255,0.35)" stroke-width="1.2"/><circle cx="6.5" cy="6.5" r="3" fill="#fff"/></svg>';
+        }
         b.appendChild(readEl);
       }
       wrap.appendChild(b);
