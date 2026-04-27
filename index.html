@@ -3349,6 +3349,7 @@
       return true;
     }
 
+    var isFirstSnapshot = true;
     unsubscribeRealtime = firestoreDb
       .collection('messages')
       .where('participants', 'array-contains', me)
@@ -3396,7 +3397,9 @@
           }
         });
 
-        if (!changed) return;
+        var wasFirst = isFirstSnapshot; isFirstSnapshot = false;
+        if (!changed && !wasFirst) return;
+        if (!changed) { if (activeId) renderMessages(); renderConvList(); return; }
 
         state.directMessages.sort(function(a, b) { return (a.at || 0) - (b.at || 0); });
         saveState(state);
@@ -3432,7 +3435,6 @@
           if (needsFullRender) {
             renderMessages();
           } else {
-            // Re-patch les badges dans la conv active si besoin
             modifiedBadgeOnly.forEach(function(msg) {
               if (msg.contactId === activeId) patchMessageBadgeInDOM(msg);
             });
