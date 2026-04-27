@@ -6292,7 +6292,12 @@
                     if (icon) icon.innerHTML = '<path d="M6 10a6 6 0 0112 0v4l2 2H4l2-2v-4z" stroke="#a78bfa" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 18a2 2 0 004 0" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round"/><line x1="4" y1="4" x2="20" y2="20" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round"/>';
                     if (mutePop) mutePop.style.display = 'none';
                     if (muteOverlay) muteOverlay.style.display = 'none';
-                    convShowScreen('main');
+                    // Mettre à jour le sous-texte de Sourdine
+                    pendingNotif = 'mute';
+                    var pad = function(n){ return n < 10 ? '0'+n : String(n); };
+                    var subLabel = until ? (pad(new Date(until).getHours()) + ':' + pad(new Date(until).getMinutes())) : 'toujours';
+                    notifsOptionsList[1].sub = until ? ("jusqu'\u00e0 " + subLabel) : 'Toujours en sourdine';
+                    renderNotifsList();
                   });
                   muteItems.appendChild(mrow);
                 });
@@ -6769,8 +6774,8 @@
             <div id="notifs-options"></div>
           </div>
           <!-- Overlay + popover durée sourdine -->
-          <div id="notifs-mute-overlay" style="display:none;position:absolute;inset:0;z-index:5;" onclick="document.getElementById('notifs-mute-overlay').style.display='none';"></div>
-          <div id="notifs-mute-popover" style="display:none;position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:210px;background:#1c1c1f;border-radius:14px;overflow:hidden;border:0.5px solid rgba(255,255,255,0.08);box-shadow:0 8px 24px rgba(0,0,0,0.7);z-index:10;">
+          <div id="notifs-mute-overlay" style="display:none;position:absolute;inset:0;z-index:5;" onclick="document.getElementById('notifs-mute-overlay').style.display='none';document.getElementById('notifs-mute-popover').style.display='none';"></div>
+          <div id="notifs-mute-popover" style="display:none;position:absolute;top:calc(100% - 12px);left:16px;right:16px;background:#1c1c1f;border-radius:14px;overflow:hidden;border:0.5px solid rgba(255,255,255,0.08);box-shadow:0 8px 24px rgba(0,0,0,0.7);z-index:10;">
             <div style="padding:9px 14px 7px;border-bottom:0.5px solid rgba(255,255,255,0.06);">
               <p style="margin:0;font-size:11px;color:rgba(255,255,255,0.3);">Mettre en sourdine pour...</p>
             </div>
