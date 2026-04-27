@@ -3179,9 +3179,6 @@
   }
 
   function notifyNewIncomingMessagesIfNeeded(snapshot, me) {
-    if (typeof Notification === 'undefined') return;
-    if (Notification.permission !== 'granted') return;
-    if (!document.hidden) return;
     if (!state || !state.privacy) return;
     snapshot.docChanges().forEach(function (change) {
       if (change.type !== 'added') return;
@@ -3189,8 +3186,21 @@
       var from = normalizeContactName(data.from || '');
       var to = normalizeContactName(data.to || '');
       if (from === me) return;
-      var other = from === me ? to : from;
+      if (to !== me) return;
+      var other = from;
       if (!other) return;
+      // Mettre à jour le badge de la liste toujours
+      renderConvList();
+      // Notification système uniquement si l'app est en arrière-plan ou sur une autre conversation
+      var contact = getContactById ? null : null;
+      try {
+        ensureData();
+        var c = state.contacts ? state.contacts.find(function(x){ return normalizeContactName(x.name) === other; }) : null;
+        var isActiveConv = c && activeId === c.id;
+        if (isActiveConv) return; // pas de notif si on est dans la conversation
+      } catch(e) {}
+      if (typeof Notification === 'undefined') return;
+      if (Notification.permission !== 'granted') return;
       var cipher = typeof data.cipher === 'string' ? data.cipher : '';
       var body;
       var silent = false;
@@ -3209,7 +3219,7 @@
         new Notification('GhostTalk', {
           body: body,
           silent: silent,
-          tag: 'ghosttalk-msg',
+          tag: 'ghosttalk-msg-' + other,
           renotify: true
         });
       } catch (err) {}
@@ -3248,7 +3258,7 @@
     unsubscribeRealtime = firestoreDb
       .collection('messages')
       .where('participants', 'array-contains', me)
-      .onSnapshot(function (snapshot) {
+      .onSnapshot({ includeMetadataChanges: false }, function (snapshot) {
         ensureData();
         try {
           notifyNewIncomingMessagesIfNeeded(snapshot, me);
@@ -3266,6 +3276,10 @@
           var readAtMs = null;
           if (data.readAt && typeof data.readAt.toMillis === 'function') {
             readAtMs = data.readAt.toMillis();
+          }
+          var deliveredAtMs = null;
+          if (data.deliveredAt && typeof data.deliveredAt.toMillis === 'function') {
+            deliveredAtMs = data.deliveredAt.toMillis();
           }
           var replyToObj = null;
           var replyToLegacy = null;
@@ -3298,8 +3312,17 @@
             replyTo: replyToObj,
             replyToLegacy: replyToLegacy,
             readAt: readAtMs,
+            deliveredAt: deliveredAtMs,
             reactionsByUser: reactionsByUser
           });
+        });
+        // Marquer automatiquement les messages reçus comme livrés
+        remoteMessages.forEach(function(m) {
+          if (!m.me && !m.deliveredAt && firestoreDb) {
+            firestoreDb.collection('messages').doc(m.id).update({
+              deliveredAt: firebase.firestore.FieldValue.serverTimestamp()
+            }).catch(function(){});
+          }
         });
         state.directMessages = remoteMessages.sort(function (a, b) { return (a.at || 0) - (b.at || 0); });
         saveState(state);
@@ -3885,6 +3908,11 @@
     var me = currentUsername();
     var fromContact = normalizeContactName(contact.name);
     if (!me || !fromContact) return Promise.resolve();
+    // Marquer localement immédiatement pour l'UI
+    markIncomingMessagesReadLocal(contactId);
+    renderMessages();
+    renderConvList();
+    // Puis mettre à jour Firebase
     return firestoreDb
       .collection('messages')
       .where('from', '==', fromContact)
@@ -4534,8 +4562,8 @@
       }
       if (m.me) {
         var readEl = document.createElement('span');
-        readEl.className = 'bubble-read-dot' + (m.readAt ? ' is-read' : '');
-        readEl.setAttribute('aria-label', m.readAt ? 'Lu' : 'Envoyé');
+        readEl.className = 'bubble-read-dot' + (m.readAt ? ' is-read' : (m.deliveredAt ? ' is-delivered' : ''));
+        readEl.setAttribute('aria-label', m.readAt ? 'Lu' : (m.deliveredAt ? 'Livré' : 'Envoyé'));
         wrap.appendChild(readEl);
       }
       wrap.appendChild(b);
