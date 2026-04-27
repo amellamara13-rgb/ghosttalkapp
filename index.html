@@ -153,6 +153,7 @@
       max-width: min(82%, 520px);
       margin-left: auto;
       flex-direction: row;
+      padding-right: 6px;
     }
     .bubble-wrap {
       display: flex;
@@ -676,6 +677,7 @@
     .row.me .bubble-wrap {
       position: relative;
     }
+    /* Badge statut — anneau creux, chevauchement coin haut-droit */
     .row.me .bubble-read-dot {
       position: absolute;
       top: -4px;
@@ -683,16 +685,23 @@
       width: 10px;
       height: 10px;
       border-radius: 50%;
-      border: 2px solid var(--bg);
-      background: rgba(255,255,255,0.35);
       box-sizing: border-box;
       pointer-events: none;
+      background: transparent;
+      border: 2px solid rgba(255,255,255,0.35);
+      box-shadow: 0 0 0 1.5px var(--bg);
     }
-    .row.me .bubble-read-dot.is-read {
-      background: #60a5fa;
-    }
+    /* Livré : anneau blanc creux */
     .row.me .bubble-read-dot.is-delivered {
-      background: rgba(255,255,255,0.9);
+      background: transparent;
+      border: 2px solid rgba(255,255,255,0.9);
+      box-shadow: 0 0 0 1.5px var(--bg);
+    }
+    /* Lu : double anneau blanc premium */
+    .row.me .bubble-read-dot.is-read {
+      background: #fff;
+      border: 2px solid #fff;
+      box-shadow: 0 0 0 1.5px var(--bg), 0 0 0 3px rgba(255,255,255,0.35);
     }
     .composer {
       border-top: none;
@@ -2280,10 +2289,6 @@
       .bubble {
         font-size: 14px;
         padding: 7px 11px;
-      }
-      .row.me .bubble {
-        padding-bottom: unset;
-        padding-right: unset;
       }
       .row {
         margin: 0;
