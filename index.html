@@ -3402,27 +3402,20 @@
         });
 
         var wasFirst = isFirstSnapshot; isFirstSnapshot = false;
+
+        // Au 1er snapshot Firebase, forcer rendu complet :
+        // les messages sont dans state (localStorage) mais pas encore dans le DOM
+        if (wasFirst) needsFullRender = true;
+
         if (!changed && !wasFirst) return;
-        if (!changed) {
-          renderConvList();
-          if (activeId) renderMessages();
-          return;
-        }
 
         state.directMessages.sort(function(a, b) { return (a.at || 0) - (b.at || 0); });
         saveState(state);
 
-        // Patch chirurgical : badges lu/livré sans reconstruire le DOM
-        modifiedBadgeOnly.forEach(function(msg) {
-          patchMessageBadgeInDOM(msg);
-        });
-
-        // Toujours rafraîchir la liste conversations pour les compteurs non-lus
         renderConvList();
 
-        // Rendu messages : complet si nouveau message, patch badge sinon
         if (activeId) {
-          if (wasFirst || needsFullRender) {
+          if (needsFullRender) {
             renderMessages();
           } else {
             var patchFailed = false;
