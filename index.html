@@ -6201,12 +6201,13 @@
       container.innerHTML = '';
       if (isMuted) {
         var label = (!muteUntil || muteUntil === 'always') ? null : formatMuteUntilLabel(muteUntil);
-        var infoText = label
-          ? "En sourdine jusqu'au <span style=\"color:#a78bfa;font-weight:500;\">" + label + "</span>"
-          : 'Toujours en sourdine';
         var infoRow = document.createElement('div');
         infoRow.style.cssText = 'padding:12px 14px 10px;border-bottom:0.5px solid rgba(255,255,255,0.06);';
-        infoRow.innerHTML = '<p style="margin:0;font-size:12px;color:rgba(255,255,255,0.5);line-height:1.4;">' + infoText + '</p>';
+        if (label) {
+          infoRow.innerHTML = "<p style=\"margin:0;font-size:12px;color:rgba(255,255,255,0.45);line-height:1.5;\">En sourdine jusqu&#39;au<br><span style=\"color:#a78bfa;font-weight:500;\">" + label + "</span></p>";
+        } else {
+          infoRow.innerHTML = '<p style="margin:0;font-size:12px;color:rgba(255,255,255,0.45);line-height:1.5;">Toujours en sourdine</p>';
+        }
         container.appendChild(infoRow);
         var unmuteBtn = document.createElement('button');
         unmuteBtn.type = 'button';
