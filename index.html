@@ -3121,9 +3121,6 @@
       return;
     }
     var pref = raw.toLowerCase();
-    // Reset avant fetch pour éviter état corrompu
-    list.hidden = true;
-    list.innerHTML = '';
     fetchContactSuggestions(pref).then(function (names) {
       if (input.value.trim().length < 2) return;
       if (names.length === 0) {
@@ -3155,42 +3152,15 @@
         li.appendChild(btn);
         list.appendChild(li);
       });
-
-      function positionSuggestions() {
+      // Positionner sous le champ input
+      requestAnimationFrame(function() {
         var inputRect = input.getBoundingClientRect();
-        var isMobile = window.innerWidth <= 640;
+        list.style.top = (inputRect.bottom + 6) + 'px';
         list.style.left = inputRect.left + 'px';
         list.style.width = inputRect.width + 'px';
-        if (isMobile) {
-          var vvp = window.visualViewport;
-          var vvHeight = vvp ? vvp.height : window.innerHeight;
-          var vvOffsetTop = vvp ? vvp.offsetTop : 0;
-          var spaceBelow = vvHeight - (inputRect.bottom - vvOffsetTop);
-          var spaceAbove = inputRect.top - vvOffsetTop;
-          if (spaceBelow >= 100 || spaceBelow >= spaceAbove) {
-            list.style.top = (inputRect.bottom + 4) + 'px';
-            list.style.bottom = 'auto';
-            list.style.maxHeight = Math.max(Math.min(spaceBelow - 8, 200), 80) + 'px';
-          } else {
-            list.style.top = 'auto';
-            list.style.bottom = (window.innerHeight - inputRect.top + 4) + 'px';
-            list.style.maxHeight = Math.max(Math.min(spaceAbove - 8, 200), 80) + 'px';
-          }
-        } else {
-          list.style.top = (inputRect.bottom + 6) + 'px';
-          list.style.bottom = 'auto';
-          list.style.maxHeight = '260px';
-        }
-      }
-
-      list.hidden = false;
-      requestAnimationFrame(positionSuggestions);
-
-      if (window.visualViewport) {
-        window.visualViewport.onresize = function() {
-          if (!list.hidden) positionSuggestions();
-        };
-      }
+        list.style.maxHeight = '260px';
+        list.hidden = false;
+      });
     });
   }
 
