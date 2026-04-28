@@ -753,20 +753,7 @@
       min-height: 44px;
       max-height: 120px;
     }
-    .composer-row textarea {
-      flex: 1;
-      border: 1px solid transparent;
-      border-radius: 24px;
-      background: var(--surface-2);
-      color: var(--fg);
-      padding: 12px 46px 12px 18px;
-      font-size: 17px;
-      font-family: inherit;
-      resize: none;
-      min-height: 44px;
-      max-height: 120px;
-      box-sizing: border-box;
-    }
+
     .composer-btn-plus {
       width: 44px;
       height: 44px;
@@ -2537,7 +2524,7 @@
       .composer {
         padding: 8px 8px 10px;
       }
-      .composer-row textarea {
+      .composer-input-wrap textarea {
         padding: 12px 46px 12px 18px;
         font-size: 17px;
         min-height: 44px;
@@ -5569,12 +5556,9 @@
   function autoResizeComposerInput() {
     var input = document.getElementById('input');
     if (!input) return;
-    if (!input.value || input.value.trim() === '') {
-      input.style.height = '';
-      return;
-    }
     input.style.height = 'auto';
-    input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+    var h = Math.max(44, Math.min(input.scrollHeight, 120));
+    input.style.height = h + 'px';
   }
 
   function clearPhraseApplyError() {
