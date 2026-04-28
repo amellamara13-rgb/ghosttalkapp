@@ -1464,6 +1464,143 @@
       z-index: 1100;
     }
 
+    /* ── Nouveau design Paramètres (prv2) ── */
+    .prv2-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 18px 10px;
+      border-bottom: none;
+    }
+    .prv2-title {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.85);
+      letter-spacing: -0.01em;
+    }
+    .prv2-close-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.5);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, color 0.15s;
+      flex-shrink: 0;
+    }
+    .prv2-close-btn:hover { background: rgba(255,255,255,0.14); color: rgba(255,255,255,0.85); }
+    .prv2-account-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: rgba(255,255,255,0.04);
+      border: 0.5px solid rgba(255,255,255,0.07);
+      border-radius: 20px;
+      padding: 16px;
+      margin-bottom: 10px;
+      transition: background 0.15s;
+    }
+    .prv2-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #3a76f0, #7c5ff0);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 600;
+      color: #fff;
+      flex-shrink: 0;
+      text-transform: uppercase;
+      letter-spacing: -0.02em;
+    }
+    .prv2-account-info { min-width: 0; flex: 1; }
+    .prv2-account-name {
+      margin: 0 0 3px;
+      font-size: 18px;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: -0.03em;
+      word-break: break-word;
+    }
+    .prv2-account-sub {
+      margin: 0;
+      font-size: 12px;
+      color: rgba(255,255,255,0.35);
+    }
+    .prv2-account-sub[hidden] { display: none !important; }
+    .prv2-group {
+      background: rgba(255,255,255,0.04);
+      border: 0.5px solid rgba(255,255,255,0.07);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+    .prv2-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 16px;
+      cursor: pointer;
+      transition: background 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .prv2-row:hover { background: rgba(255,255,255,0.04); }
+    .prv2-row--border { border-bottom: 0.5px solid rgba(255,255,255,0.05); }
+    .prv2-row-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .prv2-row-label {
+      flex: 1;
+      font-size: 15px;
+      color: rgba(255,255,255,0.85);
+      font-weight: 400;
+    }
+    .prv2-chevron {
+      color: rgba(255,255,255,0.2);
+      flex-shrink: 0;
+      transition: transform 0.22s cubic-bezier(0.22,1,0.36,1);
+    }
+    .prv2-chevron--open { transform: rotate(90deg); }
+    .prv2-expand-body {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.28s cubic-bezier(0.22,1,0.36,1);
+      border-bottom: 0.5px solid rgba(255,255,255,0.05);
+    }
+    .prv2-expand-body > div { padding: 0 16px; }
+    .prv2-expand-body--open { max-height: 600px; }
+    .prv2-logout-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 13px 16px;
+      border: none;
+      background: transparent;
+      color: #ff453a;
+      font-size: 15px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s;
+      border-radius: 20px;
+    }
+    .prv2-logout-btn:hover { background: rgba(255,69,58,0.08); }
+    /* ── Fin prv2 ── */
+
     /* PIN modal */
     #pin-overlay .modal-panel { max-width: 340px; }
     .pin-input {
@@ -2560,119 +2697,126 @@
   <!-- Modal confidentialité -->
   <div id="privacy-overlay" class="modal-overlay" aria-hidden="true">
     <div class="modal-panel modal-panel--privacy" role="dialog" aria-labelledby="privacy-title">
-      <div class="modal-head">
-        <h2 id="privacy-title">Confidentialité</h2>
-        <button type="button" class="modal-close" id="privacy-close" aria-label="Fermer">×</button>
+
+      <div class="prv2-header">
+        <div style="width:28px;"></div>
+        <h2 id="privacy-title" class="prv2-title">Paramètres</h2>
+        <button type="button" class="prv2-close-btn" id="privacy-close" aria-label="Fermer">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </button>
       </div>
-      <span id="privacy-saved-toast" class="privacy-saved-toast" aria-live="polite" aria-hidden="true">✅</span>
-      <div class="modal-body privacy-modal-body">
-        <section class="privacy-section privacy-section--account" aria-labelledby="privacy-section-account-title">
-          <div class="privacy-section__head">
-            <span class="privacy-section__icon" aria-hidden="true">🧑</span>
-            <h3 class="privacy-section__title" id="privacy-section-account-title">Mon compte</h3>
-          </div>
-          <div class="privacy-account-block">
-            <p class="privacy-account-name" id="privacy-username-full"></p>
-            <p class="privacy-account-member-since" id="privacy-member-since" hidden></p>
-            <button type="button" class="btn-privacy-logout" id="btn-privacy-logout">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
-                <polyline points="16 17 21 12 16 7" />
-                <line x1="21" y1="12" x2="9" y2="12" />
-              </svg>
-              Se déconnecter
-            </button>
-          </div>
-        </section>
 
-        <section class="privacy-section" aria-labelledby="privacy-section-phrase-title">
-          <div class="privacy-section__head">
-            <span class="privacy-section__icon" aria-hidden="true">🔑</span>
-            <h3 class="privacy-section__title" id="privacy-section-phrase-title">Clé d'accès</h3>
-          </div>
-          <div class="privacy-phrase-stack">
-            <input type="password" class="field" id="modal-new-phrase" placeholder="Nouvelle clé d'accès" autocomplete="new-password" />
-            <input type="password" class="field" id="modal-confirm-phrase" placeholder="Confirmer la nouvelle clé d'accès" autocomplete="new-password" />
-            <p class="privacy-hint-success phrase-reassurance">✅ Cette action ne supprimera pas vos messages existants.</p>
-            <p id="phrase-apply-error" class="phrase-apply-error" hidden role="alert"></p>
-            <button type="button" class="btn-modal-neutral" id="apply-phrase">Appliquer la clé d'accès</button>
-          </div>
-        </section>
+      <span id="privacy-saved-toast" class="privacy-saved-toast" aria-live="polite" aria-hidden="true">Enregistré</span>
 
-        <section class="privacy-section" aria-labelledby="privacy-section-msg-title">
-          <div class="privacy-section__head">
-            <span class="privacy-section__icon" aria-hidden="true">🗑️</span>
-            <h3 class="privacy-section__title" id="privacy-section-msg-title">Gestion des messages</h3>
-          </div>
-          <button type="button" class="link-row" id="btn-delete-all-messages-open">Supprimer tous les messages</button>
-          <p class="hint">Supprime tous les messages de toutes vos conversations.</p>
-          <button type="button" class="link-row link-row--destructive" id="btn-delete-all-conversations-open">Supprimer toutes les conversations</button>
-          <p class="hint">Supprime tout sans exception. Comme si vous n'aviez jamais utilisé GhostTalk.</p>
-        </section>
+      <div class="modal-body privacy-modal-body" style="padding:0 16px 28px;">
 
-        <section class="privacy-section" aria-labelledby="privacy-section-conf-priv-title">
-          <div class="privacy-section__head">
-            <span class="privacy-section__icon" aria-hidden="true">🔒</span>
-            <h3 class="privacy-section__title" id="privacy-section-conf-priv-title">Confidentialité &amp; Protection</h3>
+        <div class="prv2-account-card">
+          <div class="prv2-avatar" id="prv2-avatar-circle">?</div>
+          <div class="prv2-account-info">
+            <p class="prv2-account-name" id="privacy-username-full"></p>
+            <p class="prv2-account-sub" id="privacy-member-since" hidden></p>
           </div>
-          <div class="privacy-conf-toggles">
-            <div class="privacy-conf-toggle">
-              <div class="switch-block">
-                <span class="switch-label">Masquer les pseudos des contacts</span>
-                <label class="switch" title="Flouter les noms dans la liste et l’en-tête">
-                  <input type="checkbox" id="opt-hide-contact-pseudos" role="switch" />
-                  <span class="switch-slider"></span>
-                </label>
-              </div>
-              <p class="hint privacy-contact-mask-hint">Les noms de vos contacts apparaîtront floutés dans vos conversations.</p>
+        </div>
+
+        <div class="prv2-group">
+
+          <div class="prv2-row prv2-row--border prv2-row--expandable" id="prv2-row-cle">
+            <div class="prv2-row-icon" style="background:rgba(58,118,240,0.15);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3a76f0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
             </div>
-            <div class="privacy-conf-toggle">
-              <div class="switch-block">
-                <span class="switch-label">Masquer les aperçus de messages</span>
-                <label class="switch" title="Masquer le texte des aperçus dans la liste">
-                  <input type="checkbox" id="opt-hide-message-previews" role="switch" />
-                  <span class="switch-slider"></span>
-                </label>
-              </div>
-              <p class="hint privacy-contact-mask-hint">Affiche « 🔒 Message » à la place du contenu dans la liste des conversations.</p>
-            </div>
-            <div class="privacy-conf-toggle">
-              <div class="switch-block">
-                <span class="switch-label">Masquer les notifications</span>
-                <label class="switch" title="Notification sans détail — ouvrir l’app pour lire">
-                  <input type="checkbox" id="opt-hide-notification-content" role="switch" />
-                  <span class="switch-slider"></span>
-                </label>
-              </div>
-              <p class="hint privacy-contact-mask-hint">Vous recevrez une notification vide. Ouvrez l’app pour voir le contenu.</p>
-            </div>
-            <div class="privacy-conf-toggle">
-              <div class="switch-block">
-                <span class="switch-label">Bloquer les captures d’écran</span>
-                <label class="switch" title="Réduit la sélection et limite certaines captures sur appareils compatibles">
-                  <input type="checkbox" id="opt-block-screenshots" role="switch" />
-                  <span class="switch-slider"></span>
-                </label>
-              </div>
-              <p class="hint privacy-contact-mask-hint">Empêche les captures d’écran sur mobile.</p>
-              <p class="hint privacy-screenshot-compat-note" id="privacy-screenshot-compat-note" hidden>Disponible sur les appareils compatibles uniquement.</p>
+            <span class="prv2-row-label">Clé d'accès</span>
+            <svg class="prv2-chevron prv2-chevron--expand" id="prv2-cle-chevron" width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1L6 6L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="prv2-expand-body" id="prv2-cle-body">
+            <div style="padding:4px 0 12px;">
+              <input type="password" class="field" id="modal-new-phrase" placeholder="Nouvelle clé d'accès" autocomplete="new-password" style="margin-bottom:10px;" />
+              <input type="password" class="field" id="modal-confirm-phrase" placeholder="Confirmer la clé d'accès" autocomplete="new-password" />
+              <p class="privacy-hint-success phrase-reassurance" style="margin:8px 0 10px;font-size:12px;">Cette action ne supprimera pas vos messages existants.</p>
+              <p id="phrase-apply-error" class="phrase-apply-error" hidden role="alert"></p>
+              <button type="button" class="btn-modal-neutral" id="apply-phrase">Appliquer</button>
             </div>
           </div>
-        </section>
 
-        <section class="privacy-section privacy-section--danger" aria-labelledby="privacy-section-danger-title">
-          <div class="privacy-section__head">
-            <span class="privacy-section__icon" aria-hidden="true">🚨</span>
-            <h3 class="privacy-section__title" id="privacy-section-danger-title">Zone de danger</h3>
+          <div class="prv2-row prv2-row--border prv2-row--expandable" id="prv2-row-notifs">
+            <div class="prv2-row-icon" style="background:rgba(249,115,22,0.12);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+            </div>
+            <span class="prv2-row-label">Notifications</span>
+            <svg class="prv2-chevron prv2-chevron--expand" id="prv2-notifs-chevron" width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1L6 6L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </div>
-          <div class="switch-block">
-            <span class="switch-label">Autoriser le triple-clic pour tout effacer</span>
-            <label class="switch" title="Triple-clic sur l’icône incognito">
-              <input type="checkbox" id="opt-triple-tap-kill" role="switch" />
-              <span class="switch-slider"></span>
-            </label>
+          <div class="prv2-expand-body" id="prv2-notifs-body">
+            <div style="padding:4px 0 8px;">
+              <div class="switch-block" style="border-top:none;padding:8px 0;">
+                <span class="switch-label" style="font-size:14px;">Masquer le contenu</span>
+                <label class="switch"><input type="checkbox" id="opt-hide-notification-content" role="switch"/><span class="switch-slider"></span></label>
+              </div>
+              <p class="hint" style="margin-top:2px;margin-bottom:0;">Notification vide — ouvrez l'app pour lire le contenu.</p>
+            </div>
           </div>
-        </section>
+
+          <div class="prv2-row prv2-row--expandable" id="prv2-row-conf">
+            <div class="prv2-row-icon" style="background:rgba(20,184,166,0.12);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#14b8a6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            </div>
+            <span class="prv2-row-label">Confidentialité</span>
+            <svg class="prv2-chevron prv2-chevron--expand" id="prv2-conf-chevron" width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1L6 6L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="prv2-expand-body" id="prv2-conf-body">
+            <div style="padding:4px 0 8px;">
+              <div class="switch-block" style="border-top:none;padding:8px 0 6px;">
+                <span class="switch-label" style="font-size:14px;">Masquer les pseudos</span>
+                <label class="switch"><input type="checkbox" id="opt-hide-contact-pseudos" role="switch"/><span class="switch-slider"></span></label>
+              </div>
+              <p class="hint" style="margin:0 0 10px;">Les noms de vos contacts apparaîtront floutés.</p>
+              <div class="switch-block" style="border-top:0.5px solid var(--line);padding:10px 0 6px;">
+                <span class="switch-label" style="font-size:14px;">Masquer les aperçus</span>
+                <label class="switch"><input type="checkbox" id="opt-hide-message-previews" role="switch"/><span class="switch-slider"></span></label>
+              </div>
+              <p class="hint" style="margin:0 0 10px;">Affiche « Message » à la place du contenu.</p>
+              <div class="switch-block" style="border-top:0.5px solid var(--line);padding:10px 0 6px;">
+                <span class="switch-label" style="font-size:14px;">Bloquer les captures d'écran</span>
+                <label class="switch"><input type="checkbox" id="opt-block-screenshots" role="switch"/><span class="switch-slider"></span></label>
+              </div>
+              <p class="hint" style="margin:0 0 6px;">Empêche les captures d'écran sur mobile.</p>
+              <p class="hint privacy-screenshot-compat-note" id="privacy-screenshot-compat-note" hidden>Disponible sur appareils compatibles uniquement.</p>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="prv2-group" style="margin-top:8px;">
+          <div class="prv2-row prv2-row--border prv2-row--expandable" id="prv2-row-msgs">
+            <div class="prv2-row-icon" style="background:rgba(255,69,58,0.1);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff453a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+            </div>
+            <span class="prv2-row-label">Gestion des messages</span>
+            <svg class="prv2-chevron prv2-chevron--expand" id="prv2-msgs-chevron" width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1L6 6L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="prv2-expand-body" id="prv2-msgs-body">
+            <div style="padding:4px 0 10px;display:flex;flex-direction:column;gap:8px;">
+              <button type="button" class="link-row" id="btn-delete-all-messages-open" style="margin-top:4px;">Supprimer tous les messages</button>
+              <p class="hint" style="margin:0;">Supprime tous les messages de toutes vos conversations.</p>
+              <button type="button" class="link-row link-row--destructive" id="btn-delete-all-conversations-open">Supprimer toutes les conversations</button>
+              <p class="hint" style="margin:0;">Supprime tout sans exception.</p>
+            </div>
+          </div>
+
+          <div class="prv2-row" style="border-top:0.5px solid var(--line);">
+            <div class="prv2-row-icon" style="background:rgba(255,69,58,0.1);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff453a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <span class="prv2-row-label" style="flex:1;font-size:14px;">Triple-clic pour tout effacer</span>
+            <label class="switch" style="flex-shrink:0;"><input type="checkbox" id="opt-triple-tap-kill" role="switch"/><span class="switch-slider"></span></label>
+          </div>
+        </div>
+
+        <div class="prv2-group" style="margin-top:8px;">
+          <button type="button" class="prv2-logout-btn" id="btn-privacy-logout">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            Se déconnecter
+          </button>
+        </div>
+
       </div>
     </div>
   </div>
@@ -4908,6 +5052,12 @@
     if (!el) return;
     var u = (displayName || '').trim();
     el.textContent = u ? u : '—';
+    var av = document.getElementById('prv2-avatar-circle');
+    if (av && u) {
+      av.textContent = u.charAt(0).toUpperCase();
+      var colors = ['#3a76f0','#2ecc71','#a78bfa','#f472b6','#f97316','#14b8a6'];
+      av.style.background = colors[(u.charCodeAt(0) || 0) % colors.length];
+    }
   }
 
   function formatFirestoreDateForMemberSince(createdAt) {
@@ -5348,7 +5498,26 @@
       });
     }
 
-    document.getElementById('privacy-close').addEventListener('click', closePrivacyModal);
+    // prv2 accordions
+    (function() {
+      function togglePrv2(rowId, bodyId, chevronId) {
+        var row = document.getElementById(rowId);
+        var body = document.getElementById(bodyId);
+        var chev = document.getElementById(chevronId);
+        if (!row || !body) return;
+        row.addEventListener('click', function() {
+          var isOpen = body.classList.contains('prv2-expand-body--open');
+          body.classList.toggle('prv2-expand-body--open', !isOpen);
+          if (chev) chev.classList.toggle('prv2-chevron--open', !isOpen);
+        });
+      }
+      togglePrv2('prv2-row-cle', 'prv2-cle-body', 'prv2-cle-chevron');
+      togglePrv2('prv2-row-notifs', 'prv2-notifs-body', 'prv2-notifs-chevron');
+      togglePrv2('prv2-row-conf', 'prv2-conf-body', 'prv2-conf-chevron');
+      togglePrv2('prv2-row-msgs', 'prv2-msgs-body', 'prv2-msgs-chevron');
+    })();
+
+        document.getElementById('privacy-close').addEventListener('click', closePrivacyModal);
     document.getElementById('privacy-overlay').addEventListener('click', function (e) {
       if (e.target === e.currentTarget) closePrivacyModal();
     });
