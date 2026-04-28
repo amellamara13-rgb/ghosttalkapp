@@ -1555,28 +1555,17 @@
       color: rgba(255,255,255,0.85);
       letter-spacing: -0.01em;
     }
-    .prv2-close-btn {
-      width: 28px; height: 28px;
+    .prv2-close-btn, .prv2-back-btn {
+      width: 44px; height: 44px;
       border-radius: 50%; border: none;
-      background: rgba(255,255,255,0.08);
-      color: rgba(255,255,255,0.5);
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: background 0.15s, color 0.15s;
-      flex-shrink: 0;
-    }
-    .prv2-close-btn:hover { background: rgba(255,255,255,0.14); color: rgba(255,255,255,0.85); }
-    .prv2-back-btn {
-      width: 36px; height: 36px;
-      border-radius: 50%; border: none;
-      background: rgba(255,255,255,0.07);
-      color: rgba(255,255,255,0.7);
+      background: rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.85);
       cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       transition: background 0.15s;
       flex-shrink: 0;
     }
-    .prv2-back-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
+    .prv2-close-btn:hover, .prv2-back-btn:hover { background: rgba(255,255,255,0.16); }
     .prv2-account-card {
       display: flex; align-items: center; gap: 14px;
       background: rgba(255,255,255,0.04);
@@ -2733,10 +2722,10 @@
         <!-- ══ PAGE 0 : Accueil paramètres ══ -->
         <div class="prv2-page" id="prv2-page-home">
           <div class="prv2-header">
-            <div style="width:28px;"></div>
+            <div style="width:44px;"></div>
             <h2 id="privacy-title" class="prv2-title">Paramètres</h2>
             <button type="button" class="prv2-close-btn" id="privacy-close" aria-label="Fermer">
-              <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1.5 1.5L10.5 10.5M10.5 1.5L1.5 10.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
             </button>
           </div>
           <span id="privacy-saved-toast" class="privacy-saved-toast" aria-live="polite" aria-hidden="true">Enregistré</span>
@@ -2809,10 +2798,10 @@
         <div class="prv2-page prv2-page--sub" id="prv2-page-apparence">
           <div class="prv2-sub-header">
             <button type="button" class="prv2-back-btn" data-prv2-back aria-label="Retour">
-              <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M8 1L2 7.5 8 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M7 1.5L3 5.5L7 9.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
             <h2 class="prv2-title">Apparence</h2>
-            <div style="width:36px;"></div>
+            <div style="width:44px;"></div>
           </div>
           <div class="prv2-page-body">
             <div class="prv2-group">
@@ -2845,10 +2834,10 @@
         <div class="prv2-page prv2-page--sub" id="prv2-page-theme">
           <div class="prv2-sub-header">
             <button type="button" class="prv2-back-btn" data-prv2-back aria-label="Retour">
-              <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M8 1L2 7.5 8 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M7 1.5L3 5.5L7 9.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
             <h2 class="prv2-title">Thème</h2>
-            <div style="width:36px;"></div>
+            <div style="width:44px;"></div>
           </div>
           <div class="prv2-page-body">
             <div class="prv2-group">
@@ -2868,7 +2857,7 @@
         <div class="prv2-page prv2-page--sub" id="prv2-page-bubbles">
           <div class="prv2-sub-header">
             <button type="button" class="prv2-back-btn" data-prv2-back aria-label="Retour">
-              <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M8 1L2 7.5 8 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M7 1.5L3 5.5L7 9.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
             <h2 class="prv2-title">Couleur des bulles et fond</h2>
             <button type="button" id="gtheme-validate-btn" aria-label="Valider" style="width:36px;height:36px;border-radius:50%;background:#3a76f0;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
@@ -2931,10 +2920,10 @@
         <div class="prv2-page prv2-page--sub" id="prv2-page-icon">
           <div class="prv2-sub-header">
             <button type="button" class="prv2-back-btn" data-prv2-back aria-label="Retour">
-              <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M8 1L2 7.5 8 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M7 1.5L3 5.5L7 9.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
             <h2 class="prv2-title">Icône de l'app</h2>
-            <div style="width:36px;"></div>
+            <div style="width:44px;"></div>
           </div>
           <div class="prv2-page-body">
 
@@ -3130,10 +3119,10 @@
         <div class="prv2-page prv2-page--sub" id="prv2-page-story">
           <div class="prv2-sub-header">
             <button type="button" class="prv2-back-btn" data-prv2-back aria-label="Retour">
-              <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M8 1L2 7.5 8 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M7 1.5L3 5.5L7 9.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
             <h2 class="prv2-title">Story</h2>
-            <div style="width:36px;"></div>
+            <div style="width:44px;"></div>
           </div>
           <div class="prv2-page-body">
             <p class="hint" style="margin:0 4px 16px;">Contrôlez qui peut voir vos stories.</p>
@@ -3158,10 +3147,10 @@
         <div class="prv2-page prv2-page--sub" id="prv2-page-notifs">
           <div class="prv2-sub-header">
             <button type="button" class="prv2-back-btn" data-prv2-back aria-label="Retour">
-              <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M8 1L2 7.5 8 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M7 1.5L3 5.5L7 9.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
             <h2 class="prv2-title">Notifications</h2>
-            <div style="width:36px;"></div>
+            <div style="width:44px;"></div>
           </div>
           <div class="prv2-page-body">
             <div class="prv2-group">
@@ -3187,10 +3176,10 @@
         <div class="prv2-page prv2-page--sub" id="prv2-page-conf">
           <div class="prv2-sub-header">
             <button type="button" class="prv2-back-btn" data-prv2-back aria-label="Retour">
-              <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M8 1L2 7.5 8 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M7 1.5L3 5.5L7 9.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
             <h2 class="prv2-title">Confidentialité</h2>
-            <div style="width:36px;"></div>
+            <div style="width:44px;"></div>
           </div>
           <div class="prv2-page-body">
 
@@ -3267,10 +3256,10 @@
         <div class="prv2-page prv2-page--sub" id="prv2-page-blocked">
           <div class="prv2-sub-header">
             <button type="button" class="prv2-back-btn" data-prv2-back aria-label="Retour">
-              <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M8 1L2 7.5 8 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M7 1.5L3 5.5L7 9.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
             <h2 class="prv2-title">Utilisateurs bloqués</h2>
-            <div style="width:36px;"></div>
+            <div style="width:44px;"></div>
           </div>
           <div class="prv2-page-body">
             <div id="blocked-users-list"></div>
@@ -3282,10 +3271,10 @@
         <div class="prv2-page prv2-page--sub" id="prv2-page-cle">
           <div class="prv2-sub-header">
             <button type="button" class="prv2-back-btn" data-prv2-back aria-label="Retour">
-              <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M8 1L2 7.5 8 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M7 1.5L3 5.5L7 9.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
             <h2 class="prv2-title">Clé d'accès</h2>
-            <div style="width:36px;"></div>
+            <div style="width:44px;"></div>
           </div>
           <div class="prv2-page-body">
             <div class="prv2-group" style="padding:16px;">
