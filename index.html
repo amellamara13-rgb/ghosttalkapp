@@ -676,6 +676,14 @@
       font-size: 17px;
       line-height: 1.4;
       word-break: break-word;
+      display: inline-flex;
+      align-items: flex-end;
+      gap: 5px;
+    }
+    .bubble-text {
+      flex: 1;
+      min-width: 0;
+      word-break: break-word;
     }
     .bubble.is-preserved {
       font-weight: 700;
@@ -700,9 +708,6 @@
       background: var(--bubble-me);
       color: #fff;
       border-radius: 22px 22px 6px 22px;
-      display: inline-flex;
-      align-items: flex-end;
-      gap: 5px;
     }
     .row.me .bubble .bubble-read {
       display: none;
@@ -5461,12 +5466,16 @@
       var b = document.createElement('div');
       b.className = 'bubble';
       if (m.preserved === true) b.classList.add('is-preserved');
+      // Texte dans un span dédié pour que le flex fonctionne correctement
+      var textSpan = document.createElement('span');
+      textSpan.className = 'bubble-text';
       try {
-        b.appendChild(document.createTextNode(decryptUtf8(m.cipher, passphrase)));
+        textSpan.textContent = decryptUtf8(m.cipher, passphrase);
       } catch (err) {
-        b.appendChild(document.createTextNode('(message indéchiffrable)'));
+        textSpan.textContent = '(message indéchiffrable)';
       }
-      // Heure inline dans la bulle
+      b.appendChild(textSpan);
+      // Heure inline dans la bulle, collée en bas à droite
       var d = new Date(m.at || Date.now());
       var timeInner = document.createElement('span');
       timeInner.className = 'bubble-time-inner';
