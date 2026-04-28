@@ -2871,22 +2871,59 @@
               <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M8 1L2 7.5 8 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
             <h2 class="prv2-title">Couleur des bulles et fond</h2>
-            <div style="width:36px;"></div>
+            <button type="button" id="gtheme-validate-btn" aria-label="Valider" style="width:36px;height:36px;border-radius:50%;background:#3a76f0;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg width="14" height="11" viewBox="0 0 14 11" fill="none"><path d="M1 5.5L5 9.5L13 1" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
           </div>
-          <div class="prv2-page-body">
-            <p class="hint" style="margin:0 4px 16px;">La personnalisation des couleurs s'applique par conversation, depuis le menu de chaque conversation.</p>
-            <div class="prv2-group">
-              <div class="prv2-row" style="cursor:default;gap:14px;">
-                <div style="display:flex;gap:8px;flex:1;">
-                  <div style="width:32px;height:32px;border-radius:50%;background:#3a76f0;flex-shrink:0;"></div>
-                  <div style="width:32px;height:32px;border-radius:50%;background:#a78bfa;flex-shrink:0;"></div>
-                  <div style="width:32px;height:32px;border-radius:50%;background:#f472b6;flex-shrink:0;"></div>
-                  <div style="width:32px;height:32px;border-radius:50%;background:#14b8a6;flex-shrink:0;"></div>
-                  <div style="width:32px;height:32px;border-radius:50%;background:#f97316;flex-shrink:0;"></div>
+          <div class="prv2-page-body" style="padding-top:0;">
+
+            <!-- Note globale -->
+            <div style="display:flex;align-items:flex-start;gap:8px;padding:12px 4px 14px;">
+              <div style="width:4px;height:4px;border-radius:50%;background:#f97316;margin-top:7px;flex-shrink:0;"></div>
+              <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.4);line-height:1.6;">Ces couleurs s’appliquent à toutes vos conversations. Chaque conversation peut aussi avoir ses propres couleurs via son menu.</p>
+            </div>
+
+            <!-- Aperçu -->
+            <div id="gtheme-preview-bg" style="margin:0 0 18px;border-radius:18px;padding:14px 14px 10px;background:#111114;transition:background 0.2s;">
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <div style="display:flex;justify-content:flex-start;">
+                  <div id="gtheme-bubble-them-1" style="background:#2c2c30;color:#fff;border-radius:18px 18px 18px 4px;padding:8px 13px;font-size:13px;max-width:200px;">Salut, ça va ?</div>
+                </div>
+                <div style="display:flex;justify-content:flex-end;">
+                  <div id="gtheme-bubble-me-1" style="color:#fff;border-radius:18px 18px 4px 18px;padding:8px 13px;font-size:13px;max-width:200px;background:#3a76f0;">Oui et toi !</div>
+                </div>
+                <div style="display:flex;justify-content:flex-start;">
+                  <div id="gtheme-bubble-them-2" style="background:#2c2c30;color:#fff;border-radius:18px 18px 18px 4px;padding:8px 13px;font-size:13px;max-width:200px;">On se voit ce soir ?</div>
+                </div>
+                <div style="display:flex;justify-content:flex-end;">
+                  <div id="gtheme-bubble-me-2" style="color:#fff;border-radius:18px 18px 4px 18px;padding:8px 13px;font-size:13px;max-width:200px;background:#3a76f0;">Avec plaisir !</div>
                 </div>
               </div>
             </div>
-            <p class="hint" style="margin:12px 4px 0;">Ouvrez une conversation, appuyez sur le nom du contact en haut pour accéder aux options de personnalisation.</p>
+
+            <!-- Couleur des bulles -->
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+              <p style="margin:0;font-size:10px;font-weight:600;color:rgba(255,255,255,0.3);letter-spacing:0.1em;text-transform:uppercase;">Couleur des bulles</p>
+              <button type="button" id="gtheme-reset-bubble" style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.06);border:0.5px solid rgba(255,255,255,0.1);border-radius:20px;padding:5px 11px;cursor:pointer;color:rgba(255,255,255,0.45);font-size:11px;font-family:inherit;">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M3 12a9 9 0 109-9 9 9 0 00-7.5 4" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round"/><path d="M3 5v6h6" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Réinitialiser
+              </button>
+            </div>
+            <div id="gtheme-swatches" style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:20px;"></div>
+
+            <!-- Séparateur -->
+            <div style="height:0.5px;background:rgba(255,255,255,0.06);margin-bottom:18px;"></div>
+
+            <!-- Couleur du fond -->
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+              <p style="margin:0;font-size:10px;font-weight:600;color:rgba(255,255,255,0.3);letter-spacing:0.1em;text-transform:uppercase;">Couleur du fond</p>
+              <button type="button" id="gtheme-reset-bg" style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.06);border:0.5px solid rgba(255,255,255,0.1);border-radius:20px;padding:5px 11px;cursor:pointer;color:rgba(255,255,255,0.45);font-size:11px;font-family:inherit;">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M3 12a9 9 0 109-9 9 9 0 00-7.5 4" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round"/><path d="M3 5v6h6" stroke="rgba(255,255,255,0.5)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Réinitialiser
+              </button>
+            </div>
+            <div id="gtheme-bg-swatches" style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:24px;"></div>
+
           </div>
         </div>
 
@@ -5839,6 +5876,132 @@
         if (row) { goTo(row.getAttribute('data-prv2-goto')); return; }
         var back = e.target.closest('[data-prv2-back]');
         if (back) { goBack(); return; }
+      });
+    })();
+
+    // ── Thème global (couleur des bulles et fond pour toutes les conversations) ──
+    (function() {
+      var GLOBAL_KEY = 'gt_theme_global';
+      var DEFAULT_BUBBLE = '#3a76f0';
+      var DEFAULT_BG = '#111114';
+      var pendingBubble = DEFAULT_BUBBLE;
+      var pendingBg = DEFAULT_BG;
+
+      var bubbleOpts = [
+        '#3a76f0','#2ecc71','#a78bfa','#f472b6','#f97316','#ef4444','#14b8a6','#eab308',
+        '#00d4ff','#ff4757','#ff6eb4','#7bed9f',
+        'linear-gradient(135deg,#3a76f0,#a78bfa)',
+        'linear-gradient(135deg,#f472b6,#f97316)',
+        'linear-gradient(135deg,#14b8a6,#3a76f0)',
+        'linear-gradient(135deg,#eab308,#ef4444)',
+        'linear-gradient(135deg,#a78bfa,#f472b6)',
+        'linear-gradient(135deg,#00d4ff,#2ecc71)'
+      ];
+      var bgOpts = [
+        '#111114','#1a1a1a','#000000',
+        '#1a0033','#003322','#00003a','#330011','#002233','#1a2200','#330033','#001a1a','#221100',
+        '#f5f5f0','#fef3f0','#f0f4fe',
+        'linear-gradient(160deg,#1a0033,#00003a)',
+        'linear-gradient(160deg,#003322,#1a2200)',
+        'linear-gradient(160deg,#330011,#221100)',
+        'linear-gradient(160deg,#330033,#00003a)',
+        'linear-gradient(160deg,#002233,#001a1a)',
+        'linear-gradient(160deg,#000,#1a0033)',
+        'linear-gradient(160deg,#00003a,#003322)',
+        'linear-gradient(160deg,#221100,#330033)'
+      ];
+
+      function isLight(v) { return v==='#f5f5f0'||v==='#fef3f0'||v==='#f0f4fe'; }
+
+      function applyGlobalThemeToBubbles(bc, bg) {
+        document.documentElement.style.setProperty('--bubble-me', bc.indexOf('gradient')>-1 ? bc : bc);
+        var msgs = document.getElementById('messages');
+        if (msgs) msgs.style.background = bg;
+      }
+
+      function applyPreview(bc, bg) {
+        var m1 = document.getElementById('gtheme-bubble-me-1');
+        var m2 = document.getElementById('gtheme-bubble-me-2');
+        var bgEl = document.getElementById('gtheme-preview-bg');
+        var t1 = document.getElementById('gtheme-bubble-them-1');
+        var t2 = document.getElementById('gtheme-bubble-them-2');
+        if (m1) m1.style.background = bc;
+        if (m2) m2.style.background = bc;
+        if (bgEl) bgEl.style.background = bg;
+        var light = isLight(bg);
+        var tc = light ? '#111' : '#fff';
+        var tb = light ? 'rgba(0,0,0,0.1)' : '#2c2c30';
+        if (t1) { t1.style.background = tb; t1.style.color = tc; }
+        if (t2) { t2.style.background = tb; t2.style.color = tc; }
+      }
+
+      function buildSwatches(containerId, opts, current, onSelect) {
+        var container = document.getElementById(containerId);
+        if (!container) return;
+        container.innerHTML = '';
+        opts.forEach(function(v) {
+          var s = document.createElement('button');
+          s.type = 'button';
+          var light = isLight(v);
+          s.style.cssText = 'width:34px;height:34px;border-radius:50%;background:'+v+';cursor:pointer;flex-shrink:0;border:'+(light?'0.5px solid rgba(255,255,255,0.25)':'none')+';-webkit-tap-highlight-color:transparent;transition:transform 0.12s;';
+          if (v === current) { s.style.outline = '2.5px solid #fff'; s.style.outlineOffset = '2px'; }
+          s.addEventListener('click', function() {
+            container.querySelectorAll('button').forEach(function(b){ b.style.outline='none'; });
+            s.style.outline = '2.5px solid #fff'; s.style.outlineOffset = '2px';
+            onSelect(v);
+          });
+          container.appendChild(s);
+        });
+      }
+
+      function loadStored() {
+        try {
+          var d = JSON.parse(localStorage.getItem(GLOBAL_KEY) || '{}');
+          pendingBubble = d.bubbleColor || DEFAULT_BUBBLE;
+          pendingBg = d.bgColor || DEFAULT_BG;
+        } catch(e) {}
+      }
+
+      function buildAll() {
+        buildSwatches('gtheme-swatches', bubbleOpts, pendingBubble, function(c){ pendingBubble=c; applyPreview(pendingBubble, pendingBg); });
+        buildSwatches('gtheme-bg-swatches', bgOpts, pendingBg, function(c){ pendingBg=c; applyPreview(pendingBubble, pendingBg); });
+      }
+
+      // Appliquer le thème global au chargement
+      loadStored();
+      applyGlobalThemeToBubbles(pendingBubble, pendingBg);
+
+      // Quand on ouvre la page
+      document.addEventListener('click', function(e) {
+        var row = e.target.closest('[data-prv2-goto="prv2-page-bubbles"]');
+        if (!row) return;
+        loadStored();
+        applyPreview(pendingBubble, pendingBg);
+        buildAll();
+      });
+
+      // Réinitialiser bulles
+      document.addEventListener('click', function(e) {
+        if (!e.target.closest('#gtheme-reset-bubble')) return;
+        pendingBubble = DEFAULT_BUBBLE;
+        applyPreview(pendingBubble, pendingBg);
+        buildAll();
+      });
+
+      // Réinitialiser fond
+      document.addEventListener('click', function(e) {
+        if (!e.target.closest('#gtheme-reset-bg')) return;
+        pendingBg = DEFAULT_BG;
+        applyPreview(pendingBubble, pendingBg);
+        buildAll();
+      });
+
+      // Valider
+      document.addEventListener('click', function(e) {
+        if (!e.target.closest('#gtheme-validate-btn')) return;
+        try { localStorage.setItem(GLOBAL_KEY, JSON.stringify({bubbleColor: pendingBubble, bgColor: pendingBg})); } catch(err){}
+        applyGlobalThemeToBubbles(pendingBubble, pendingBg);
+        if (window._prv2GoBack) window._prv2GoBack();
       });
     })();
 
