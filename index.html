@@ -3794,6 +3794,15 @@
   function applyContactEphemeralDelay(contactId, delayValue) {
     var contact = getContactById(contactId);
     if (!contact) return;
+    // Fix Bug 2 : ne pas écraser une valeur valide existante avec null
+    // (arrive quand Firestore n'a pas encore le champ ephemeralDelay)
+    if (delayValue === null && contact.ephemeralDelay !== null && contact.ephemeralDelay !== undefined) {
+      // Garder la valeur existante, juste rafraîchir l'affichage
+      if (activeId === contactId) {
+        updateChatTitleDisplay(contact);
+      }
+      return;
+    }
     contact.ephemeralDelay = delayValue;
     saveState(state);
     if (activeId === contactId) {
@@ -3821,14 +3830,14 @@
       if (activeId !== contactId) return;
       var data = snap && snap.exists ? (snap.data() || {}) : {};
       var val = data.ephemeralDelay;
-      var normalized = (val === 'on_read' || typeof val === 'number') ? val : null;
+      var normalized = (val === 'on_read') ? val : (typeof val === 'number' ? val : (typeof val === 'string' && val !== 'on_read' && !isNaN(parseInt(val, 10)) ? parseInt(val, 10) : null));
       applyContactEphemeralDelay(contactId, normalized);
     }).catch(function () {});
     unsubscribeConversationSettings = ref.onSnapshot(function (snap) {
       if (activeId !== contactId) return;
       var data = snap && snap.exists ? (snap.data() || {}) : {};
       var val = data.ephemeralDelay;
-      var normalized = (val === 'on_read' || typeof val === 'number') ? val : null;
+      var normalized = (val === 'on_read') ? val : (typeof val === 'number' ? val : (typeof val === 'string' && val !== 'on_read' && !isNaN(parseInt(val, 10)) ? parseInt(val, 10) : null));
       applyContactEphemeralDelay(contactId, normalized);
     }, function () {});
   }
