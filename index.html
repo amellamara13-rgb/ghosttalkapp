@@ -199,10 +199,12 @@
     .bubble-time-inner {
       font-size: 11px;
       white-space: nowrap;
-      flex-shrink: 0;
-      align-self: flex-end;
       line-height: 1;
-      margin-bottom: 1px;
+      float: right;
+      margin-left: 6px;
+      margin-bottom: -1px;
+      position: relative;
+      bottom: -2px;
     }
     .row.me .bubble-time-inner {
       color: rgba(255,255,255,0.55);
@@ -676,14 +678,9 @@
       font-size: 17px;
       line-height: 1.4;
       word-break: break-word;
-      display: inline-flex;
-      align-items: flex-end;
-      gap: 5px;
     }
     .bubble-text {
-      flex: 1;
-      min-width: 0;
-      word-break: break-word;
+      display: inline;
     }
     .bubble.is-preserved {
       font-weight: 700;
@@ -715,17 +712,18 @@
     .row.me .bubble-wrap {
       position: relative;
     }
-    /* Badge statut — variante Mix A, inline après texte */
+    /* Badge statut — float après l'heure */
     .row.me .bubble-read-dot {
       display: inline-flex;
-      flex-shrink: 0;
-      align-self: flex-end;
-      margin-bottom: 2px;
+      float: right;
+      margin-left: 4px;
       width: 7px;
       height: 7px;
       border-radius: 50%;
       pointer-events: none;
       background: rgba(255,255,255,0.3);
+      position: relative;
+      bottom: -2px;
     }
     .row.me .bubble-read-dot.is-delivered {
       background: rgba(255,255,255,0.85);
@@ -5466,22 +5464,9 @@
       var b = document.createElement('div');
       b.className = 'bubble';
       if (m.preserved === true) b.classList.add('is-preserved');
-      // Texte dans un span dédié pour que le flex fonctionne correctement
-      var textSpan = document.createElement('span');
-      textSpan.className = 'bubble-text';
-      try {
-        textSpan.textContent = decryptUtf8(m.cipher, passphrase);
-      } catch (err) {
-        textSpan.textContent = '(message indéchiffrable)';
-      }
-      b.appendChild(textSpan);
-      // Heure inline dans la bulle, collée en bas à droite
       var d = new Date(m.at || Date.now());
-      var timeInner = document.createElement('span');
-      timeInner.className = 'bubble-time-inner';
-      timeInner.setAttribute('aria-hidden', 'true');
-      timeInner.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes());
-      b.appendChild(timeInner);
+      // Float : badge lu/livré en premier (float right), puis heure (float right)
+      // L'ordre DOM doit être : éléments float AVANT le texte
       if (m.me) {
         var readEl = document.createElement('span');
         readEl.className = 'bubble-read-dot' + (m.readAt ? ' is-read' : (m.deliveredAt ? ' is-delivered' : ''));
@@ -5491,6 +5476,20 @@
         }
         b.appendChild(readEl);
       }
+      var timeInner = document.createElement('span');
+      timeInner.className = 'bubble-time-inner';
+      timeInner.setAttribute('aria-hidden', 'true');
+      timeInner.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes());
+      b.appendChild(timeInner);
+      // Texte après les floats
+      var textSpan = document.createElement('span');
+      textSpan.className = 'bubble-text';
+      try {
+        textSpan.textContent = decryptUtf8(m.cipher, passphrase);
+      } catch (err) {
+        textSpan.textContent = '(message indéchiffrable)';
+      }
+      b.appendChild(textSpan);
       wrap.appendChild(b);
       if (m.preserved === true && m.preservedBy) {
         var preservedLabel = document.createElement('div');
