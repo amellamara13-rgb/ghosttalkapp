@@ -208,6 +208,13 @@
     #messages .msg-line.msg-line--bubble-hover > .bubble-time {
       opacity: 1;
     }
+    .msg-system {
+      text-align: center;
+      padding: 4px 16px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.3);
+      line-height: 1.4;
+    }
     .msg-date-separator {
       display: flex;
       align-items: center;
@@ -317,21 +324,40 @@
       font-weight: 700;
       color: #fff;
       flex-shrink: 0;
-      margin-right: 12px;
+      margin-right: 0;
       text-transform: uppercase;
     }
     #chat-ephemeral-indicator {
       display: none;
-      align-items: center;
-      gap: 5px;
-      border-left: 2px solid #f97316;
-      padding-left: 6px;
-      margin-top: 2px;
-      font-size: 11px;
-      color: rgba(255,255,255,0.4);
     }
     #chat-ephemeral-indicator:not([hidden]) {
-      display: inline-flex;
+      display: none;
+    }
+    .chat-avatar-wrap {
+      position: relative;
+      flex-shrink: 0;
+      display: none;
+      margin-right: 12px;
+    }
+    .chat-avatar-wrap.is-visible {
+      display: inline-block;
+    }
+    #eph-avatar-dot {
+      display: none;
+      position: absolute;
+      bottom: -2px;
+      right: -2px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #f97316;
+      border: 2.5px solid var(--bg);
+      align-items: center;
+      justify-content: center;
+      z-index: 1;
+    }
+    #eph-avatar-dot.is-visible {
+      display: flex;
     }
     .contact-name-blurred {
       filter: blur(5px);
@@ -2708,7 +2734,12 @@
         <header id="chat-head">
           <div class="chat-head-left">
             <button type="button" id="btn-chat-back" class="btn-chat-back" aria-label="Retour à la liste des conversations"><svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M7 1.5L3 5.5L7 9.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-            <span id="chat-head-avatar" class="chat-head-avatar" role="button" style="cursor:pointer;" title="Options de conversation" aria-label="Options de conversation"></span>
+            <div class="chat-avatar-wrap" id="chat-avatar-wrap">
+              <span id="chat-head-avatar" class="chat-head-avatar" role="button" style="cursor:pointer;margin-right:0;" title="Options de conversation" aria-label="Options de conversation"></span>
+              <span id="eph-avatar-dot" aria-hidden="true">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#fff" stroke-width="2.5"/><path d="M12 7v5l3 3" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>
+              </span>
+            </div>
             <div class="chat-title-stack">
               <span id="chat-title">Sélectionnez une conversation</span>
               <span id="chat-ephemeral-indicator" hidden></span>
@@ -4407,6 +4438,8 @@
       el.textContent = '';
       el.removeAttribute('aria-label');
       if (avatarEl) { avatarEl.style.display = 'none'; avatarEl.textContent = ''; }
+      var wrapEl = document.getElementById('chat-avatar-wrap');
+      if (wrapEl) wrapEl.classList.remove('is-visible');
       updateEphemeralIndicator(null);
       return;
     }
@@ -4417,12 +4450,14 @@
       el.textContent = contact.name;
       el.removeAttribute('aria-label');
     }
+    var wrap = document.getElementById('chat-avatar-wrap');
     if (avatarEl) {
       var av = avatarForName(contact.name);
       avatarEl.textContent = av.initial;
       avatarEl.style.background = av.color;
       avatarEl.style.display = 'inline-flex';
     }
+    if (wrap) wrap.classList.add('is-visible');
     updateEphemeralIndicator(contact);
   }
 
@@ -4438,25 +4473,16 @@
   }
 
   function updateEphemeralIndicator(contact) {
-    var el = document.getElementById('chat-ephemeral-indicator');
-    if (!el) return;
-    if (!contact || !contact.ephemeralDelay) {
-      el.hidden = true;
-      el.innerHTML = '';
-      return;
+    var dot = document.getElementById('eph-avatar-dot');
+    var wrap = document.getElementById('chat-avatar-wrap');
+    var avatarEl = document.getElementById('chat-head-avatar');
+    if (dot) {
+      var active = !!(contact && contact.ephemeralDelay);
+      dot.classList.toggle('is-visible', active);
     }
-    var labels = {
-      'on_read': 'Lu',
-      60: '1 min',
-      300: '5 min',
-      3600: '1 h',
-      86400: '24 h',
-      604800: '1 sem'
-    };
-    var label = labels[contact.ephemeralDelay];
-    if (!label) { el.hidden = true; el.innerHTML = ''; return; }
-    el.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;"><circle cx="12" cy="12" r="9" stroke="#f97316" stroke-width="1.8"/><path d="M12 7v5l3 3" stroke="#f97316" stroke-width="1.8" stroke-linecap="round"/></svg>' + label;
-    el.hidden = false;
+    // L'ancien indicateur texte reste caché
+    var el = document.getElementById('chat-ephemeral-indicator');
+    if (el) { el.hidden = true; el.innerHTML = ''; }
   }
 
   function conversationDocIdForContact(contact) {
@@ -4914,7 +4940,33 @@
     ensureData();
     var contact = getContactById(contactId);
     if (!contact) return Promise.resolve();
+    var prevDelay = contact.ephemeralDelay;
     applyContactEphemeralDelay(contactId, delayValue);
+    // Message système dans la conversation
+    if (prevDelay !== delayValue && activeId === contactId) {
+      var me = currentUsername() || 'Vous';
+      var delayLabels = {
+        null: 'désactivé', 1: '1 seconde', 60: '1 minute',
+        300: '5 minutes', 3600: '1 heure', 86400: '24 heures', 604800: '7 jours'
+      };
+      var labelStr = delayLabels[delayValue] !== undefined ? delayLabels[delayValue] : String(delayValue);
+      var sysText = delayValue
+        ? me + ' a défini la disparition des messages à ' + labelStr
+        : me + ' a désactivé la disparition des messages';
+      var sysMsg = {
+        id: 'sys_' + Date.now(),
+        contactId: contactId,
+        me: true,
+        isSystem: true,
+        systemText: sysText,
+        cipher: encryptUtf8('', passphrase),
+        at: Date.now(),
+        readAt: Date.now()
+      };
+      state.directMessages.push(sysMsg);
+      saveState(state);
+      renderMessages();
+    }
     if (demoMode) return Promise.resolve();
     initFirebase();
     if (!firestoreDb) return Promise.resolve();
@@ -5344,6 +5396,14 @@
     var prevDayKey = null;
     thread.forEach(function (m) {
       var tMs = m.at || Date.now();
+      // Message système (éphémère changé, etc.)
+      if (m.isSystem && m.systemText) {
+        var sysEl = document.createElement('div');
+        sysEl.style.cssText = 'text-align:center;padding:6px 16px;font-size:12px;color:rgba(255,255,255,0.35);line-height:1.4;';
+        sysEl.textContent = m.systemText;
+        box.appendChild(sysEl);
+        return;
+      }
       var dKey = dayKeyForMessage(tMs);
       if (prevDayKey !== dKey) {
         prevDayKey = dKey;
