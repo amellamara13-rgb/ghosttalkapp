@@ -1569,6 +1569,14 @@
     }
     .prv2-row-label { flex: 1; font-size: 15px; color: rgba(255,255,255,0.85); font-weight: 400; }
     .prv2-chevron { color: rgba(255,255,255,0.2); flex-shrink: 0; }
+    .prv2-section-label {
+      margin: 20px 4px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.3);
+    }
     .prv2-logout-btn {
       width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
       padding: 13px 16px; border: none; background: transparent;
@@ -2935,6 +2943,8 @@
             <div style="width:36px;"></div>
           </div>
           <div class="prv2-page-body">
+
+            <p class="prv2-section-label">Visibilité</p>
             <div class="prv2-group">
               <div class="prv2-row prv2-row--border" style="cursor:default;">
                 <div style="flex:1;">
@@ -2950,21 +2960,17 @@
                 </div>
                 <label class="switch" style="flex-shrink:0;"><input type="checkbox" id="opt-hide-message-previews" role="switch"/><span class="switch-slider"></span></label>
               </div>
-              <div class="prv2-row prv2-row--border" style="cursor:default;">
+              <div class="prv2-row" style="cursor:default;">
                 <div style="flex:1;">
                   <p style="margin:0 0 2px;font-size:15px;color:rgba(255,255,255,0.85);">Masquer mon pseudo</p>
-                  <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.35);">Masque toutes les lettres sauf la première, sur l'écran de connexion et dans le menu</p>
+                  <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.35);">Masque toutes les lettres sauf la première, sur l’écran de connexion et dans le menu</p>
                 </div>
                 <label class="switch" style="flex-shrink:0;"><input type="checkbox" id="opt-hide-own-pseudo" role="switch"/><span class="switch-slider"></span></label>
               </div>
-              <div class="prv2-row prv2-row--border" style="cursor:default;">
-                <div style="flex:1;">
-                  <p style="margin:0 0 2px;font-size:15px;color:rgba(255,255,255,0.85);">Bloquer les captures d'écran</p>
-                  <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.35);">Empêche les captures sur mobile</p>
-                  <p class="hint privacy-screenshot-compat-note" id="privacy-screenshot-compat-note" hidden style="margin:4px 0 0;">Disponible sur appareils compatibles uniquement.</p>
-                </div>
-                <label class="switch" style="flex-shrink:0;"><input type="checkbox" id="opt-block-screenshots" role="switch"/><span class="switch-slider"></span></label>
-              </div>
+            </div>
+
+            <p class="prv2-section-label">Interactions</p>
+            <div class="prv2-group">
               <div class="prv2-row prv2-row--border" style="cursor:default;">
                 <div style="flex:1;">
                   <p style="margin:0 0 2px;font-size:15px;color:rgba(255,255,255,0.85);">Confirmation de lecture</p>
@@ -2972,13 +2978,29 @@
                 </div>
                 <label class="switch" style="flex-shrink:0;"><input type="checkbox" id="opt-read-receipts" role="switch" checked/><span class="switch-slider"></span></label>
               </div>
-              <div class="prv2-row prv2-row--border" style="cursor:default;">
+              <div class="prv2-row" style="cursor:default;">
                 <div style="flex:1;">
                   <p style="margin:0 0 2px;font-size:15px;color:rgba(255,255,255,0.85);">Indicateur de saisie</p>
-                  <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.35);">Affiche quand vous êtes en train d'écrire</p>
+                  <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.35);">Affiche quand vous êtes en train d’écrire</p>
                 </div>
                 <label class="switch" style="flex-shrink:0;"><input type="checkbox" id="opt-typing-indicator" role="switch" checked/><span class="switch-slider"></span></label>
               </div>
+            </div>
+
+            <p class="prv2-section-label">Sécurité</p>
+            <div class="prv2-group">
+              <div class="prv2-row" style="cursor:default;">
+                <div style="flex:1;">
+                  <p style="margin:0 0 2px;font-size:15px;color:rgba(255,255,255,0.85);">Bloquer les captures d’écran</p>
+                  <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.35);">Empêche les captures sur mobile</p>
+                  <p class="hint privacy-screenshot-compat-note" id="privacy-screenshot-compat-note" hidden style="margin:4px 0 0;">Disponible sur appareils compatibles uniquement.</p>
+                </div>
+                <label class="switch" style="flex-shrink:0;"><input type="checkbox" id="opt-block-screenshots" role="switch"/><span class="switch-slider"></span></label>
+              </div>
+            </div>
+
+            <p class="prv2-section-label">Contacts</p>
+            <div class="prv2-group">
               <div class="prv2-row" data-prv2-goto="prv2-page-blocked">
                 <div style="flex:1;">
                   <p style="margin:0 0 2px;font-size:15px;color:rgba(255,255,255,0.85);">Utilisateurs bloqués</p>
@@ -2987,6 +3009,7 @@
                 <svg class="prv2-chevron" width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1L6 6L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </div>
             </div>
+
           </div>
         </div>
 
