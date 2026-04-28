@@ -665,8 +665,11 @@
       display: flex;
       flex-direction: column;
       gap: 4px;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
     }
     .bubble {
+      display: inline-block;
       max-width: 100%;
       padding: 10px 16px 10px 16px;
       border-radius: var(--radius);
@@ -825,6 +828,7 @@
       -ms-overflow-style: none;
     }
     #input::-webkit-scrollbar { display: none; }
+    .messages::-webkit-scrollbar { display: none; }
     .modal-panel::-webkit-scrollbar { display: none; }
     .conv-options-panel::-webkit-scrollbar { display: none; }
 
