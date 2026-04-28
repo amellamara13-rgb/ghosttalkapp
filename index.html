@@ -1464,13 +1464,42 @@
       z-index: 1100;
     }
 
-    /* ── Nouveau design Paramètres (prv2) ── */
+    /* ── Paramètres (prv2) — navigation slides ── */
+    .modal-panel--privacy { position: relative; overflow: hidden !important; }
+    .prv2-slides {
+      display: flex;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.32s cubic-bezier(0.22,1,0.36,1);
+    }
+    .prv2-page {
+      min-width: 100%;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+    .prv2-page-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 16px 28px;
+      scrollbar-width: none;
+    }
+    .prv2-page-body::-webkit-scrollbar { display: none; }
     .prv2-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 16px 18px 10px;
-      border-bottom: none;
+      flex-shrink: 0;
+    }
+    .prv2-sub-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px 10px;
+      flex-shrink: 0;
+      border-bottom: 0.5px solid rgba(255,255,255,0.06);
     }
     .prv2-title {
       margin: 0;
@@ -1480,123 +1509,68 @@
       letter-spacing: -0.01em;
     }
     .prv2-close-btn {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      border: none;
+      width: 28px; height: 28px;
+      border-radius: 50%; border: none;
       background: rgba(255,255,255,0.08);
       color: rgba(255,255,255,0.5);
       cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       transition: background 0.15s, color 0.15s;
       flex-shrink: 0;
     }
     .prv2-close-btn:hover { background: rgba(255,255,255,0.14); color: rgba(255,255,255,0.85); }
+    .prv2-back-btn {
+      width: 36px; height: 36px;
+      border-radius: 50%; border: none;
+      background: rgba(255,255,255,0.07);
+      color: rgba(255,255,255,0.7);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s;
+      flex-shrink: 0;
+    }
+    .prv2-back-btn:hover { background: rgba(255,255,255,0.12); color: #fff; }
     .prv2-account-card {
-      display: flex;
-      align-items: center;
-      gap: 14px;
+      display: flex; align-items: center; gap: 14px;
       background: rgba(255,255,255,0.04);
       border: 0.5px solid rgba(255,255,255,0.07);
-      border-radius: 20px;
-      padding: 16px;
-      margin-bottom: 10px;
-      transition: background 0.15s;
+      border-radius: 20px; padding: 16px; margin-bottom: 10px;
     }
     .prv2-avatar {
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
+      width: 56px; height: 56px; border-radius: 50%;
       background: linear-gradient(135deg, #3a76f0, #7c5ff0);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-      font-weight: 600;
-      color: #fff;
-      flex-shrink: 0;
-      text-transform: uppercase;
-      letter-spacing: -0.02em;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; font-weight: 600; color: #fff;
+      flex-shrink: 0; text-transform: uppercase;
     }
     .prv2-account-info { min-width: 0; flex: 1; }
-    .prv2-account-name {
-      margin: 0 0 3px;
-      font-size: 18px;
-      font-weight: 600;
-      color: #fff;
-      letter-spacing: -0.03em;
-      word-break: break-word;
-    }
-    .prv2-account-sub {
-      margin: 0;
-      font-size: 12px;
-      color: rgba(255,255,255,0.35);
-    }
+    .prv2-account-name { margin: 0 0 3px; font-size: 18px; font-weight: 600; color: #fff; letter-spacing: -0.03em; word-break: break-word; }
+    .prv2-account-sub { margin: 0; font-size: 12px; color: rgba(255,255,255,0.35); }
     .prv2-account-sub[hidden] { display: none !important; }
     .prv2-group {
       background: rgba(255,255,255,0.04);
       border: 0.5px solid rgba(255,255,255,0.07);
-      border-radius: 20px;
-      overflow: hidden;
+      border-radius: 20px; overflow: hidden;
     }
     .prv2-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 13px 16px;
-      cursor: pointer;
+      display: flex; align-items: center; gap: 12px;
+      padding: 13px 16px; cursor: pointer;
       transition: background 0.15s;
       -webkit-tap-highlight-color: transparent;
     }
     .prv2-row:hover { background: rgba(255,255,255,0.04); }
     .prv2-row--border { border-bottom: 0.5px solid rgba(255,255,255,0.05); }
     .prv2-row-icon {
-      width: 32px;
-      height: 32px;
-      border-radius: 9px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
+      width: 32px; height: 32px; border-radius: 9px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
     }
-    .prv2-row-label {
-      flex: 1;
-      font-size: 15px;
-      color: rgba(255,255,255,0.85);
-      font-weight: 400;
-    }
-    .prv2-chevron {
-      color: rgba(255,255,255,0.2);
-      flex-shrink: 0;
-      transition: transform 0.22s cubic-bezier(0.22,1,0.36,1);
-    }
-    .prv2-chevron--open { transform: rotate(90deg); }
-    .prv2-expand-body {
-      overflow: hidden;
-      max-height: 0;
-      transition: max-height 0.28s cubic-bezier(0.22,1,0.36,1);
-      border-bottom: 0.5px solid rgba(255,255,255,0.05);
-    }
-    .prv2-expand-body > div { padding: 0 16px; }
-    .prv2-expand-body--open { max-height: 600px; }
+    .prv2-row-label { flex: 1; font-size: 15px; color: rgba(255,255,255,0.85); font-weight: 400; }
+    .prv2-chevron { color: rgba(255,255,255,0.2); flex-shrink: 0; }
     .prv2-logout-btn {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 13px 16px;
-      border: none;
-      background: transparent;
-      color: #ff453a;
-      font-size: 15px;
-      font-weight: 500;
-      font-family: inherit;
-      cursor: pointer;
-      transition: background 0.15s;
-      border-radius: 20px;
+      width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 13px 16px; border: none; background: transparent;
+      color: #ff453a; font-size: 15px; font-weight: 500; font-family: inherit;
+      cursor: pointer; transition: background 0.15s; border-radius: 20px;
     }
     .prv2-logout-btn:hover { background: rgba(255,69,58,0.08); }
     /* ── Fin prv2 ── */
@@ -2696,137 +2670,277 @@
 
   <!-- Modal confidentialité -->
   <div id="privacy-overlay" class="modal-overlay" aria-hidden="true">
-    <div class="modal-panel modal-panel--privacy" role="dialog" aria-labelledby="privacy-title">
+    <div class="modal-panel modal-panel--privacy" role="dialog" aria-labelledby="privacy-title" style="overflow:hidden;">
 
-      <div class="prv2-header">
-        <div style="width:28px;"></div>
-        <h2 id="privacy-title" class="prv2-title">Paramètres</h2>
-        <button type="button" class="prv2-close-btn" id="privacy-close" aria-label="Fermer">
-          <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-        </button>
-      </div>
+      <!-- Conteneur slides -->
+      <div class="prv2-slides" id="prv2-slides">
 
-      <span id="privacy-saved-toast" class="privacy-saved-toast" aria-live="polite" aria-hidden="true">Enregistré</span>
-
-      <div class="modal-body privacy-modal-body" style="padding:0 16px 28px;">
-
-        <div class="prv2-account-card">
-          <div class="prv2-avatar" id="prv2-avatar-circle">?</div>
-          <div class="prv2-account-info">
-            <p class="prv2-account-name" id="privacy-username-full"></p>
-            <p class="prv2-account-sub" id="privacy-member-since" hidden></p>
+        <!-- ══ PAGE 0 : Accueil paramètres ══ -->
+        <div class="prv2-page" id="prv2-page-home">
+          <div class="prv2-header">
+            <div style="width:28px;"></div>
+            <h2 id="privacy-title" class="prv2-title">Paramètres</h2>
+            <button type="button" class="prv2-close-btn" id="privacy-close" aria-label="Fermer">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1 1L9 9M9 1L1 9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            </button>
+          </div>
+          <span id="privacy-saved-toast" class="privacy-saved-toast" aria-live="polite" aria-hidden="true">Enregistré</span>
+          <div class="prv2-page-body">
+            <div class="prv2-account-card">
+              <div class="prv2-avatar" id="prv2-avatar-circle">?</div>
+              <div class="prv2-account-info">
+                <p class="prv2-account-name" id="privacy-username-full"></p>
+                <p class="prv2-account-sub" id="privacy-member-since" hidden></p>
+              </div>
+            </div>
+            <div class="prv2-group">
+              <div class="prv2-row prv2-row--border" data-prv2-goto="prv2-page-apparence">
+                <div class="prv2-row-icon" style="background:rgba(124,95,240,0.15);">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c5ff0" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+                </div>
+                <span class="prv2-row-label">Apparence</span>
+                <svg class="prv2-chevron" width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1L6 6L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div class="prv2-row prv2-row--border" data-prv2-goto="prv2-page-story">
+                <div class="prv2-row-icon" style="background:rgba(58,118,240,0.15);">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3a76f0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+                </div>
+                <span class="prv2-row-label">Story</span>
+                <svg class="prv2-chevron" width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1L6 6L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div class="prv2-row prv2-row--border" data-prv2-goto="prv2-page-notifs">
+                <div class="prv2-row-icon" style="background:rgba(249,115,22,0.12);">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+                </div>
+                <span class="prv2-row-label">Notifications</span>
+                <svg class="prv2-chevron" width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1L6 6L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div class="prv2-row" data-prv2-goto="prv2-page-conf">
+                <div class="prv2-row-icon" style="background:rgba(20,184,166,0.12);">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#14b8a6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                </div>
+                <span class="prv2-row-label">Confidentialité</span>
+                <svg class="prv2-chevron" width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1L6 6L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+            </div>
+            <div class="prv2-group" style="margin-top:8px;">
+              <div class="prv2-row prv2-row--border" data-prv2-goto="prv2-page-cle">
+                <div class="prv2-row-icon" style="background:rgba(58,118,240,0.15);">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3a76f0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+                </div>
+                <span class="prv2-row-label">Clé d'accès</span>
+                <svg class="prv2-chevron" width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1L6 6L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <div class="prv2-row">
+                <div class="prv2-row-icon" style="background:rgba(255,69,58,0.1);">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff453a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                </div>
+                <span class="prv2-row-label" style="flex:1;font-size:14px;">Triple-clic pour tout effacer</span>
+                <label class="switch" style="flex-shrink:0;"><input type="checkbox" id="opt-triple-tap-kill" role="switch"/><span class="switch-slider"></span></label>
+              </div>
+              <button type="button" id="btn-delete-all-messages-open" hidden></button>
+              <button type="button" id="btn-delete-all-conversations-open" hidden></button>
+            </div>
+            <div class="prv2-group" style="margin-top:8px;">
+              <button type="button" class="prv2-logout-btn" id="btn-privacy-logout">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Se déconnecter
+              </button>
+            </div>
           </div>
         </div>
 
-        <div class="prv2-group">
-
-          <!-- Apparence -->
-          <div class="prv2-row prv2-row--border">
-            <div class="prv2-row-icon" style="background:rgba(124,95,240,0.15);">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c5ff0" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
-            </div>
-            <span class="prv2-row-label">Apparence</span>
-            <svg class="prv2-chevron" width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1L6 6L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <!-- ══ PAGE 1 : Apparence ══ -->
+        <div class="prv2-page prv2-page--sub" id="prv2-page-apparence">
+          <div class="prv2-sub-header">
+            <button type="button" class="prv2-back-btn" data-prv2-back aria-label="Retour">
+              <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M8 1L2 7.5 8 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <h2 class="prv2-title">Apparence</h2>
+            <div style="width:36px;"></div>
           </div>
-
-          <!-- Story -->
-          <div class="prv2-row prv2-row--border">
-            <div class="prv2-row-icon" style="background:rgba(58,118,240,0.15);">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3a76f0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
-            </div>
-            <span class="prv2-row-label">Story</span>
-            <svg class="prv2-chevron" width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1L6 6L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
-
-          <!-- Notifications -->
-          <div class="prv2-row prv2-row--border prv2-row--expandable" id="prv2-row-notifs">
-            <div class="prv2-row-icon" style="background:rgba(249,115,22,0.12);">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
-            </div>
-            <span class="prv2-row-label">Notifications</span>
-            <svg class="prv2-chevron prv2-chevron--expand" id="prv2-notifs-chevron" width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1L6 6L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
-          <div class="prv2-expand-body" id="prv2-notifs-body">
-            <div style="padding:4px 0 8px;">
-              <div class="switch-block" style="border-top:none;padding:8px 0;">
-                <span class="switch-label" style="font-size:14px;">Masquer le contenu</span>
-                <label class="switch"><input type="checkbox" id="opt-hide-notification-content" role="switch"/><span class="switch-slider"></span></label>
+          <div class="prv2-page-body">
+            <div class="prv2-group">
+              <div class="prv2-row prv2-row--border" data-prv2-goto="prv2-page-theme">
+                <div class="prv2-row-icon" style="background:rgba(124,95,240,0.15);">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c5ff0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+                </div>
+                <span class="prv2-row-label">Thème</span>
+                <svg class="prv2-chevron" width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1L6 6L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </div>
-              <p class="hint" style="margin-top:2px;margin-bottom:0;">Notification vide — ouvrez l'app pour lire le contenu.</p>
+              <div class="prv2-row" data-prv2-goto="prv2-page-icon">
+                <div class="prv2-row-icon" style="background:rgba(249,115,22,0.12);">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M3 9h18M9 21V9"/></svg>
+                </div>
+                <span class="prv2-row-label">Icône de l'app</span>
+                <svg class="prv2-chevron" width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1L6 6L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
             </div>
           </div>
-
-          <!-- Confidentialité -->
-          <div class="prv2-row prv2-row--expandable" id="prv2-row-conf">
-            <div class="prv2-row-icon" style="background:rgba(20,184,166,0.12);">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#14b8a6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-            </div>
-            <span class="prv2-row-label">Confidentialité</span>
-            <svg class="prv2-chevron prv2-chevron--expand" id="prv2-conf-chevron" width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1L6 6L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
-          <div class="prv2-expand-body" id="prv2-conf-body">
-            <div style="padding:4px 0 8px;">
-              <div class="switch-block" style="border-top:none;padding:8px 0 6px;">
-                <span class="switch-label" style="font-size:14px;">Masquer les pseudos</span>
-                <label class="switch"><input type="checkbox" id="opt-hide-contact-pseudos" role="switch"/><span class="switch-slider"></span></label>
-              </div>
-              <p class="hint" style="margin:0 0 10px;">Les noms de vos contacts apparaîtront floutés.</p>
-              <div class="switch-block" style="border-top:0.5px solid var(--line);padding:10px 0 6px;">
-                <span class="switch-label" style="font-size:14px;">Masquer les aperçus</span>
-                <label class="switch"><input type="checkbox" id="opt-hide-message-previews" role="switch"/><span class="switch-slider"></span></label>
-              </div>
-              <p class="hint" style="margin:0 0 10px;">Affiche « Message » à la place du contenu.</p>
-              <div class="switch-block" style="border-top:0.5px solid var(--line);padding:10px 0 6px;">
-                <span class="switch-label" style="font-size:14px;">Bloquer les captures d'écran</span>
-                <label class="switch"><input type="checkbox" id="opt-block-screenshots" role="switch"/><span class="switch-slider"></span></label>
-              </div>
-              <p class="hint" style="margin:0 0 6px;">Empêche les captures d'écran sur mobile.</p>
-              <p class="hint privacy-screenshot-compat-note" id="privacy-screenshot-compat-note" hidden>Disponible sur appareils compatibles uniquement.</p>
-            </div>
-          </div>
-
         </div>
 
-        <!-- Clé d'accès + triple-clic -->
-        <div class="prv2-group" style="margin-top:8px;">
-          <div class="prv2-row prv2-row--border prv2-row--expandable" id="prv2-row-cle">
-            <div class="prv2-row-icon" style="background:rgba(58,118,240,0.15);">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3a76f0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
-            </div>
-            <span class="prv2-row-label">Clé d'accès</span>
-            <svg class="prv2-chevron prv2-chevron--expand" id="prv2-cle-chevron" width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1L6 6L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <!-- ══ PAGE 2 : Thème ══ -->
+        <div class="prv2-page prv2-page--sub" id="prv2-page-theme">
+          <div class="prv2-sub-header">
+            <button type="button" class="prv2-back-btn" data-prv2-back aria-label="Retour">
+              <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M8 1L2 7.5 8 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <h2 class="prv2-title">Thème</h2>
+            <div style="width:36px;"></div>
           </div>
-          <div class="prv2-expand-body" id="prv2-cle-body">
-            <div style="padding:4px 0 12px;">
+          <div class="prv2-page-body">
+            <div class="prv2-group">
+              <div class="prv2-row prv2-row--border" style="cursor:default;">
+                <span class="prv2-row-label" style="font-size:13px;color:rgba(255,255,255,0.4);">Mode sombre</span>
+                <label class="switch" style="flex-shrink:0;"><input type="checkbox" checked disabled/><span class="switch-slider"></span></label>
+              </div>
+              <div class="prv2-row" style="cursor:default;">
+                <span class="prv2-row-label" style="font-size:13px;color:rgba(255,255,255,0.4);">Mode clair</span>
+                <label class="switch" style="flex-shrink:0;"><input type="checkbox" disabled/><span class="switch-slider"></span></label>
+              </div>
+            </div>
+            <p class="hint" style="margin:12px 4px 0;">La personnalisation du thème est disponible par conversation via le menu de chaque conversation.</p>
+          </div>
+        </div>
+
+        <!-- ══ PAGE 3 : Icône de l'app ══ -->
+        <div class="prv2-page prv2-page--sub" id="prv2-page-icon">
+          <div class="prv2-sub-header">
+            <button type="button" class="prv2-back-btn" data-prv2-back aria-label="Retour">
+              <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M8 1L2 7.5 8 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <h2 class="prv2-title">Icône de l'app</h2>
+            <div style="width:36px;"></div>
+          </div>
+          <div class="prv2-page-body">
+            <p class="hint" style="margin:0 4px 16px;">Choisissez l'icône affichée sur votre écran d'accueil.</p>
+            <div class="prv2-group">
+              <div class="prv2-row prv2-row--border" style="gap:14px;">
+                <div style="width:44px;height:44px;border-radius:12px;background:#0b0b0d;border:0.5px solid rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 3C7 3 3 7 3 12s4 9 9 9 9-4 9-9-4-9-9-9z" fill="#3a76f0" opacity=".2"/><circle cx="12" cy="12" r="4" fill="#3a76f0"/></svg>
+                </div>
+                <span class="prv2-row-label">Par défaut</span>
+                <div style="width:8px;height:8px;border-radius:50%;background:#3a76f0;flex-shrink:0;"></div>
+              </div>
+              <div class="prv2-row" style="gap:14px;opacity:0.4;">
+                <div style="width:44px;height:44px;border-radius:12px;background:#1a1a1f;border:0.5px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 3C7 3 3 7 3 12s4 9 9 9 9-4 9-9-4-9-9-9z" fill="#7c5ff0" opacity=".2"/><circle cx="12" cy="12" r="4" fill="#7c5ff0"/></svg>
+                </div>
+                <span class="prv2-row-label">Violet</span>
+                <span style="font-size:11px;color:rgba(255,255,255,0.3);">Bientôt</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ PAGE 4 : Story ══ -->
+        <div class="prv2-page prv2-page--sub" id="prv2-page-story">
+          <div class="prv2-sub-header">
+            <button type="button" class="prv2-back-btn" data-prv2-back aria-label="Retour">
+              <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M8 1L2 7.5 8 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <h2 class="prv2-title">Story</h2>
+            <div style="width:36px;"></div>
+          </div>
+          <div class="prv2-page-body">
+            <p class="hint" style="margin:0 4px 16px;">Contrôlez qui peut voir vos stories.</p>
+            <div class="prv2-group">
+              <div class="prv2-row prv2-row--border" style="cursor:default;">
+                <span class="prv2-row-label">Mes contacts</span>
+                <div style="width:8px;height:8px;border-radius:50%;background:#3a76f0;flex-shrink:0;"></div>
+              </div>
+              <div class="prv2-row prv2-row--border" style="cursor:default;">
+                <span class="prv2-row-label" style="color:rgba(255,255,255,0.5);">Personne</span>
+                <div style="width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.1);flex-shrink:0;"></div>
+              </div>
+              <div class="prv2-row" style="cursor:default;">
+                <span class="prv2-row-label" style="color:rgba(255,255,255,0.5);">Sélection personnalisée</span>
+                <div style="width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.1);flex-shrink:0;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ PAGE 5 : Notifications ══ -->
+        <div class="prv2-page prv2-page--sub" id="prv2-page-notifs">
+          <div class="prv2-sub-header">
+            <button type="button" class="prv2-back-btn" data-prv2-back aria-label="Retour">
+              <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M8 1L2 7.5 8 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <h2 class="prv2-title">Notifications</h2>
+            <div style="width:36px;"></div>
+          </div>
+          <div class="prv2-page-body">
+            <div class="prv2-group">
+              <div class="prv2-row prv2-row--border" style="cursor:default;">
+                <div style="flex:1;">
+                  <p style="margin:0 0 2px;font-size:15px;color:rgba(255,255,255,0.85);">Masquer le contenu</p>
+                  <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.35);">Notification vide — ouvrez l'app pour lire</p>
+                </div>
+                <label class="switch" style="flex-shrink:0;"><input type="checkbox" id="opt-hide-notification-content" role="switch"/><span class="switch-slider"></span></label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ PAGE 6 : Confidentialité ══ -->
+        <div class="prv2-page prv2-page--sub" id="prv2-page-conf">
+          <div class="prv2-sub-header">
+            <button type="button" class="prv2-back-btn" data-prv2-back aria-label="Retour">
+              <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M8 1L2 7.5 8 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <h2 class="prv2-title">Confidentialité</h2>
+            <div style="width:36px;"></div>
+          </div>
+          <div class="prv2-page-body">
+            <div class="prv2-group">
+              <div class="prv2-row prv2-row--border" style="cursor:default;">
+                <div style="flex:1;">
+                  <p style="margin:0 0 2px;font-size:15px;color:rgba(255,255,255,0.85);">Masquer les pseudos</p>
+                  <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.35);">Les noms de vos contacts apparaîtront floutés</p>
+                </div>
+                <label class="switch" style="flex-shrink:0;"><input type="checkbox" id="opt-hide-contact-pseudos" role="switch"/><span class="switch-slider"></span></label>
+              </div>
+              <div class="prv2-row prv2-row--border" style="cursor:default;">
+                <div style="flex:1;">
+                  <p style="margin:0 0 2px;font-size:15px;color:rgba(255,255,255,0.85);">Masquer les aperçus</p>
+                  <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.35);">Affiche « Message » à la place du contenu</p>
+                </div>
+                <label class="switch" style="flex-shrink:0;"><input type="checkbox" id="opt-hide-message-previews" role="switch"/><span class="switch-slider"></span></label>
+              </div>
+              <div class="prv2-row" style="cursor:default;">
+                <div style="flex:1;">
+                  <p style="margin:0 0 2px;font-size:15px;color:rgba(255,255,255,0.85);">Bloquer les captures d'écran</p>
+                  <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.35);">Empêche les captures sur mobile</p>
+                  <p class="hint privacy-screenshot-compat-note" id="privacy-screenshot-compat-note" hidden style="margin:4px 0 0;">Disponible sur appareils compatibles uniquement.</p>
+                </div>
+                <label class="switch" style="flex-shrink:0;"><input type="checkbox" id="opt-block-screenshots" role="switch"/><span class="switch-slider"></span></label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ PAGE 7 : Clé d'accès ══ -->
+        <div class="prv2-page prv2-page--sub" id="prv2-page-cle">
+          <div class="prv2-sub-header">
+            <button type="button" class="prv2-back-btn" data-prv2-back aria-label="Retour">
+              <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M8 1L2 7.5 8 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <h2 class="prv2-title">Clé d'accès</h2>
+            <div style="width:36px;"></div>
+          </div>
+          <div class="prv2-page-body">
+            <div class="prv2-group" style="padding:16px;">
               <input type="password" class="field" id="modal-new-phrase" placeholder="Nouvelle clé d'accès" autocomplete="new-password" style="margin-bottom:10px;" />
               <input type="password" class="field" id="modal-confirm-phrase" placeholder="Confirmer la clé d'accès" autocomplete="new-password" />
-              <p class="privacy-hint-success phrase-reassurance" style="margin:8px 0 10px;font-size:12px;">Cette action ne supprimera pas vos messages existants.</p>
+              <p class="privacy-hint-success phrase-reassurance" style="margin:10px 0;font-size:12px;">Cette action ne supprimera pas vos messages existants.</p>
               <p id="phrase-apply-error" class="phrase-apply-error" hidden role="alert"></p>
               <button type="button" class="btn-modal-neutral" id="apply-phrase">Appliquer</button>
             </div>
           </div>
-
-          <div class="prv2-row" style="border-top:0.5px solid rgba(255,255,255,0.05);">
-            <div class="prv2-row-icon" style="background:rgba(255,69,58,0.1);">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff453a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            </div>
-            <span class="prv2-row-label" style="flex:1;font-size:14px;">Triple-clic pour tout effacer</span>
-            <label class="switch" style="flex-shrink:0;"><input type="checkbox" id="opt-triple-tap-kill" role="switch"/><span class="switch-slider"></span></label>
-          </div>
-
-          <!-- Boutons supprimer conservés mais cachés (requis par le JS) -->
-          <button type="button" id="btn-delete-all-messages-open" hidden></button>
-          <button type="button" id="btn-delete-all-conversations-open" hidden></button>
         </div>
 
-        <div class="prv2-group" style="margin-top:8px;">
-          <button type="button" class="prv2-logout-btn" id="btn-privacy-logout">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-            Se déconnecter
-          </button>
-        </div>
-
-      </div>
+      </div><!-- /prv2-slides -->
     </div>
   </div>
 
@@ -5141,6 +5255,7 @@
 
   function openPrivacyModal() {
     var o = document.getElementById('privacy-overlay');
+    if (window._prv2Reset) window._prv2Reset();
     setPrivacyBannerUsername(getSavedUsername());
     var np = document.getElementById('modal-new-phrase');
     var cp = document.getElementById('modal-confirm-phrase');
@@ -5507,22 +5622,48 @@
       });
     }
 
-    // prv2 accordions
+    // prv2 navigation slides
     (function() {
-      function togglePrv2(rowId, bodyId, chevronId) {
-        var row = document.getElementById(rowId);
-        var body = document.getElementById(bodyId);
-        var chev = document.getElementById(chevronId);
-        if (!row || !body) return;
-        row.addEventListener('click', function() {
-          var isOpen = body.classList.contains('prv2-expand-body--open');
-          body.classList.toggle('prv2-expand-body--open', !isOpen);
-          if (chev) chev.classList.toggle('prv2-chevron--open', !isOpen);
-        });
+      var history = [];
+      function goTo(pageId) {
+        var slides = document.getElementById('prv2-slides');
+        if (!slides) return;
+        var pages = slides.querySelectorAll('.prv2-page');
+        var idx = -1;
+        for (var i = 0; i < pages.length; i++) {
+          if (pages[i].id === pageId) { idx = i; break; }
+        }
+        if (idx < 0) return;
+        history.push(pageId);
+        slides.style.transform = 'translateX(-' + (idx * 100) + '%)';
       }
-      togglePrv2('prv2-row-cle', 'prv2-cle-body', 'prv2-cle-chevron');
-      togglePrv2('prv2-row-notifs', 'prv2-notifs-body', 'prv2-notifs-chevron');
-      togglePrv2('prv2-row-conf', 'prv2-conf-body', 'prv2-conf-chevron');
+      function goBack() {
+        var slides = document.getElementById('prv2-slides');
+        if (!slides) return;
+        if (history.length > 1) history.pop();
+        var pageId = history[history.length - 1] || 'prv2-page-home';
+        var pages = slides.querySelectorAll('.prv2-page');
+        var idx = 0;
+        for (var i = 0; i < pages.length; i++) {
+          if (pages[i].id === pageId) { idx = i; break; }
+        }
+        slides.style.transform = 'translateX(-' + (idx * 100) + '%)';
+      }
+      function resetNav() {
+        history = ['prv2-page-home'];
+        var slides = document.getElementById('prv2-slides');
+        if (slides) slides.style.transform = 'translateX(0)';
+      }
+      window._prv2GoTo = goTo;
+      window._prv2GoBack = goBack;
+      window._prv2Reset = resetNav;
+      resetNav();
+      document.addEventListener('click', function(e) {
+        var row = e.target.closest('[data-prv2-goto]');
+        if (row) { goTo(row.getAttribute('data-prv2-goto')); return; }
+        var back = e.target.closest('[data-prv2-back]');
+        if (back) { goBack(); return; }
+      });
     })();
 
         document.getElementById('privacy-close').addEventListener('click', closePrivacyModal);
