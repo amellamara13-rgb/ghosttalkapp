@@ -194,19 +194,21 @@
     .row.me .bubble { max-width: 100%; }
     .row:not(.me) .bubble { max-width: 100%; }
     .msg-line > .bubble-time {
+      display: none;
+    }
+    .bubble-time-inner {
       font-size: 11px;
-      color: var(--muted);
+      white-space: nowrap;
       flex-shrink: 0;
       align-self: flex-end;
-      white-space: nowrap;
-      opacity: 0;
-      transition: opacity 0.2s ease;
+      line-height: 1;
+      margin-bottom: 1px;
     }
-    #messages.messages--reveal-metas .msg-line > .bubble-time {
-      opacity: 1;
+    .row.me .bubble-time-inner {
+      color: rgba(255,255,255,0.55);
     }
-    #messages .msg-line.msg-line--bubble-hover > .bubble-time {
-      opacity: 1;
+    .row:not(.me) .bubble-time-inner {
+      color: rgba(255,255,255,0.4);
     }
     .msg-system {
       text-align: center;
@@ -2547,9 +2549,7 @@
       .row {
         margin: 0;
       }
-      .msg-line > .bubble-time {
-        font-size: 11px;
-      }
+
       .composer {
         padding: 8px 8px 10px;
       }
@@ -5466,6 +5466,13 @@
       } catch (err) {
         b.appendChild(document.createTextNode('(message indéchiffrable)'));
       }
+      // Heure inline dans la bulle
+      var d = new Date(m.at || Date.now());
+      var timeInner = document.createElement('span');
+      timeInner.className = 'bubble-time-inner';
+      timeInner.setAttribute('aria-hidden', 'true');
+      timeInner.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes());
+      b.appendChild(timeInner);
       if (m.me) {
         var readEl = document.createElement('span');
         readEl.className = 'bubble-read-dot' + (m.readAt ? ' is-read' : (m.deliveredAt ? ' is-delivered' : ''));
@@ -5483,18 +5490,10 @@
         wrap.appendChild(preservedLabel);
       }
       appendReactionRow(wrap, m);
-      var d = new Date(m.at || Date.now());
+      // bubble-time externe vide (compatibilité)
       var timeEl = document.createElement('span');
       timeEl.className = 'bubble-time';
-      timeEl.setAttribute('aria-hidden', 'true');
-      timeEl.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes());
-      if (m.me) {
-        line.appendChild(timeEl);
-        line.appendChild(wrap);
-      } else {
-        line.appendChild(wrap);
-        line.appendChild(timeEl);
-      }
+      line.appendChild(wrap);
       var hoverTimeout = null;
       wrap.addEventListener('mouseenter', function () {
         if (hoverTimeout) { clearTimeout(hoverTimeout); hoverTimeout = null; }
