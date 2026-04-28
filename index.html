@@ -283,23 +283,20 @@
     .btn-chat-back {
       display: inline-flex;
       flex-shrink: 0;
-      width: 40px;
-      height: 40px;
-      margin: 0 8px 0 0;
+      width: 44px;
+      height: 44px;
+      margin: 0 4px 0 0;
       padding: 0;
       border: none;
       border-radius: 50%;
-      background: #1c1c1f;
-      color: var(--accent);
-      font-size: 22px;
-      line-height: 1;
+      background: rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.85);
       cursor: pointer;
       align-items: center;
       justify-content: center;
+      transition: background 0.15s;
     }
-    .btn-chat-back:hover {
-      background: #2c2c30;
-    }
+    .btn-chat-back:hover { background: rgba(255,255,255,0.16); }
     #chat-title {
       min-width: 0;
       font-weight: 600;
@@ -1204,6 +1201,17 @@
       transition: background 0.15s, color 0.15s;
     }
     .modal-close:hover { background: var(--surface-2); color: var(--fg); }
+    .modal-close-btn {
+      width: 44px; height: 44px;
+      border-radius: 50%; border: none;
+      background: rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.85);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s;
+      flex-shrink: 0;
+    }
+    .modal-close-btn:hover { background: rgba(255,255,255,0.16); }
     .modal-body { padding: 16px 20px 20px; }
     .modal-section {
       margin-bottom: 22px;
@@ -2656,7 +2664,7 @@
       <main>
         <header id="chat-head">
           <div class="chat-head-left">
-            <button type="button" id="btn-chat-back" class="btn-chat-back" aria-label="Retour à la liste des conversations"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+            <button type="button" id="btn-chat-back" class="btn-chat-back" aria-label="Retour à la liste des conversations"><svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M7 1.5L3 5.5L7 9.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
             <span id="chat-head-avatar" class="chat-head-avatar" role="button" style="cursor:pointer;" title="Options de conversation" aria-label="Options de conversation"></span>
             <div class="chat-title-stack">
               <span id="chat-title">Sélectionnez une conversation</span>
@@ -7433,7 +7441,7 @@
     <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="add-contact-title">
       <div class="modal-head">
         <span class="modal-title" id="add-contact-title">Nouveau contact</span>
-        <button type="button" class="modal-close-btn" id="add-contact-close-btn" aria-label="Fermer">✕</button>
+        <button type="button" class="modal-close-btn" id="add-contact-close-btn" aria-label="Fermer"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1.5 1.5L10.5 10.5M10.5 1.5L1.5 10.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
       </div>
       <div class="modal-body">
         <div class="add-contact-cards">
@@ -7633,8 +7641,8 @@
       <!-- ═══ SOUS-ÉCRAN : MESSAGES ÉPHÉMÈRES ═══ -->
       <div id="conv-screen-ephemeral" style="display:none;">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;">
-          <button type="button" class="conv-back-btn" data-target="main" aria-label="Retour" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.1);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M8 1L2 7.5 8 14" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <button type="button" class="conv-back-btn" data-target="main" aria-label="Retour" style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.1);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background 0.15s;">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M7 1.5L3 5.5L7 9.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
           <p style="margin:0;font-size:15px;font-weight:500;color:rgba(255,255,255,0.9);">Messages éphémères</p>
           <button type="button" id="ephemeral-validate-btn" aria-label="Valider" style="width:36px;height:36px;border-radius:50%;background:#3a76f0;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
@@ -7657,8 +7665,8 @@
 
         <!-- Header -->
         <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 20px 0;">
-          <button type="button" class="conv-back-btn" data-target="main" aria-label="Retour" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.08);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M8 1L2 7.5 8 14" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <button type="button" class="conv-back-btn" data-target="main" aria-label="Retour" style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.1);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background 0.15s;">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M7 1.5L3 5.5L7 9.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
           <p style="margin:0;font-size:15px;font-weight:500;color:rgba(255,255,255,0.9);">Pseudo</p>
           <button type="button" id="pseudo-save-btn" aria-label="Valider" style="width:36px;height:36px;border-radius:50%;background:#3a76f0;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
@@ -7717,8 +7725,8 @@
 
         <!-- Header -->
         <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 20px 16px;">
-          <button type="button" class="conv-back-btn" data-target="main" aria-label="Retour" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.08);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M8 1L2 7.5 8 14" stroke="rgba(255,255,255,0.7)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <button type="button" class="conv-back-btn" data-target="main" aria-label="Retour" style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.1);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background 0.15s;">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M7 1.5L3 5.5L7 9.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
           <p style="margin:0;font-size:15px;font-weight:500;color:rgba(255,255,255,0.9);">Thème &amp; couleur</p>
           <button type="button" id="theme-validate-btn" aria-label="Valider" style="width:36px;height:36px;border-radius:50%;background:#3a76f0;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
@@ -7782,8 +7790,8 @@
       <!-- ═══ SOUS-ÉCRAN : SONS & NOTIFICATIONS ═══ -->
       <div id="conv-screen-notifs" style="display:none;">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;">
-          <button type="button" class="conv-back-btn" data-target="main" aria-label="Retour" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.1);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M8 1L2 7.5 8 14" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <button type="button" class="conv-back-btn" data-target="main" aria-label="Retour" style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.1);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background 0.15s;">
+            <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M7 1.5L3 5.5L7 9.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
           <p id="notifs-screen-title" style="margin:0;font-size:15px;font-weight:500;color:rgba(255,255,255,0.9);">Mettre en sourdine pour...</p>
           <button type="button" id="notifs-validate-btn" aria-label="Valider" style="width:36px;height:36px;border-radius:50%;background:#3a76f0;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
