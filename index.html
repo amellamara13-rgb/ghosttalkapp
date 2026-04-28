@@ -2720,23 +2720,25 @@
 
         <div class="prv2-group">
 
-          <div class="prv2-row prv2-row--border prv2-row--expandable" id="prv2-row-cle">
-            <div class="prv2-row-icon" style="background:rgba(58,118,240,0.15);">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3a76f0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+          <!-- Apparence -->
+          <div class="prv2-row prv2-row--border">
+            <div class="prv2-row-icon" style="background:rgba(124,95,240,0.15);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c5ff0" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
             </div>
-            <span class="prv2-row-label">Clé d'accès</span>
-            <svg class="prv2-chevron prv2-chevron--expand" id="prv2-cle-chevron" width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1L6 6L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </div>
-          <div class="prv2-expand-body" id="prv2-cle-body">
-            <div style="padding:4px 0 12px;">
-              <input type="password" class="field" id="modal-new-phrase" placeholder="Nouvelle clé d'accès" autocomplete="new-password" style="margin-bottom:10px;" />
-              <input type="password" class="field" id="modal-confirm-phrase" placeholder="Confirmer la clé d'accès" autocomplete="new-password" />
-              <p class="privacy-hint-success phrase-reassurance" style="margin:8px 0 10px;font-size:12px;">Cette action ne supprimera pas vos messages existants.</p>
-              <p id="phrase-apply-error" class="phrase-apply-error" hidden role="alert"></p>
-              <button type="button" class="btn-modal-neutral" id="apply-phrase">Appliquer</button>
-            </div>
+            <span class="prv2-row-label">Apparence</span>
+            <svg class="prv2-chevron" width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1L6 6L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </div>
 
+          <!-- Story -->
+          <div class="prv2-row prv2-row--border">
+            <div class="prv2-row-icon" style="background:rgba(58,118,240,0.15);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3a76f0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+            </div>
+            <span class="prv2-row-label">Story</span>
+            <svg class="prv2-chevron" width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1L6 6L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+
+          <!-- Notifications -->
           <div class="prv2-row prv2-row--border prv2-row--expandable" id="prv2-row-notifs">
             <div class="prv2-row-icon" style="background:rgba(249,115,22,0.12);">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
@@ -2754,6 +2756,7 @@
             </div>
           </div>
 
+          <!-- Confidentialité -->
           <div class="prv2-row prv2-row--expandable" id="prv2-row-conf">
             <div class="prv2-row-icon" style="background:rgba(20,184,166,0.12);">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#14b8a6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
@@ -2784,30 +2787,36 @@
 
         </div>
 
+        <!-- Clé d'accès + triple-clic -->
         <div class="prv2-group" style="margin-top:8px;">
-          <div class="prv2-row prv2-row--border prv2-row--expandable" id="prv2-row-msgs">
-            <div class="prv2-row-icon" style="background:rgba(255,69,58,0.1);">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff453a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          <div class="prv2-row prv2-row--border prv2-row--expandable" id="prv2-row-cle">
+            <div class="prv2-row-icon" style="background:rgba(58,118,240,0.15);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3a76f0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
             </div>
-            <span class="prv2-row-label">Gestion des messages</span>
-            <svg class="prv2-chevron prv2-chevron--expand" id="prv2-msgs-chevron" width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1L6 6L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="prv2-row-label">Clé d'accès</span>
+            <svg class="prv2-chevron prv2-chevron--expand" id="prv2-cle-chevron" width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1L6 6L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </div>
-          <div class="prv2-expand-body" id="prv2-msgs-body">
-            <div style="padding:4px 0 10px;display:flex;flex-direction:column;gap:8px;">
-              <button type="button" class="link-row" id="btn-delete-all-messages-open" style="margin-top:4px;">Supprimer tous les messages</button>
-              <p class="hint" style="margin:0;">Supprime tous les messages de toutes vos conversations.</p>
-              <button type="button" class="link-row link-row--destructive" id="btn-delete-all-conversations-open">Supprimer toutes les conversations</button>
-              <p class="hint" style="margin:0;">Supprime tout sans exception.</p>
+          <div class="prv2-expand-body" id="prv2-cle-body">
+            <div style="padding:4px 0 12px;">
+              <input type="password" class="field" id="modal-new-phrase" placeholder="Nouvelle clé d'accès" autocomplete="new-password" style="margin-bottom:10px;" />
+              <input type="password" class="field" id="modal-confirm-phrase" placeholder="Confirmer la clé d'accès" autocomplete="new-password" />
+              <p class="privacy-hint-success phrase-reassurance" style="margin:8px 0 10px;font-size:12px;">Cette action ne supprimera pas vos messages existants.</p>
+              <p id="phrase-apply-error" class="phrase-apply-error" hidden role="alert"></p>
+              <button type="button" class="btn-modal-neutral" id="apply-phrase">Appliquer</button>
             </div>
           </div>
 
-          <div class="prv2-row" style="border-top:0.5px solid var(--line);">
+          <div class="prv2-row" style="border-top:0.5px solid rgba(255,255,255,0.05);">
             <div class="prv2-row-icon" style="background:rgba(255,69,58,0.1);">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff453a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
             </div>
             <span class="prv2-row-label" style="flex:1;font-size:14px;">Triple-clic pour tout effacer</span>
             <label class="switch" style="flex-shrink:0;"><input type="checkbox" id="opt-triple-tap-kill" role="switch"/><span class="switch-slider"></span></label>
           </div>
+
+          <!-- Boutons supprimer conservés mais cachés (requis par le JS) -->
+          <button type="button" id="btn-delete-all-messages-open" hidden></button>
+          <button type="button" id="btn-delete-all-conversations-open" hidden></button>
         </div>
 
         <div class="prv2-group" style="margin-top:8px;">
@@ -5514,7 +5523,6 @@
       togglePrv2('prv2-row-cle', 'prv2-cle-body', 'prv2-cle-chevron');
       togglePrv2('prv2-row-notifs', 'prv2-notifs-body', 'prv2-notifs-chevron');
       togglePrv2('prv2-row-conf', 'prv2-conf-body', 'prv2-conf-chevron');
-      togglePrv2('prv2-row-msgs', 'prv2-msgs-body', 'prv2-msgs-chevron');
     })();
 
         document.getElementById('privacy-close').addEventListener('click', closePrivacyModal);
