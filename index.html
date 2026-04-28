@@ -2771,6 +2771,13 @@
                 <span class="prv2-row-label">Thème</span>
                 <svg class="prv2-chevron" width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1L6 6L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </div>
+              <div class="prv2-row prv2-row--border" data-prv2-goto="prv2-page-bubbles">
+                <div class="prv2-row-icon" style="background:rgba(20,184,166,0.12);">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#14b8a6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                </div>
+                <span class="prv2-row-label">Couleur des bulles et fond</span>
+                <svg class="prv2-chevron" width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1L6 6L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
               <div class="prv2-row" data-prv2-goto="prv2-page-icon">
                 <div class="prv2-row-icon" style="background:rgba(249,115,22,0.12);">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M3 9h18M9 21V9"/></svg>
@@ -2802,6 +2809,32 @@
                 <label class="switch" style="flex-shrink:0;"><input type="checkbox" disabled/><span class="switch-slider"></span></label>
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- ══ PAGE 2b : Couleur des bulles et fond ══ -->
+        <div class="prv2-page prv2-page--sub" id="prv2-page-bubbles">
+          <div class="prv2-sub-header">
+            <button type="button" class="prv2-back-btn" data-prv2-back aria-label="Retour">
+              <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M8 1L2 7.5 8 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <h2 class="prv2-title">Couleur des bulles et fond</h2>
+            <div style="width:36px;"></div>
+          </div>
+          <div class="prv2-page-body">
+            <p class="hint" style="margin:0 4px 16px;">La personnalisation des couleurs s'applique par conversation, depuis le menu de chaque conversation.</p>
+            <div class="prv2-group">
+              <div class="prv2-row" style="cursor:default;gap:14px;">
+                <div style="display:flex;gap:8px;flex:1;">
+                  <div style="width:32px;height:32px;border-radius:50%;background:#3a76f0;flex-shrink:0;"></div>
+                  <div style="width:32px;height:32px;border-radius:50%;background:#a78bfa;flex-shrink:0;"></div>
+                  <div style="width:32px;height:32px;border-radius:50%;background:#f472b6;flex-shrink:0;"></div>
+                  <div style="width:32px;height:32px;border-radius:50%;background:#14b8a6;flex-shrink:0;"></div>
+                  <div style="width:32px;height:32px;border-radius:50%;background:#f97316;flex-shrink:0;"></div>
+                </div>
+              </div>
+            </div>
+            <p class="hint" style="margin:12px 4px 0;">Ouvrez une conversation, appuyez sur le nom du contact en haut pour accéder aux options de personnalisation.</p>
           </div>
         </div>
 
@@ -2876,6 +2909,13 @@
             <div class="prv2-group">
               <div class="prv2-row prv2-row--border" style="cursor:default;">
                 <div style="flex:1;">
+                  <p style="margin:0 0 2px;font-size:15px;color:rgba(255,255,255,0.85);">Activer les notifications</p>
+                  <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.35);" id="notif-permission-status">Recevez une alerte à chaque nouveau message</p>
+                </div>
+                <label class="switch" style="flex-shrink:0;"><input type="checkbox" id="opt-enable-notifications" role="switch"/><span class="switch-slider"></span></label>
+              </div>
+              <div class="prv2-row" style="cursor:default;">
+                <div style="flex:1;">
                   <p style="margin:0 0 2px;font-size:15px;color:rgba(255,255,255,0.85);">Masquer le contenu</p>
                   <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.35);">Notification vide — ouvrez l'app pour lire</p>
                 </div>
@@ -2917,7 +2957,7 @@
                 </div>
                 <label class="switch" style="flex-shrink:0;"><input type="checkbox" id="opt-hide-own-pseudo" role="switch"/><span class="switch-slider"></span></label>
               </div>
-              <div class="prv2-row" style="cursor:default;">
+              <div class="prv2-row prv2-row--border" style="cursor:default;">
                 <div style="flex:1;">
                   <p style="margin:0 0 2px;font-size:15px;color:rgba(255,255,255,0.85);">Bloquer les captures d'écran</p>
                   <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.35);">Empêche les captures sur mobile</p>
@@ -2925,7 +2965,43 @@
                 </div>
                 <label class="switch" style="flex-shrink:0;"><input type="checkbox" id="opt-block-screenshots" role="switch"/><span class="switch-slider"></span></label>
               </div>
+              <div class="prv2-row prv2-row--border" style="cursor:default;">
+                <div style="flex:1;">
+                  <p style="margin:0 0 2px;font-size:15px;color:rgba(255,255,255,0.85);">Confirmation de lecture</p>
+                  <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.35);">Envoie un accusé de lecture à vos contacts</p>
+                </div>
+                <label class="switch" style="flex-shrink:0;"><input type="checkbox" id="opt-read-receipts" role="switch" checked/><span class="switch-slider"></span></label>
+              </div>
+              <div class="prv2-row prv2-row--border" style="cursor:default;">
+                <div style="flex:1;">
+                  <p style="margin:0 0 2px;font-size:15px;color:rgba(255,255,255,0.85);">Indicateur de saisie</p>
+                  <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.35);">Affiche quand vous êtes en train d'écrire</p>
+                </div>
+                <label class="switch" style="flex-shrink:0;"><input type="checkbox" id="opt-typing-indicator" role="switch" checked/><span class="switch-slider"></span></label>
+              </div>
+              <div class="prv2-row" data-prv2-goto="prv2-page-blocked">
+                <div style="flex:1;">
+                  <p style="margin:0 0 2px;font-size:15px;color:rgba(255,255,255,0.85);">Utilisateurs bloqués</p>
+                  <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.35);">Gérer vos contacts bloqués</p>
+                </div>
+                <svg class="prv2-chevron" width="7" height="12" viewBox="0 0 7 12" fill="none"><path d="M1 1L6 6L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
             </div>
+          </div>
+        </div>
+
+        <!-- ══ PAGE 6b : Utilisateurs bloqués ══ -->
+        <div class="prv2-page prv2-page--sub" id="prv2-page-blocked">
+          <div class="prv2-sub-header">
+            <button type="button" class="prv2-back-btn" data-prv2-back aria-label="Retour">
+              <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M8 1L2 7.5 8 14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <h2 class="prv2-title">Utilisateurs bloqués</h2>
+            <div style="width:36px;"></div>
+          </div>
+          <div class="prv2-page-body">
+            <div id="blocked-users-list"></div>
+            <p class="hint" style="margin:12px 4px 0;" id="blocked-empty-hint">Aucun utilisateur bloqué. Maintenez appuyé sur un contact pour le bloquer.</p>
           </div>
         </div>
 
@@ -2940,8 +3016,10 @@
           </div>
           <div class="prv2-page-body">
             <div class="prv2-group" style="padding:16px;">
+              <input type="password" class="field" id="modal-current-phrase" placeholder="Clé d'accès actuelle" autocomplete="current-password" style="margin-bottom:10px;" />
+              <div style="height:0.5px;background:rgba(255,255,255,0.06);margin:2px 0 12px;"></div>
               <input type="password" class="field" id="modal-new-phrase" placeholder="Nouvelle clé d'accès" autocomplete="new-password" style="margin-bottom:10px;" />
-              <input type="password" class="field" id="modal-confirm-phrase" placeholder="Confirmer la clé d'accès" autocomplete="new-password" />
+              <input type="password" class="field" id="modal-confirm-phrase" placeholder="Confirmer la nouvelle clé" autocomplete="new-password" />
               <p class="privacy-hint-success phrase-reassurance" style="margin:10px 0;font-size:12px;">Cette action ne supprimera pas vos messages existants.</p>
               <p id="phrase-apply-error" class="phrase-apply-error" hidden role="alert"></p>
               <button type="button" class="btn-modal-neutral" id="apply-phrase">Appliquer</button>
@@ -5746,6 +5824,66 @@
       });
     }
 
+    // Notifications on/off
+    (function() {
+      var optNotif = document.getElementById('opt-enable-notifications');
+      if (!optNotif) return;
+      function syncNotifToggle() {
+        var perm = typeof Notification !== 'undefined' ? Notification.permission : 'default';
+        optNotif.checked = perm === 'granted';
+        var status = document.getElementById('notif-permission-status');
+        if (status) {
+          status.textContent = perm === 'granted' ? 'Notifications activées' :
+            perm === 'denied' ? 'Bloquées — autorisez dans les réglages du navigateur' :
+            'Recevez une alerte à chaque nouveau message';
+        }
+      }
+      syncNotifToggle();
+      optNotif.addEventListener('change', function() {
+        if (this.checked) {
+          if (typeof Notification === 'undefined') { this.checked = false; return; }
+          Notification.requestPermission().then(function(perm) { syncNotifToggle(); });
+        } else {
+          this.checked = false; // ne peut pas révoquer programmatiquement
+          var status = document.getElementById('notif-permission-status');
+          if (status) status.textContent = 'Désactivez dans les réglages du navigateur';
+        }
+      });
+    })();
+
+    // Confirmation de lecture
+    var optReadReceipts = document.getElementById('opt-read-receipts');
+    if (optReadReceipts) {
+      ensureData();
+      optReadReceipts.checked = state.privacy.readReceipts !== false;
+      optReadReceipts.addEventListener('change', function() {
+        ensureData();
+        state.privacy.readReceipts = !!this.checked;
+        saveState(state);
+      });
+    }
+
+    // Indicateur de saisie
+    var optTyping = document.getElementById('opt-typing-indicator');
+    if (optTyping) {
+      ensureData();
+      optTyping.checked = state.privacy.typingIndicator !== false;
+      optTyping.addEventListener('change', function() {
+        ensureData();
+        state.privacy.typingIndicator = !!this.checked;
+        saveState(state);
+      });
+    }
+
+    // Sync opt-enable-notifications dans syncPrivacyForm
+    // (déjà géré dans syncNotifToggle ci-dessus)
+
+    // Effacer current-phrase sur input
+    (function() {
+      var curr = document.getElementById('modal-current-phrase');
+      if (curr) curr.addEventListener('input', function() { clearPhraseApplyError(); });
+    })();
+
     document.getElementById('btn-privacy-logout').addEventListener('click', function () {
       try {
         localStorage.clear();
@@ -5755,21 +5893,25 @@
 
     document.getElementById('apply-phrase').addEventListener('click', function () {
       clearPhraseApplyError();
+      var currentPhrase = (document.getElementById('modal-current-phrase') || {}).value || '';
+      currentPhrase = currentPhrase.trim();
       var newPhrase = document.getElementById('modal-new-phrase').value;
       var confirmPhrase = document.getElementById('modal-confirm-phrase').value;
-      if (!newPhrase || !newPhrase.trim()) {
-        alert("Entrez une nouvelle clé d'accès.");
-        return;
+      var errEl = document.getElementById('phrase-apply-error');
+      function showErr(msg) {
+        if (errEl) { errEl.textContent = msg; errEl.hidden = false; }
       }
+      if (!currentPhrase) { showErr("Entrez votre clé d'accès actuelle."); return; }
+      var storedHash = getStoredPhraseHashB64();
+      var candidateHash = computePhraseHashB64(currentPhrase, getSavedUsername());
+      if (storedHash && !timingSafeEqualB64(storedHash, candidateHash)) {
+        showErr("Clé d'accès actuelle incorrecte."); return;
+      }
+      if (!newPhrase || !newPhrase.trim()) { showErr("Entrez une nouvelle clé d'accès."); return; }
       newPhrase = newPhrase.trim();
       confirmPhrase = (confirmPhrase || '').trim();
       if (newPhrase !== confirmPhrase) {
-        var errEl = document.getElementById('phrase-apply-error');
-        if (errEl) {
-          errEl.textContent = "Les clés d'accès ne correspondent pas.";
-          errEl.hidden = false;
-        }
-        return;
+        showErr("Les nouvelles clés d'accès ne correspondent pas."); return;
       }
       var oldP = passphrase;
       ensureData();
@@ -5784,6 +5926,8 @@
       passphrase = newPhrase;
       setStoredPhraseHashB64(computePhraseHashB64(newPhrase, getSavedUsername()));
       saveState(state);
+      var cp = document.getElementById('modal-current-phrase');
+      if (cp) cp.value = '';
       document.getElementById('modal-new-phrase').value = '';
       document.getElementById('modal-confirm-phrase').value = '';
       clearPhraseApplyError();
