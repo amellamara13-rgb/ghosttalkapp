@@ -2799,7 +2799,6 @@
                 <label class="switch" style="flex-shrink:0;"><input type="checkbox" disabled/><span class="switch-slider"></span></label>
               </div>
             </div>
-            <p class="hint" style="margin:12px 4px 0;">La personnalisation du thème est disponible par conversation via le menu de chaque conversation.</p>
           </div>
         </div>
 
@@ -2907,6 +2906,13 @@
                   <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.35);">Affiche « Message » à la place du contenu</p>
                 </div>
                 <label class="switch" style="flex-shrink:0;"><input type="checkbox" id="opt-hide-message-previews" role="switch"/><span class="switch-slider"></span></label>
+              </div>
+              <div class="prv2-row prv2-row--border" style="cursor:default;">
+                <div style="flex:1;">
+                  <p style="margin:0 0 2px;font-size:15px;color:rgba(255,255,255,0.85);">Masquer mon pseudo</p>
+                  <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.35);">N'affiche que la première lettre sur l'écran de connexion</p>
+                </div>
+                <label class="switch" style="flex-shrink:0;"><input type="checkbox" id="opt-hide-own-pseudo" role="switch"/><span class="switch-slider"></span></label>
               </div>
               <div class="prv2-row" style="cursor:default;">
                 <div style="flex:1;">
@@ -3815,6 +3821,11 @@
     fullName.innerHTML = '';
     if (!safe.length) {
       fullName.textContent = '';
+      return;
+    }
+    var shouldMask = !!(state && state.privacy && state.privacy.hideOwnPseudo);
+    if (!shouldMask) {
+      fullName.textContent = safe;
       return;
     }
     var first = document.createElement('span');
@@ -5315,6 +5326,8 @@
     if (hnc) hnc.checked = !!state.privacy.hideNotificationContent;
     var bss = document.getElementById('opt-block-screenshots');
     if (bss) bss.checked = !!state.privacy.blockScreenshots;
+    var hop = document.getElementById('opt-hide-own-pseudo');
+    if (hop) hop.checked = !!state.privacy.hideOwnPseudo;
     applyPrivacyGuards();
   }
 
@@ -5703,6 +5716,16 @@
       saveState(state);
       applyPrivacyGuards();
     });
+
+    var optHideOwnPseudo = document.getElementById('opt-hide-own-pseudo');
+    if (optHideOwnPseudo) {
+      optHideOwnPseudo.addEventListener('change', function () {
+        ensureData();
+        state.privacy.hideOwnPseudo = !!this.checked;
+        saveState(state);
+        setMaskedLockUsername(getSavedUsername());
+      });
+    }
 
     document.getElementById('btn-privacy-logout').addEventListener('click', function () {
       try {
