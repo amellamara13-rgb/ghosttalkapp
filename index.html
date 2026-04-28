@@ -322,13 +322,12 @@
     #chat-ephemeral-indicator {
       display: none;
       align-items: center;
-      gap: 4px;
-      background: rgba(255,255,255,0.08);
-      border-radius: 8px;
-      padding: 3px 8px;
+      gap: 5px;
+      border-left: 2px solid #f97316;
+      padding-left: 6px;
       margin-top: 2px;
       font-size: 11px;
-      color: #8e8e93;
+      color: rgba(255,255,255,0.4);
     }
     #chat-ephemeral-indicator:not([hidden]) {
       display: inline-flex;
@@ -2509,12 +2508,14 @@
             </div>
           </div>
           <div class="chat-head-right">
-            <button type="button" id="btn-audio-call" aria-label="Appel audio" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.08);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.08 4.18 2 2 0 015.08 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L9.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" stroke="#60a5fa" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </button>
-            <button type="button" id="btn-video-call" aria-label="Appel vidéo" style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.08);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="13" height="10" rx="2" stroke="#60a5fa" stroke-width="1.6"/><path d="M15 10l5-3v10l-5-3V10z" stroke="#60a5fa" stroke-width="1.6" stroke-linejoin="round"/></svg>
-            </button>
+            <div style="display:flex;align-items:center;background:rgba(255,255,255,0.08);border-radius:20px;padding:0 4px;gap:2px;">
+              <button type="button" id="btn-video-call" aria-label="Appel vidéo" style="width:34px;height:34px;border-radius:17px;background:transparent;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="2" y="7" width="13" height="10" rx="2" stroke="#60a5fa" stroke-width="1.6"/><path d="M15 10l5-3v10l-5-3V10z" stroke="#60a5fa" stroke-width="1.6" stroke-linejoin="round"/></svg>
+              </button>
+              <button type="button" id="btn-audio-call" aria-label="Appel audio" style="width:34px;height:34px;border-radius:17px;background:transparent;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M22 16.92v3a2 2 0 01-2.18 2A19.79 19.79 0 013.08 4.18 2 2 0 015.08 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L9.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" stroke="#60a5fa" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
           </div>
         </header>
         <div id="chat-empty" class="empty-main">
@@ -3764,24 +3765,20 @@
     if (!el) return;
     if (!contact || !contact.ephemeralDelay) {
       el.hidden = true;
-      el.textContent = '';
+      el.innerHTML = '';
       return;
     }
-    if (contact.ephemeralDelay === 'on_read') {
-      el.textContent = '⏱ Lu';
-    } else if (contact.ephemeralDelay === 60) {
-      el.textContent = '⏱ 1 min';
-    } else if (contact.ephemeralDelay === 300) {
-      el.textContent = '⏱ 5 min';
-    } else if (contact.ephemeralDelay === 3600) {
-      el.textContent = '⏱ 1 h';
-    } else if (contact.ephemeralDelay === 86400) {
-      el.textContent = '⏱ 24 h';
-    } else if (contact.ephemeralDelay === 604800) {
-      el.textContent = '⏱ 7 jours';
-    } else {
-      el.textContent = '';
-    }
+    var labels = {
+      'on_read': 'Lu',
+      60: '1 min',
+      300: '5 min',
+      3600: '1 h',
+      86400: '24 h',
+      604800: '1 sem'
+    };
+    var label = labels[contact.ephemeralDelay];
+    if (!label) { el.hidden = true; el.innerHTML = ''; return; }
+    el.innerHTML = '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;"><circle cx="12" cy="12" r="9" stroke="#f97316" stroke-width="1.8"/><path d="M12 7v5l3 3" stroke="#f97316" stroke-width="1.8" stroke-linecap="round"/></svg>' + label;
     el.hidden = false;
   }
 
