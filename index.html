@@ -3211,7 +3211,11 @@
             var inp = document.getElementById('new-contact-input');
             if (inp) inp.value = '';
             hideContactSuggestions();
-            closeAddContactModal && closeAddContactModal();
+            // Fermer le modal d'ajout de contact directement via le DOM
+            var _addOverlay = document.getElementById('add-contact-overlay');
+            if (_addOverlay) { _addOverlay.classList.remove('is-open'); _addOverlay.setAttribute('aria-hidden', 'true'); }
+            var _addInp = document.getElementById('new-contact-input');
+            if (_addInp) _addInp.value = '';
             renderConvList();
             if (contact) selectConv(contact.id);
           });
