@@ -1485,6 +1485,9 @@
       padding: 0 16px 28px;
       scrollbar-width: none;
     }
+    .prv2-page--sub .prv2-page-body {
+      padding-top: 20px;
+    }
     .prv2-page-body::-webkit-scrollbar { display: none; }
     .prv2-header {
       display: flex;
@@ -2910,7 +2913,7 @@
               <div class="prv2-row prv2-row--border" style="cursor:default;">
                 <div style="flex:1;">
                   <p style="margin:0 0 2px;font-size:15px;color:rgba(255,255,255,0.85);">Masquer mon pseudo</p>
-                  <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.35);">N'affiche que la première lettre sur l'écran de connexion</p>
+                  <p style="margin:0;font-size:12px;color:rgba(255,255,255,0.35);">Masque toutes les lettres sauf la première, sur l'écran de connexion et dans le menu</p>
                 </div>
                 <label class="switch" style="flex-shrink:0;"><input type="checkbox" id="opt-hide-own-pseudo" role="switch"/><span class="switch-slider"></span></label>
               </div>
@@ -5185,7 +5188,22 @@
     var el = document.getElementById('privacy-username-full');
     if (!el) return;
     var u = (displayName || '').trim();
-    el.textContent = u ? u : '—';
+    if (!u) { el.textContent = '—'; return; }
+    var shouldMask = !!(state && state.privacy && state.privacy.hideOwnPseudo);
+    if (shouldMask) {
+      el.innerHTML = '';
+      var first = document.createElement('span');
+      first.textContent = u.charAt(0);
+      el.appendChild(first);
+      if (u.length > 1) {
+        var rest = document.createElement('span');
+        rest.textContent = u.slice(1);
+        rest.style.cssText = 'filter:blur(5px);user-select:none;-webkit-user-select:none;';
+        el.appendChild(rest);
+      }
+    } else {
+      el.textContent = u;
+    }
     var av = document.getElementById('prv2-avatar-circle');
     if (av && u) {
       av.textContent = u.charAt(0).toUpperCase();
@@ -5724,6 +5742,7 @@
         state.privacy.hideOwnPseudo = !!this.checked;
         saveState(state);
         setMaskedLockUsername(getSavedUsername());
+        setPrivacyBannerUsername(getSavedUsername());
       });
     }
 
