@@ -33,6 +33,9 @@
       color: var(--fg);
       -webkit-font-smoothing: antialiased;
       overflow: hidden;
+      /* Éviter le bounce scroll iOS sur le body */
+      overscroll-behavior: none;
+      -webkit-overflow-scrolling: auto;
     }
     body.privacy-block-screenshot {
       -webkit-user-select: none;
@@ -7856,52 +7859,83 @@
   </div>
 
 <script>
-  // Fix hauteur viewport mobile — clavier + barre d'adresse
+  // Fix hauteur viewport iOS Safari — gestion clavier + barre d'adresse
   (function() {
     var shell = null;
     var messages = null;
+    var rafId = null;
 
-    function applyHeight() {
+    function setShellHeight() {
       if (!shell) shell = document.querySelector('.shell');
       if (!messages) messages = document.getElementById('messages');
 
-      // visualViewport = zone visible exacte (exclut clavier ET barre d'adresse)
       var vvp = window.visualViewport;
-      var h = vvp ? vvp.height : window.innerHeight;
-      var offsetTop = vvp ? vvp.offsetTop : 0;
 
-      if (shell) {
-        shell.style.height = h + 'px';
-        // Sur iOS, le shell peut se décaler vers le bas quand le clavier s'ouvre
+      if (vvp) {
+        // iOS Safari avec visualViewport : zone exacte visible
+        var h = vvp.height;
+        var top = vvp.offsetTop;
+
         shell.style.position = 'fixed';
-        shell.style.top = offsetTop + 'px';
+        shell.style.top = top + 'px';
+        shell.style.left = vvp.offsetLeft + 'px';
+        shell.style.width = vvp.width + 'px';
+        shell.style.height = h + 'px';
+      } else {
+        // Fallback autres navigateurs
+        shell.style.position = 'fixed';
+        shell.style.top = '0';
         shell.style.left = '0';
-        shell.style.right = '0';
         shell.style.width = '100%';
+        shell.style.height = window.innerHeight + 'px';
       }
 
-      // Scroll les messages en bas après resize (clavier ouvert)
+      // Scroll messages en bas
       if (messages) {
-        setTimeout(function() {
-          messages.scrollTop = messages.scrollHeight;
-        }, 50);
+        messages.scrollTop = messages.scrollHeight;
       }
     }
 
-    // Init au chargement
-    document.addEventListener('DOMContentLoaded', function() {
+    function scheduleUpdate() {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(function() {
+        rafId = null;
+        setShellHeight();
+      });
+    }
+
+    // Initialisation après que le DOM et le CSS sont prêts
+    function init() {
       shell = document.querySelector('.shell');
       messages = document.getElementById('messages');
-      applyHeight();
-    });
 
-    applyHeight();
+      // Premier appel immédiat
+      setShellHeight();
 
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', applyHeight);
-      window.visualViewport.addEventListener('scroll', applyHeight);
+      // Deuxième appel après un délai pour laisser iOS calculer la vraie hauteur
+      setTimeout(setShellHeight, 300);
     }
-    window.addEventListener('resize', applyHeight);
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+
+    // visualViewport est la seule API fiable sur iOS
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', scheduleUpdate);
+      window.visualViewport.addEventListener('scroll', scheduleUpdate);
+    }
+
+    // Fallback pour les autres navigateurs
+    window.addEventListener('resize', scheduleUpdate);
+
+    // Quand le clavier se ferme sur iOS, on force un recalcul
+    window.addEventListener('focusout', function() {
+      setTimeout(setShellHeight, 100);
+      setTimeout(setShellHeight, 400);
+    });
   })();
 </script>
   <!-- Suggestions nouveau contact — hors modal pour éviter overflow -->
