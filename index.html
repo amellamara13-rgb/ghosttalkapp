@@ -1457,14 +1457,15 @@
     .privacy-saved-toast.is-visible {
       opacity: 1;
     }
-    .modal-panel--privacy {
-      position: relative;
-    }
+    /* Dupliqué volontairement — la 2e règle ci-dessous écrase */
+    .modal-panel--privacy-placeholder { position: relative; }
     #delete-incoming-overlay {
       z-index: 1100;
     }
 
     /* ── Paramètres (prv2) — navigation slides ── */
+
+    /* Desktop : modal flottant */
     .modal-panel--privacy {
       position: relative;
       overflow: hidden !important;
@@ -1473,6 +1474,37 @@
       height: min(88vh, 720px);
       max-height: min(88vh, 720px);
     }
+
+    /* Mobile : plein écran fixé, comme Signal */
+    @keyframes prv2SlideUp {
+      from { transform: translateY(100%); }
+      to   { transform: translateY(0); }
+    }
+    @keyframes prv2SlideIn {
+      from { transform: translateX(100%); }
+      to   { transform: translateX(0); }
+    }
+    @media (max-width: 600px) {
+      #privacy-overlay {
+        padding: 0;
+        align-items: flex-end;
+        justify-content: flex-end;
+      }
+      .modal-panel--privacy {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 100dvh !important;
+        max-height: 100dvh !important;
+        border-radius: 0 !important;
+        border: none !important;
+        transform: translateY(0) scale(1) !important;
+      }
+      #privacy-overlay.is-open .modal-panel--privacy {
+        opacity: 1;
+        animation: prv2SlideUp 0.32s cubic-bezier(0.22,1,0.36,1) both;
+      }
+    }
+
     .prv2-slides {
       display: flex;
       flex: 1;
@@ -1492,6 +1524,7 @@
       flex: 1;
       min-height: 0;
       overflow-y: auto;
+      overflow-x: hidden;
       padding: 0 16px 28px;
       scrollbar-width: none;
       -webkit-overflow-scrolling: touch;
