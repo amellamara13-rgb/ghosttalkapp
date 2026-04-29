@@ -2034,6 +2034,71 @@
     .search-msg-preview { font-size: 13px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
     .search-highlight { background: var(--accent); color: #fff; border-radius: 3px; padding: 0 2px; }
     .search-empty { padding: 24px 16px; text-align: center; font-size: 14px; color: var(--muted); }
+    /* Page complète nouveau contact */
+    #add-contact-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: transparent;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.28s ease, visibility 0.28s ease;
+    }
+    #add-contact-overlay.is-open {
+      opacity: 1;
+      visibility: visible;
+    }
+    #add-contact-overlay .modal-panel {
+      position: absolute;
+      inset: 0;
+      max-width: 100%;
+      max-height: 100%;
+      width: 100%;
+      height: 100%;
+      background: var(--bg);
+      border: none;
+      border-radius: 0;
+      box-shadow: none;
+      transform: translateY(100%);
+      opacity: 1;
+      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    #add-contact-overlay.is-open .modal-panel {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    #add-contact-overlay .modal-head {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px 0;
+      border-bottom: none;
+    }
+    #add-contact-overlay .modal-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--fg);
+      letter-spacing: -0.3px;
+      margin: 0;
+      padding: 8px 16px 20px;
+    }
+    #add-contact-overlay .modal-close-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #add-contact-overlay .modal-body {
+      padding: 0 16px 20px;
+      flex: 1;
+    }
     .add-contact-cards {
       display: flex;
       gap: 12px;
@@ -2041,14 +2106,14 @@
     }
     .add-contact-card {
       flex: 1;
-      padding: 16px 10px;
-      border-radius: 12px;
-      background: var(--bg);
-      border: 0.5px solid var(--line);
+      padding: 28px 12px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.05);
+      border: 0.5px solid rgba(255,255,255,0.08);
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
+      gap: 12px;
       cursor: pointer;
       transition: border-color 0.15s;
     }
@@ -7567,21 +7632,25 @@
   }
 })();
   </script>
-  <div id="add-contact-overlay" class="modal-overlay" aria-hidden="true">
+  <div id="add-contact-overlay" aria-hidden="true">
     <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="add-contact-title">
       <div class="modal-head">
-        <span class="modal-title" id="add-contact-title">Nouveau contact</span>
-        <button type="button" class="modal-close-btn" id="add-contact-close-btn" aria-label="Fermer"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1.5 1.5L10.5 10.5M10.5 1.5L1.5 10.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+        <button type="button" class="modal-close-btn" id="add-contact-close-btn" aria-label="Fermer"><svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M7 1.5L3 5.5L7 9.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       </div>
+      <span class="modal-title" id="add-contact-title">Nouveau contact</span>
       <div class="modal-body">
         <div class="add-contact-cards">
           <div class="add-contact-card" id="add-contact-by-pseudo">
-            <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="28" height="28"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <div style="width:60px;height:60px;border-radius:50%;background:rgba(58,118,240,0.15);display:flex;align-items:center;justify-content:center;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="28" height="28"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
             <span class="add-contact-card-label">Par pseudo</span>
             <span class="add-contact-card-sub">Chercher un utilisateur</span>
           </div>
           <div class="add-contact-card" id="add-contact-by-qr">
-            <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="28" height="28"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="14" width="3" height="3"/><rect x="14" y="18" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/></svg>
+            <div style="width:60px;height:60px;border-radius:50%;background:rgba(58,118,240,0.15);display:flex;align-items:center;justify-content:center;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="28" height="28"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="14" width="3" height="3"/><rect x="14" y="18" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/></svg>
+            </div>
             <span class="add-contact-card-label">Par QR code</span>
             <span class="add-contact-card-sub">Scanner le code</span>
           </div>
