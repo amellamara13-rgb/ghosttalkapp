@@ -3647,7 +3647,7 @@
     state.directMessages.forEach(function (m) {
       var exists = state.contacts.some(function (c) { return c.id === m.contactId; });
       if (!exists) {
-        state.contacts.push({ id: m.contactId, name: m.contactId, ephemeralDelay: null });
+        state.contacts.push({ id: m.contactId, name: capitalizeFirst(m.contactId), ephemeralDelay: null });
       }
     });
     state.contacts.forEach(function (c) {
@@ -3662,6 +3662,11 @@
       if (state.contacts[i].id === id) return state.contacts[i];
     }
     return null;
+  }
+
+  function capitalizeFirst(s) {
+    if (!s) return s;
+    return s.charAt(0).toUpperCase() + s.slice(1);
   }
 
   function normalizeContactName(name) {
@@ -3692,7 +3697,7 @@
       suffix += 1;
       id = baseId + '_' + suffix;
     }
-    var created = { id: id, name: clean, ephemeralDelay: null };
+    var created = { id: id, name: capitalizeFirst(clean), ephemeralDelay: null };
     state.contacts.push(created);
     saveState(state);
     return created;
@@ -4363,6 +4368,7 @@
         }
         return;
       }
+      u = u.charAt(0).toUpperCase() + u.slice(1);
       setSavedUsername(u);
       setStoredPhraseHashB64(computePhraseHashB64(p, u));
       try {
