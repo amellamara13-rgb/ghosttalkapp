@@ -2063,8 +2063,6 @@
       opacity: 1;
       transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
       overflow-y: auto;
-      display: flex;
-      flex-direction: column;
     }
     #add-contact-overlay.is-open .modal-panel {
       transform: translateY(0);
@@ -2097,7 +2095,6 @@
     }
     #add-contact-overlay .modal-body {
       padding: 0 16px 20px;
-      flex: 1;
     }
     .add-contact-cards {
       display: flex;
@@ -2106,7 +2103,7 @@
     }
     .add-contact-card {
       flex: 1;
-      padding: 28px 12px;
+      padding: 24px 12px;
       border-radius: 16px;
       background: rgba(255,255,255,0.05);
       border: 0.5px solid rgba(255,255,255,0.08);
@@ -2116,6 +2113,7 @@
       gap: 12px;
       cursor: pointer;
       transition: border-color 0.15s;
+      max-height: 200px;
     }
     .add-contact-card:hover { border-color: var(--accent); }
     .add-contact-card.is-active { border-color: var(--accent); background: rgba(58,118,240,0.06); }
