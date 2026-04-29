@@ -3490,7 +3490,8 @@
 
   function getSavedUsername() {
     try {
-      return localStorage.getItem(USERNAME_KEY) || '';
+      var u = localStorage.getItem(USERNAME_KEY) || '';
+      return u ? capitalizeFirst(u) : '';
     } catch (e) {
       return '';
     }
@@ -3653,6 +3654,10 @@
     state.contacts.forEach(function (c) {
       if (!c || typeof c !== 'object') return;
       if (c.ephemeralDelay === undefined) c.ephemeralDelay = null;
+      // Capitaliser les noms existants sauf ceux renommés manuellement
+      if (c.name && !c.manuallyRenamed) {
+        c.name = capitalizeFirst(c.name);
+      }
     });
   }
 
