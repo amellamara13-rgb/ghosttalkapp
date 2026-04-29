@@ -624,31 +624,33 @@
     }
     .conv .time { font-size: 12px; color: var(--muted); flex-shrink: 0; }
     .conv-left {
-      width: 14px;
+      width: 36px;
       flex-shrink: 0;
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-end;
       align-self: stretch;
       position: relative;
-      margin-left: 0;
+      gap: 5px;
     }
     .conv-notif-bar {
       width: 3px;
       height: 28px;
       background: var(--accent);
       border-radius: 0 2px 2px 0;
+      flex-shrink: 0;
       position: absolute;
       left: 0;
       top: 50%;
       transform: translateY(-50%);
     }
     .conv-notif-count {
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 700;
       color: var(--accent);
       line-height: 1;
+      white-space: nowrap;
     }
     .title.is-unread {
       font-weight: 700;
@@ -4152,8 +4154,8 @@
       var cnt = el.querySelector('.conv-notif-count');
       var badgeEl = el.querySelector('.unread-badge');
       if (bar) bar.style.display = hasUnread ? '' : 'none';
-      if (cnt) cnt.textContent = hasUnread ? String(unreadCount) : '';
-      if (badgeEl) badgeEl.textContent = hasUnread ? String(unreadCount) : '';
+      if (cnt) cnt.textContent = hasUnread ? (unreadCount > 99 ? '99+' : String(unreadCount)) : '';
+      if (badgeEl) badgeEl.textContent = hasUnread ? (unreadCount > 99 ? '99+' : String(unreadCount)) : '';
       // Preview (dernier message)
       var msgs = state.directMessages.filter(function(m) { return m.contactId === contactId; });
       msgs.sort(function(a,b){ return (a.at||0)-(b.at||0); });
@@ -5161,7 +5163,7 @@
       var div = document.createElement('div');
       div.className = 'conv' + (contact.id === activeId ? ' active' : '');
       var leftHtml = hasUnread
-        ? '<div class="conv-notif-bar"></div><span class="conv-notif-count">' + escapeHtml(String(unreadCount)) + '</span>'
+        ? '<div class="conv-notif-bar"></div><span class="conv-notif-count">' + escapeHtml(unreadCount > 99 ? '99+' : String(unreadCount)) + '</span>'
         : '';
       div.innerHTML =
         '<div class="conv-left">' + leftHtml + '</div>' +
