@@ -169,6 +169,7 @@
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
       user-select: none;
+      align-items: flex-start;
     }
     .row.me .bubble-wrap {
       align-items: flex-end;
@@ -191,8 +192,8 @@
     .row:not(.me) .bubble-reply {
       background: rgba(255, 255, 255, 0.06);
     }
-    .row.me .bubble { max-width: 100%; }
-    .row:not(.me) .bubble { max-width: 100%; }
+    .row.me .bubble { max-width: 100%; align-self: flex-end; }
+    .row:not(.me) .bubble { max-width: 100%; align-self: flex-start; }
     .msg-line > .bubble-time {
       display: none;
     }
