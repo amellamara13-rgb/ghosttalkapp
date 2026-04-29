@@ -2098,30 +2098,27 @@
     }
     .add-contact-cards {
       display: flex;
-      gap: 12px;
+      flex-direction: column;
+      gap: 10px;
       margin-bottom: 16px;
-      max-width: 340px;
     }
     .add-contact-card {
-      width: 150px;
-      flex-shrink: 0;
-      height: 140px;
-      padding: 16px 12px;
+      width: 100%;
+      padding: 16px;
       border-radius: 16px;
       background: rgba(255,255,255,0.05);
       border: 0.5px solid rgba(255,255,255,0.08);
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       align-items: center;
-      justify-content: center;
-      gap: 10px;
+      gap: 16px;
       cursor: pointer;
-      transition: border-color 0.15s;
+      transition: background 0.15s;
     }
-    .add-contact-card:hover { border-color: var(--accent); }
-    .add-contact-card.is-active { border-color: var(--accent); background: rgba(58,118,240,0.06); }
-    .add-contact-card-label { font-size: 13px; font-weight: 600; color: var(--fg); text-align: center; }
-    .add-contact-card-sub { font-size: 11px; color: var(--muted); text-align: center; }
+    .add-contact-card:hover { background: rgba(255,255,255,0.08); }
+    .add-contact-card.is-active { background: rgba(58,118,240,0.08); border-color: var(--accent); }
+    .add-contact-card-label { font-size: 15px; font-weight: 600; color: var(--fg); }
+    .add-contact-card-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
     .add-contact-qr-placeholder {
       display: flex; flex-direction: column; align-items: center;
       gap: 10px; padding: 24px 0;
@@ -7642,18 +7639,24 @@
       <div class="modal-body">
         <div class="add-contact-cards">
           <div class="add-contact-card" id="add-contact-by-pseudo">
-            <div style="width:48px;height:48px;border-radius:50%;background:rgba(58,118,240,0.15);display:flex;align-items:center;justify-content:center;">
-              <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="28" height="28"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <div style="width:48px;height:48px;border-radius:50%;background:rgba(58,118,240,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             </div>
-            <span class="add-contact-card-label">Par pseudo</span>
-            <span class="add-contact-card-sub">Chercher un utilisateur</span>
+            <div style="flex:1;min-width:0;">
+              <div class="add-contact-card-label">Par pseudo</div>
+              <div class="add-contact-card-sub">Chercher un utilisateur</div>
+            </div>
+            <svg width="8" height="14" viewBox="0 0 8 14" fill="none" style="flex-shrink:0;"><path d="M1 1l6 6-6 6" stroke="rgba(255,255,255,0.25)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </div>
           <div class="add-contact-card" id="add-contact-by-qr">
-            <div style="width:48px;height:48px;border-radius:50%;background:rgba(58,118,240,0.15);display:flex;align-items:center;justify-content:center;">
-              <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="28" height="28"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="14" width="3" height="3"/><rect x="14" y="18" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/></svg>
+            <div style="width:48px;height:48px;border-radius:50%;background:rgba(58,118,240,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="14" width="3" height="3"/><rect x="14" y="18" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/></svg>
             </div>
-            <span class="add-contact-card-label">Par QR code</span>
-            <span class="add-contact-card-sub">Scanner le code</span>
+            <div style="flex:1;min-width:0;">
+              <div class="add-contact-card-label">Par QR code</div>
+              <div class="add-contact-card-sub">Scanner le code</div>
+            </div>
+            <svg width="8" height="14" viewBox="0 0 8 14" fill="none" style="flex-shrink:0;"><path d="M1 1l6 6-6 6" stroke="rgba(255,255,255,0.25)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </div>
         </div>
 
